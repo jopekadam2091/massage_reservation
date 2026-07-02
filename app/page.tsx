@@ -54,7 +54,7 @@ export default function Home() {
       klasikTitle: 'MASÁŽ CLASSIC',
       klasikDesc: 'Dôkladné uvoľnenie svalového napätia, regenerácia tela.',
       vipTitle: 'MASÁŽ VIP PREMIUM ✨',
-      vipDesc: 'Exkluzívny rituál vrátane aromaterapie, masáže hlavy a maximálneho pokoja.',
+      vipDesc: 'Exkluzívny rituál vrátane aromaterapie, masáže hlavy and maximálneho pokoja.',
       step2Title: '2. Krok: Vyberte si optimálny balíček',
       step3Title: '3. Krok: Vyberte si exkluzívny voľný termín',
       selected: 'Vybrané',
@@ -118,7 +118,16 @@ export default function Home() {
     VIP: { 45: '65 eur', 60: '70 eur', 90: '90 eur' }
   };
 
-  // --- DEFINÍCIA DATADRIVEN BALÍČKOV (Z image_2.png PODĽA ZADANIA) ---
+  // --- FUNKCIE PRE OBSLUHU KONTAKTOV ---
+  const handleContactCheckboxChange = (method: ContactMethod) => {
+    setActiveContacts(prev => ({ ...prev, [method]: !prev[method] }));
+  };
+
+  const handleContactValueChange = (method: ContactMethod, value: string) => {
+    setContactValues(prev => ({ ...prev, [method]: value }));
+  };
+
+  // --- DEFINÍCIA BALÍČKOV PODĽA ZADANIA ---
   const packagesData = {
     Klasik: [
       {
@@ -283,21 +292,18 @@ export default function Home() {
                   <div className="space-y-6">
                     <h2 className="text-2xl font-bold text-center text-[#5c4a37]">{t.step2Title} ({selectedType === 'Klasik' ? t.klasikTitle : t.vipTitle})</h2>
                     
-                    {/* Grid rozloženie pre 3 karty */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
                       {packagesData[selectedType].map((pkg) => {
                         const priceStr = selectedType === 'Klasik' 
-                          ? prices.Klasik[pkg.duration as keyof typeof prices.Klasik] 
-                          : prices.VIP[pkg.duration as keyof typeof prices.VIP];
+                          ? prices.Klasik[pkg.duration as 30 | 45 | 60] 
+                          : prices.VIP[pkg.duration as 45 | 60 | 90];
                         
-                        // Zvýraznenie strednej Professional karty ako na predlohe
                         const isMiddle = pkg.badge.includes('Middle') || pkg.badge.includes('Professional');
 
                         return (
                           <div key={pkg.duration} className={`flex flex-col bg-white rounded-3xl border shadow-sm transition-all overflow-hidden ${
                             isMiddle ? 'border-amber-300 ring-2 ring-amber-200/50 bg-gradient-to-b from-amber-50/30 to-white' : 'border-gray-100'
                           }`}>
-                            {/* Horná časť karty */}
                             <div className="p-6 pb-0 flex flex-col items-start">
                               <span className="px-3 py-1 bg-gray-100 text-[11px] font-bold tracking-wider uppercase rounded-full text-gray-600 mb-4">
                                 {pkg.badge}
@@ -310,7 +316,6 @@ export default function Home() {
                               <p className="text-xs text-gray-500 min-h-[32px] mt-1">{pkg.desc}</p>
                             </div>
 
-                            {/* Akčné tlačidlo ako na predlohe */}
                             <div className="p-6 pt-4">
                               <button 
                                 type="button" 
@@ -325,10 +330,8 @@ export default function Home() {
                               </button>
                             </div>
 
-                            {/* Deliaca čiara */}
                             <div className="border-t border-gray-100 my-2 mx-6"></div>
 
-                            {/* Spodná časť karty - Pricing list výhod s fajkami */}
                             <div className="p-6 pt-2 flex-grow">
                               <ul className="space-y-2.5 text-xs text-gray-600">
                                 {pkg.features.map((feat, idx) => (
@@ -348,7 +351,7 @@ export default function Home() {
                   </div>
                 )}
 
-                {/* KROK 3: TERMÍNY A FLEXIBILNÝ KONTAKT */}
+                {/* KROK 3: TERMÍNY A KONTAKT */}
                 {massageStep === 3 && selectedType && selectedDuration && (
                   <div className="bg-white p-6 rounded-xl border border-amber-100 shadow-sm text-gray-800 max-w-xl mx-auto">
                     <h2 className="text-lg font-bold text-center text-[#5c4a37]">{t.step3Title}</h2>
@@ -380,7 +383,6 @@ export default function Home() {
                         <div className="space-y-2 bg-gray-50 p-3 rounded-lg border border-gray-100">
                           <p className="text-[11px] text-gray-500 font-medium">{t.contactNotice}</p>
                           
-                          {/* Telefón */}
                           <div className="space-y-1">
                             <label className="flex items-center space-x-2 text-xs font-semibold cursor-pointer">
                               <input type="checkbox" checked={activeContacts.phone} onChange={() => handleContactCheckboxChange('phone')} className="rounded border-gray-300 text-[#8a7355] focus:ring-[#8a7355]" />
@@ -391,7 +393,6 @@ export default function Home() {
                             )}
                           </div>
 
-                          {/* Instagram */}
                           <div className="space-y-1 pt-1">
                             <label className="flex items-center space-x-2 text-xs font-semibold cursor-pointer">
                               <input type="checkbox" checked={activeContacts.instagram} onChange={() => handleContactCheckboxChange('instagram')} className="rounded border-gray-300 text-[#8a7355] focus:ring-[#8a7355]" />
@@ -402,7 +403,6 @@ export default function Home() {
                             )}
                           </div>
 
-                          {/* Email */}
                           <div className="space-y-1 pt-1">
                             <label className="flex items-center space-x-2 text-xs font-semibold cursor-pointer">
                               <input type="checkbox" checked={activeContacts.email} onChange={() => handleContactCheckboxChange('email')} className="rounded border-gray-300 text-[#8a7355] focus:ring-[#8a7355]" />
@@ -436,4 +436,3 @@ export default function Home() {
     </div>
   );
 }
-
