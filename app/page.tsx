@@ -26,11 +26,11 @@ export default function Home() {
     email: ''
   });
 
-  // Kompletné textové preklady pre SK a EN vrátane formulárov
+  // Kompletné textové preklady pre SK a EN vrátane domovskej stránky
   const translations = {
     SK: {
-      photo: 'Photography',
-      massage: 'Massage',
+      photo: 'Fotografia',
+      massage: 'Masáže',
       photoSubtitle: 'Ateliér na byte v Bratislave alebo fotenie v exteriéri podľa dohody.',
       photoTitle: 'Zachytenie Vášho Momentu',
       photoFormTitle: 'Dohodnúť umelecké fotenie',
@@ -167,7 +167,7 @@ export default function Home() {
          ======================================= */}
       {mode !== null && (
         <>
-          {/* Zjednodušená navigácia - iba čisté tlačidlo Domov, žiadne prepínače identít */}
+          {/* Zjednodušená navigácia - iba čisté tlačidlo Domov */}
           <header className="p-6 max-w-6xl mx-auto flex justify-between items-center">
             <button 
               type="button" 
