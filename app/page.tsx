@@ -54,7 +54,7 @@ export default function Home() {
       klasikTitle: 'MASÁŽ CLASSIC',
       klasikDesc: 'Dôkladné uvoľnenie svalového napätia, regenerácia tela.',
       vipTitle: 'MASÁŽ VIP PREMIUM ✨',
-      vipDesc: 'Exkluzívny rituál vrátane aromaterapie, masáže hlavy and maximálneho pokoja.',
+      vipDesc: 'Exkluzívny rituál vrátane aromaterapie, masáže hlavy a maximálneho pokoja.',
       step2Title: '2. Krok: Vyberte si optimálny balíček',
       step3Title: '3. Krok: Vyberte si exkluzívny voľný termín',
       selected: 'Vybrané',
@@ -127,46 +127,46 @@ export default function Home() {
     setContactValues(prev => ({ ...prev, [method]: value }));
   };
 
-  // --- DEFINÍCIA BALÍČKOV PODĽA ZADANIA ---
+  // --- DEFINÍCIA BALÍČKOV (AKTUALIZOVANÁ PRE CLASSIC AJ VIP) ---
   const packagesData = {
     Klasik: [
       {
         duration: 30,
-        badge: 'Starter',
-        desc: 'Rýchly test masáže ako keby.',
-        features: ['Masáž celého tela (rýchly prehľad)', 'Masáž rúk a dlaní', 'Aromaterapia']
+        badge: 'Lite',
+        desc: 'Vhodný pre rýchlu masáž konkrétnejšie oblasti tela.',
+        features: ['Masáž vybranej časti tela', 'Aromaterapia']
       },
       {
         duration: 45,
-        badge: 'Middle',
-        desc: 'Vhodný stred pre základnú úľavu.',
-        features: ['Masáž celého tela', 'Masáž rúk a dlaní', 'Hĺbková masáž gluteálnej oblasti', 'Aromaterapia']
+        badge: 'Supreme',
+        desc: 'Vhodný pre rýchly relax celého tela.',
+        features: ['Masáž celého tela', 'Možnosť vybrať extra čas na vybranú partiu', 'Aromaterapia']
       },
       {
         duration: 60,
         badge: 'Full Experience',
-        desc: 'Dokonalý zážitok s extra zameraním.',
-        features: ['Masáž celého tela', 'Masáž rúk a dlaní', 'Hĺbková masáž gluteálnej oblasti', 'Možnosť masírovania konkrétnej časti dlhšie', 'Aromaterapia', 'Dynamická perkusívna terapia (vibračná pištoľ)']
+        desc: 'Dokonalý zážitok s extra časom.',
+        features: ['Masáž celého tela', 'Možnosť vybrať extra čas na vybranú partiu', 'Aromaterapia']
       }
     ],
     VIP: [
       {
         duration: 45,
-        badge: 'VIP Lite',
-        desc: 'Rýchly test VIP procedúr (bez intímnych olejov).',
-        features: ['Hĺbková masáž panvového dna', 'Masáž rúk a dlaní', 'Terapeutická masáž prostaty', 'Hĺbková masáž gluteálnej oblasti', 'Aromaterapia', 'Dynamická perkusívna terapia']
+        badge: 'VIP Supreme',
+        desc: 'Rýchla ochutnávka VIP procedúr.',
+        features: ['Hlbková masáž panvového dna', 'Masáž rúk', 'Hlbková masáž gluteálnej oblasti', 'Aromaterapia']
       },
       {
         duration: 60,
-        badge: 'VIP Professional',
-        desc: 'Kompletný prémiový rituál v plnom rozsahu.',
+        badge: 'VIP Pro',
+        desc: 'Kompletný prémium senzuálny rituál v plnom rozsahu.',
         features: ['Hĺbková masáž panvového dna', 'Masáž rúk a dlaní', 'Terapeutická masáž prostaty', 'Hĺbková masáž gluteálnej oblasti', 'Aplikácia špeciálnych intímnych olejov', 'Aromaterapia', 'Dynamická perkusívna terapia (vibračná pištoľ)']
       },
       {
         duration: 90,
-        badge: 'VIP Ultimate',
-        desc: 'Ešte viac intenzívna senzualita a atmosféra bez ponáhľania.',
-        features: ['Maximálne intenzívna senzualita', 'Spomalený luxusný rituál', 'Hĺbková masáž panvového dna', 'Masáž rúk a dlaní', 'Terapeutická masáž prostaty', 'Hĺbková masáž gluteálnej oblasti', 'Aplikácia špeciálnych intímnych olejov', 'Aromaterapia', 'Dynamická perkusívna terapia']
+        badge: 'VIP Max',
+        desc: 'Pro zážitok vytiahnutý na maximum, pre pôžitkárov.',
+        features: ['Maximálne uvoľnenie', 'Drink v cene', 'Plus darček', 'Hĺbková masáž panvového dna', 'Masáž rúk a dlaní', 'Terapeutická masáž prostaty', 'Hĺbková masáž gluteálnej oblasti', 'Aplikácia špeciálnych intímnych olejov', 'Aromaterapia', 'Dynamická perkusívna terapia']
       }
     ]
   };
@@ -265,12 +265,12 @@ export default function Home() {
                   {[1, 2, 3].map((step) => (
                     <div key={step} className="flex items-center space-x-1">
                       <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold border transition ${massageStep === step ? 'bg-[#8a7355] text-white' : 'bg-white text-gray-400'}`}>{step}</div>
-                      <span className={`text-[10px] font-semibold ${massageStep === step ? 'text-[#8a7355]' : 'text-gray-400'}`}>{step === 1 ? t.step1 : step === 2 ? t.step2 : t.step3}</span>
+                      <span className={`text-[10px] font-semibold ${massageStep === step ? 'text-[#8a7355]' : 'text-gray-400'}`}>{step === 1 ? t.step1 : step === 2 ? t.step2 : step === 3}</span>
                     </div>
                   ))}
                 </div>
 
-                {/* KROK 1: VÝBER CLASSIC VS VIP */}
+                {/* KROK 1 */}
                 {massageStep === 1 && (
                   <div className="bg-white p-6 rounded-xl border border-amber-100 shadow-sm text-gray-800 max-w-xl mx-auto">
                     <h2 className="text-lg font-bold text-center text-[#5c4a37] mb-4">{t.step1Title}</h2>
@@ -287,7 +287,7 @@ export default function Home() {
                   </div>
                 )}
 
-                {/* KROK 2: ŠTÝL PRICING LISTU PODĽA IMAGE_3.PNG */}
+                {/* KROK 2 */}
                 {massageStep === 2 && selectedType && (
                   <div className="space-y-6">
                     <h2 className="text-2xl font-bold text-center text-[#5c4a37]">{t.step2Title} ({selectedType === 'Klasik' ? t.klasikTitle : t.vipTitle})</h2>
@@ -298,7 +298,8 @@ export default function Home() {
                           ? prices.Klasik[pkg.duration as 30 | 45 | 60] 
                           : prices.VIP[pkg.duration as 45 | 60 | 90];
                         
-                        const isMiddle = pkg.badge.includes('Middle') || pkg.badge.includes('Professional');
+                        // Zvýraznenie strednej karty (Supreme pre Klasik, VIP Pro pre VIP)
+                        const isMiddle = pkg.badge === 'Supreme' || pkg.badge === 'VIP Pro';
 
                         return (
                           <div key={pkg.duration} className={`flex flex-col bg-white rounded-3xl border shadow-sm transition-all overflow-hidden ${
@@ -311,7 +312,7 @@ export default function Home() {
                               <div className="flex items-baseline text-gray-900 mb-1">
                                 <span className="text-4xl font-black tracking-tight">{priceStr.split(' ')[0]}</span>
                                 <span className="text-lg font-bold ml-1 text-gray-500">eur</span>
-                                <span className="text-xs font-semibold text-gray-400 ml-2">/ {pkg.duration} {selectedType === 'VIP' ? 'min VIP' : t.minutes}</span>
+                                <span className="text-xs font-semibold text-gray-400 ml-2">/ {pkg.duration} {t.minutes}</span>
                               </div>
                               <p className="text-xs text-gray-500 min-h-[32px] mt-1">{pkg.desc}</p>
                             </div>
@@ -351,12 +352,12 @@ export default function Home() {
                   </div>
                 )}
 
-                {/* KROK 3: TERMÍNY A KONTAKT */}
+                {/* KROK 3 */}
                 {massageStep === 3 && selectedType && selectedDuration && (
                   <div className="bg-white p-6 rounded-xl border border-amber-100 shadow-sm text-gray-800 max-w-xl mx-auto">
                     <h2 className="text-lg font-bold text-center text-[#5c4a37]">{t.step3Title}</h2>
                     <div className="p-3 bg-amber-50 rounded-lg text-xs text-center border border-amber-100 text-[#5c4a37] my-4">
-                      {t.selected}: <strong>{selectedType === 'Klasik' ? 'CLASSIC' : 'VIP PREMIUM'} - {selectedDuration} {selectedType === 'VIP' ? 'minút VIP' : t.minutes}</strong>
+                      {t.selected}: <strong>{selectedType === 'Klasik' ? 'CLASSIC' : 'VIP PREMIUM'} - {selectedDuration} {t.minutes}</strong>
                     </div>
                     
                     <div className="flex flex-col space-y-2">
@@ -389,7 +390,7 @@ export default function Home() {
                               <span>{t.phone}</span>
                             </label>
                             {activeContacts.phone && (
-                              <input type="tel" required placeholder="+421 ..." value={contactValues.phone} onChange={(e) => handleContactValueChange('phone', e.target.value)} className="w-full p-2 border rounded text-xs bg-white focus:outline-none" />
+                              <input type="tel" required placeholder="+421 ..." value={contactValues.phone} onChange={(e) => handleContactValueChange('phone', e.target.value)} className="w-full p-2 border rounded text-xs bg-white focus:none" />
                             )}
                           </div>
 
@@ -399,7 +400,7 @@ export default function Home() {
                               <span>{t.instagram}</span>
                             </label>
                             {activeContacts.instagram && (
-                              <input type="text" required placeholder="@uzivatel" value={contactValues.instagram} onChange={(e) => handleContactValueChange('instagram', e.target.value)} className="w-full p-2 border rounded text-xs bg-white focus:outline-none" />
+                              <input type="text" required placeholder="@uzivatel" value={contactValues.instagram} onChange={(e) => handleContactValueChange('instagram', e.target.value)} className="w-full p-2 border rounded text-xs bg-white focus:none" />
                             )}
                           </div>
 
@@ -409,7 +410,7 @@ export default function Home() {
                               <span>{t.email}</span>
                             </label>
                             {activeContacts.email && (
-                              <input type="email" required placeholder="meno@domena.com" value={contactValues.email} onChange={(e) => handleContactValueChange('email', e.target.value)} className="w-full p-2 border rounded text-xs bg-white focus:outline-none" />
+                              <input type="email" required placeholder="meno@domena.com" value={contactValues.email} onChange={(e) => handleContactValueChange('email', e.target.value)} className="w-full p-2 border rounded text-xs bg-white focus:none" />
                             )}
                           </div>
                         </div>
