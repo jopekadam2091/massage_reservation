@@ -112,27 +112,27 @@ export default function Home() {
         </button>
       </div>
 
-      {/* 0. KROK: ÚVODNÉ RÁZCESTIE S ROZDIELNYMI FONTAMI */}
+      {/* 0. KROK: ÚVODNÉ RÁZCESTIE (DIZAJN NA VÝŠKU) */}
       {mode === null && (
-        <div className="flex flex-col md:flex-row h-screen w-full items-center justify-center">
-          {/* FOTO - FONT FIGTREE */}
+        <div className="flex flex-col h-screen w-full items-center justify-center">
+          {/* FOTO - HORNA POLOVICA */}
           <button 
             type="button"
             onClick={() => setMode('photo')} 
-            className="w-full md:w-1/2 h-1/2 md:h-full flex flex-col items-center justify-center group hover:bg-neutral-900 transition-all duration-500 border-b md:border-b-0 md:border-r border-neutral-800 font-figtree"
+            className="w-full h-1/2 flex flex-col items-center justify-center group hover:bg-neutral-900 transition-all duration-500 border-b border-neutral-800 font-figtree"
           >
-            <div className="text-6xl mb-4 group-hover:scale-110 transition-transform duration-300">👁️</div>
-            <span className="text-2xl font-light tracking-widest uppercase">{t.photo}</span>
+            <div className="text-5xl mb-2 group-hover:scale-110 transition-transform duration-300">👁️</div>
+            <span className="text-xl font-light tracking-widest uppercase">{t.photo}</span>
           </button>
 
-          {/* MASÁŽE - FONT CHILLAX */}
+          {/* MASÁŽE - DOLNA POLOVICA */}
           <button 
             type="button"
             onClick={() => setMode('massage')} 
-            className="w-full md:w-1/2 h-1/2 md:h-full flex flex-col items-center justify-center group hover:bg-[#1f1f1f] transition-all duration-500 font-chillax"
+            className="w-full h-1/2 flex flex-col items-center justify-center group hover:bg-[#1f1f1f] transition-all duration-500 font-chillax"
           >
-            <div className="text-6xl mb-4 group-hover:scale-110 transition-transform duration-300">🙌</div>
-            <span className="text-2xl font-light tracking-widest uppercase">{t.massage}</span>
+            <div className="text-5xl mb-2 group-hover:scale-110 transition-transform duration-300">🙌</div>
+            <span className="text-xl font-light tracking-widest uppercase">{t.massage}</span>
           </button>
         </div>
       )}
@@ -140,7 +140,7 @@ export default function Home() {
       {/* VNÚTORNÝ OBSAH */}
       {mode !== null && (
         <>
-          <header className="p-6 max-w-6xl mx-auto flex justify-between items-center">
+          <header className="p-6 max-w-xl mx-auto flex justify-between items-center">
             <button type="button" onClick={() => { setMode(null); setMassageStep(1); setSelectedType(null); setSelectedDuration(null); setSelectedSlot(null); }} className="text-xs uppercase tracking-widest font-bold px-4 py-2 rounded-full border transition border-current opacity-80 hover:opacity-100">
               {t.homeBtn}
             </button>
@@ -149,17 +149,17 @@ export default function Home() {
             </div>
           </header>
 
-          <main className="max-w-4xl mx-auto p-6 mt-4">
+          <main className="max-w-xl mx-auto p-6 mt-4">
             {mode === 'photo' ? (
-              /* FOTO FORMULÁR (Celý vo font-figtree) */
+              /* FOTO FORMULÁR */
               <div className="space-y-8 animate-fadeIn">
                 <div>
-                  <h1 className="text-4xl font-extrabold mb-2">{t.photoTitle}</h1>
-                  <p className="text-gray-400">{t.photoSubtitle}</p>
+                  <h1 className="text-3xl font-extrabold mb-2">{t.photoTitle}</h1>
+                  <p className="text-gray-400 text-sm">{t.photoSubtitle}</p>
                 </div>
                 <form onSubmit={(e) => { e.preventDefault(); alert('Brief sent!'); }} className="bg-neutral-900 p-6 rounded-xl border border-neutral-800 space-y-6">
-                  <h2 className="text-xl font-bold border-b border-neutral-800 pb-2">{t.photoFormTitle}</h2>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <h2 className="text-lg font-bold border-b border-neutral-800 pb-2">{t.photoFormTitle}</h2>
+                  <div className="space-y-4">
                     <div>
                       <label className="block text-xs font-semibold text-gray-400 uppercase mb-2">{t.photoType}</label>
                       <select className="w-full p-3 bg-neutral-800 border border-neutral-700 rounded text-white focus:outline-none"><option>{t.portrait}</option><option>{t.boudoir}</option><option>{t.artPhoto}</option></select>
@@ -173,53 +173,56 @@ export default function Home() {
                     <label className="block text-xs font-semibold text-gray-400 uppercase mb-2">{t.descLabel}</label>
                     <textarea rows={4} placeholder={t.descPlaceholder} className="w-full p-3 bg-neutral-800 border border-neutral-700 rounded text-white focus:outline-none" required />
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-neutral-800">
-                    <input type="text" placeholder={t.name} required className="p-3 bg-neutral-800 border border-neutral-700 rounded text-white focus:outline-none" />
+                  <div className="space-y-4 pt-4 border-t border-neutral-800">
+                    <input type="text" placeholder={t.name} required className="w-full p-3 bg-neutral-800 border border-neutral-700 rounded text-white focus:outline-none" />
+                    <input type="email" placeholder={t.email} required className="w-full p-3 bg-neutral-800 border border-neutral-700 rounded text-white focus:outline-none" />
                   </div>
                   <button type="submit" className="w-full bg-white text-black py-3 rounded font-bold hover:bg-gray-200 transition">{t.send}</button>
                 </form>
               </div>
             ) : (
-              /* MASÁŽNY STEPPER (Celý vo font-chillax) */
+              /* MASÁŽNY STEPPER (VERTIKÁLNY ZÁPIS) */
               <div className="space-y-8 animate-fadeIn">
                 <div>
-                  <h1 className="text-4xl font-extrabold mb-2 text-[#5c4a37]">{t.massageTitle}</h1>
-                  <p className="text-amber-900 bg-amber-100/60 p-3 rounded border border-amber-200 inline-block text-sm">{t.massageSubtitle}</p>
+                  <h1 className="text-3xl font-extrabold mb-2 text-[#5c4a37]">{t.massageTitle}</h1>
+                  <p className="text-amber-900 bg-amber-100/60 p-3 rounded border border-amber-200 block text-sm">{t.massageSubtitle}</p>
                 </div>
 
-                <div className="flex justify-between max-w-md mx-auto mb-8">
+                <div className="flex justify-between max-w-xs mx-auto mb-8">
                   {[1, 2, 3].map((step) => (
-                    <div key={step} className="flex items-center space-x-2">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold border transition ${massageStep === step ? 'bg-[#8a7355] text-white' : 'bg-white text-gray-400'}`}>{step}</div>
-                      <span className={`text-xs font-semibold ${massageStep === step ? 'text-[#8a7355]' : 'text-gray-400'}`}>{step === 1 ? t.step1 : step === 2 ? t.step2 : t.step3}</span>
+                    <div key={step} className="flex items-center space-x-1">
+                      <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold border transition ${massageStep === step ? 'bg-[#8a7355] text-white' : 'bg-white text-gray-400'}`}>{step}</div>
+                      <span className={`text-[10px] font-semibold ${massageStep === step ? 'text-[#8a7355]' : 'text-gray-400'}`}>{step === 1 ? t.step1 : step === 2 ? t.step2 : t.step3}</span>
                     </div>
                   ))}
                 </div>
 
                 <div className="bg-white p-6 rounded-xl border border-amber-100 shadow-sm text-gray-800">
+                  {/* KROK 1: PONUKA POD SEBOU */}
                   {massageStep === 1 && (
-                    <div className="space-y-6">
-                      <h2 className="text-xl font-bold text-center text-[#5c4a37]">{t.step1Title}</h2>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <button type="button" onClick={() => { setSelectedType('Klasik'); setMassageStep(2); }} className="p-6 rounded-xl border text-left hover:border-amber-300 transition">
-                          <h3 className="font-bold text-lg text-[#5c4a37]">{t.klasikTitle}</h3>
+                    <div className="space-y-4">
+                      <h2 className="text-lg font-bold text-center text-[#5c4a37]">{t.step1Title}</h2>
+                      <div className="flex flex-col space-y-3">
+                        <button type="button" onClick={() => { setSelectedType('Klasik'); setMassageStep(2); }} className="p-5 rounded-xl border text-left hover:border-amber-300 transition bg-gray-50/50">
+                          <h3 className="font-bold text-base text-[#5c4a37]">{t.klasikTitle}</h3>
                           <p className="text-xs text-gray-500 mt-1">{t.klasikDesc}</p>
                         </button>
-                        <button type="button" onClick={() => { setSelectedType('VIP'); setMassageStep(2); }} className="p-6 rounded-xl border text-left hover:border-amber-300 transition">
-                          <h3 className="font-bold text-lg text-[#5c4a37]">{t.vipTitle}</h3>
+                        <button type="button" onClick={() => { setSelectedType('VIP'); setMassageStep(2); }} className="p-5 rounded-xl border text-left hover:border-amber-300 transition bg-gray-50/50">
+                          <h3 className="font-bold text-base text-[#5c4a37]">{t.vipTitle}</h3>
                           <p className="text-xs text-gray-500 mt-1">{t.vipDesc}</p>
                         </button>
                       </div>
                     </div>
                   )}
 
+                  {/* KROK 2: DĹŽKA TRVANIA POD SEBOU */}
                   {massageStep === 2 && selectedType && (
-                    <div className="space-y-6">
-                      <h2 className="text-xl font-bold text-center text-[#5c4a37]">{t.step2Title} ({selectedType})</h2>
-                      <div className="flex flex-col space-y-3 max-w-sm mx-auto">
+                    <div className="space-y-4">
+                      <h2 className="text-lg font-bold text-center text-[#5c4a37]">{t.step2Title} ({selectedType})</h2>
+                      <div className="flex flex-col space-y-3">
                         {(selectedType === 'Klasik' ? [30, 45, 60] : [45, 60, 90]).map((dur) => (
                           <button type="button" key={dur} onClick={() => { setSelectedDuration(dur); setMassageStep(3); }} className="p-4 bg-gray-50 border rounded-lg flex justify-between items-center hover:border-amber-400 transition">
-                            <span className="font-semibold">{dur} {t.minutes}</span>
+                            <span className="font-semibold text-sm">{dur} {t.minutes}</span>
                             <span className="text-sm font-bold text-[#8a7355]">{selectedType === 'Klasik' ? prices.Klasik[dur as keyof typeof prices.Klasik] : prices.VIP[dur as keyof typeof prices.VIP]}</span>
                           </button>
                         ))}
@@ -228,15 +231,30 @@ export default function Home() {
                     </div>
                   )}
 
+                  {/* KROK 3: TERMÍNY POD SEBOU */}
                   {massageStep === 3 && selectedType && selectedDuration && (
-                    <div className="space-y-6">
-                      <h2 className="text-xl font-bold text-center text-[#5c4a37]">{t.step3Title}</h2>
+                    <div className="space-y-4">
+                      <h2 className="text-lg font-bold text-center text-[#5c4a37]">{t.step3Title}</h2>
                       <div className="p-3 bg-amber-50 rounded-lg text-xs text-center border border-amber-100 text-[#5c4a37]">{t.selected}: <strong>{selectedType} - {selectedDuration} {t.minutes}</strong></div>
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      
+                      {/* Zmena grid-cols-3 na flex-col (pod seba) */}
+                      <div className="flex flex-col space-y-2">
                         {availableSlots.map((slot) => (
-                          <button type="button" key={slot} onClick={() => setSelectedSlot(slot)} className={`p-3 text-sm rounded border transition ${selectedSlot === slot ? 'bg-[#8a7355] text-white' : 'bg-white hover:border-amber-300'}`}>{slot}</button>
+                          <button type="button" key={slot} onClick={() => setSelectedSlot(slot)} className={`p-3 text-sm text-center rounded border transition ${selectedSlot === slot ? 'bg-[#8a7355] text-white border-[#8a7355]' : 'bg-white hover:border-amber-300'}`}>{slot}</button>
                         ))}
                       </div>
+
+                      {selectedSlot && (
+                        <form onSubmit={(e) => { e.preventDefault(); alert('Reserved!'); }} className="space-y-3 pt-4 border-t border-gray-100">
+                          <h3 className="font-bold text-xs text-gray-700">{t.contactTitle}</h3>
+                          <div className="flex flex-col space-y-2">
+                            <input type="text" placeholder={t.name} required className="p-3 border rounded text-sm bg-gray-50 focus:bg-white focus:outline-none" />
+                            <input type="email" placeholder={t.email} required className="p-3 border rounded text-sm bg-gray-50 focus:bg-white focus:outline-none" />
+                            <input type="tel" placeholder={t.phone} required className="p-3 border rounded text-sm bg-gray-50 focus:bg-white focus:outline-none" />
+                          </div>
+                          <button type="submit" className="w-full bg-[#8a7355] text-white py-3 rounded-lg font-bold hover:bg-[#725e45] transition text-sm">{t.bookBtn}</button>
+                        </form>
+                      )}
                       <button type="button" onClick={() => setMassageStep(2)} className="text-xs text-gray-400 block text-center mt-4 hover:underline">{t.back}</button>
                     </div>
                   )}
