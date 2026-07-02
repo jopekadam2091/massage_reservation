@@ -166,7 +166,7 @@ export default function Home() {
         duration: 90,
         badge: 'VIP Max',
         desc: 'Pro zážitok vytiahnutý na maximum, pre pôžitkárov.',
-        features: ['Maximálne uvoľnenie', 'Drink v cene', 'Plus darček', 'Hĺbková masáž panvového dna', 'Masáž rúk a dlaní', 'Terapeutická masáž prostaty', 'Hĺbková masáž gluteálnej oblasti', 'Aplikácia špeciálnych intímnych olejov', 'Aromaterapia', 'Dynamická perkusívna terapia']
+        features: ['Maximálne uvoľnenie', 'Hĺbková masáž panvového dna', 'Masáž rúk a dlaní', 'Terapeutická masáž prostaty', 'Hĺbková masáž gluteálnej oblasti', 'Aplikácia špeciálnych intímnych olejov', 'Aromaterapia', 'Dynamická perkusívna terapia','Drink v cene','+ Darček']
       }
     ]
   };
