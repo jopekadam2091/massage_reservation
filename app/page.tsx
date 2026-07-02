@@ -15,10 +15,11 @@ export default function Home() {
   const [selectedType, setSelectedType] = useState<MassageType | null>(null);
   const [selectedDuration, setSelectedDuration] = useState<number | null>(null);
   
-  // Kalendárové stavy pripojené na Google Calendar API
-  const [slotsByDays, setSlotsByDays] = useState<Record<number, string[]>>({});
+  // --- DYNAMICKÝ KALENDÁR A GOOGLE API STAVY ---
+  const [currentDate, setCurrentDate] = useState<Date>(new Date());
+  const [slotsByDate, setSlotsByDate] = useState<Record<string, string[]>>({});
   const [loadingCalendar, setLoadingCalendar] = useState<boolean>(false);
-  const [selectedDay, setSelectedDay] = useState<number | null>(null);
+  const [selectedDateKey, setSelectedDateKey] = useState<string | null>(null);
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
 
   // --- STAVY PRE KONTAKT ---
@@ -60,7 +61,7 @@ export default function Home() {
       klasikTitle: 'MASÁŽ CLASSIC',
       klasikDesc: 'Dôkladné uvoľnenie svalového napätia, regenerácia tela.',
       vipTitle: 'MASÁŽ VIP PREMIUM ✨',
-      vipDesc: 'Exkluzívny rituál vrátane aromaterapie, masáže hlavy and maximálneho pokoja.',
+      vipDesc: 'Exkluzívny rituál vrátane aromaterapie, masáže hlavy a maximálneho pokoja.',
       step2Title: '2. Krok: Vyberte si optimálny balíček',
       step3Title: '3. Krok: Vyberte si exkluzívny voľný termín z kalendára',
       selected: 'Vybrané',
@@ -74,7 +75,7 @@ export default function Home() {
       email: 'Email',
       instagram: 'Instagram',
       selectBtn: 'Vybrať tento balíček',
-      month: 'Október',
+      months: ['Január', 'Február', 'Marec', 'Apríl', 'Máj', 'Jún', 'Júl', 'August', 'September', 'Október', 'November', 'December'],
       mon: 'PO', tue: 'UT', wed: 'ST', thu: 'ŠT', fri: 'PI', sat: 'SO', sun: 'NE',
       chooseTime: 'Vyberte si čas na daný deň:',
       loading: 'Načítavam voľné termíny z kalendára...'
@@ -117,7 +118,7 @@ export default function Home() {
       email: 'Email',
       instagram: 'Instagram',
       selectBtn: 'Select this package',
-      month: 'October',
+      months: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
       mon: 'MO', tue: 'TU', wed: 'WE', thu: 'TH', fri: 'FR', sat: 'SA', sun: 'SU',
       chooseTime: 'Select time for the chosen day:',
       loading: 'Loading available slots from Google Calendar...'
@@ -126,8 +127,35 @@ export default function Home() {
 
   const t = translations[lang];
 
-  // Vygenerujeme pole dní pre kalendár (31 dní v októbri)
-  const daysInMonth = Array.from({ length: 31 }, (_, i) => i + 1);
+  // --- VÝPOČTY PRE DYNAMICKÝ KALENDÁR ---
+  const currentYear = currentDate.getFullYear();
+  const currentMonth = currentDate.getMonth(); // 0-11
+  
+  // Počet dní v aktuálnom mesiaci
+  const daysInMonthCount = new Date(currentYear, currentMonth + 1, 0).getDate();
+  const daysArray = Array.from({ length: daysInMonthCount }, (_, i) => i + 1);
+  
+  // Deň v týždni, ktorým mesiac začína (aby pondelok bol 0 a nedeľa 6)
+  const firstDayIndex = (new Date(currentYear, currentMonth, 1).getDay() + 6) % 7;
+  const emptyCells = Array.from({ length: firstDayIndex }, (_, i) => i);
+
+  // Pomocná funkcia na vytvorenie kľúča vo formáte RRRR-MM-DD
+  const getDateKey = (year: number, month: number, day: number) => {
+    return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+  };
+
+  // Posun mesiacov
+  const handlePrevMonth = () => {
+    setCurrentDate(new Date(currentYear, currentMonth - 1, 1));
+    setSelectedDateKey(null);
+    setSelectedSlot(null);
+  };
+
+  const handleNextMonth = () => {
+    setCurrentDate(new Date(currentYear, currentMonth + 1, 1));
+    setSelectedDateKey(null);
+    setSelectedSlot(null);
+  };
 
   const prices = {
     Klasik: { 30: '30 eur', 45: '40 eur', 60: '45 eur' },
@@ -145,21 +173,24 @@ export default function Home() {
         })
         .then((data) => {
           if (data.events) {
-            const processedSlots: Record<number, string[]> = {};
+            const processedSlots: Record<string, string[]> = {};
             data.events.forEach((event: any) => {
               // Hľadáme udalosti s názvom "Voľno na masáž" v Google kalendári
               if (event.summary === 'Voľno na masáž' && event.start?.dateTime) {
                 const date = new Date(event.start.dateTime);
+                const year = date.getFullYear();
+                const month = date.getMonth();
                 const day = date.getDate();
+                const dateKey = getDateKey(year, month, day);
                 const time = date.toLocaleTimeString('sk-SK', { hour: '2-digit', minute: '2-digit' });
                 
-                if (!processedSlots[day]) {
-                  processedSlots[day] = [];
+                if (!processedSlots[dateKey]) {
+                  processedSlots[dateKey] = [];
                 }
-                processedSlots[day].push(time);
+                processedSlots[dateKey].push(time);
               }
             });
-            setSlotsByDays(processedSlots);
+            setSlotsByDate(processedSlots);
           }
           setLoadingCalendar(false);
         })
@@ -204,7 +235,7 @@ export default function Home() {
         setMassageStep(1);
         setSelectedType(null);
         setSelectedDuration(null);
-        setSelectedDay(null);
+        setSelectedDateKey(null);
         setSelectedSlot(null);
         setClientName('');
         setContactValues({ phone: '', instagram: '', email: '' });
@@ -231,7 +262,7 @@ export default function Home() {
       {
         duration: 30,
         badge: 'Lite',
-        desc: 'Vhodný pre rýchlu masáž konkrétnejšie oblasti tela.',
+        desc: 'Vhodný pre rýchlu masáž konkrétnejšej oblasti tela.',
         features: ['Masáž vybranej časti tela', 'Aromaterapia']
       },
       {
@@ -252,7 +283,7 @@ export default function Home() {
         duration: 45,
         badge: 'VIP Supreme',
         desc: 'Rýchla ochutnávka VIP procedúr.',
-        features: ['Hlbková masáž panvového dna', 'Masáž rúk', 'Hlbková masáž gluteálnej oblasti', 'Aromaterapia']
+        features: ['Hĺbková masáž panvového dna', 'Masáž rúk', 'Hĺbková masáž gluteálnej oblasti', 'Aromaterapia']
       },
       {
         duration: 60,
@@ -302,7 +333,7 @@ export default function Home() {
       {mode !== null && (
         <>
           <header className="p-6 max-w-4xl mx-auto flex justify-between items-center">
-            <button type="button" onClick={() => { setMode(null); setMassageStep(1); setSelectedType(null); setSelectedDuration(null); setSelectedDay(null); setSelectedSlot(null); }} className="text-xs uppercase tracking-widest font-bold px-4 py-2 rounded-full border transition border-current opacity-80 hover:opacity-100">
+            <button type="button" onClick={() => { setMode(null); setMassageStep(1); setSelectedType(null); setSelectedDuration(null); setSelectedDateKey(null); setSelectedSlot(null); }} className="text-xs uppercase tracking-widest font-bold px-4 py-2 rounded-full border transition border-current opacity-80 hover:opacity-100">
               {t.homeBtn}
             </button>
             <div className="text-sm font-semibold tracking-wider uppercase opacity-40">
@@ -449,11 +480,26 @@ export default function Home() {
                       <div className="text-center py-8 text-xs font-semibold text-gray-500">{t.loading}</div>
                     ) : (
                       <div className="border border-gray-100 rounded-2xl p-4 bg-gray-50/50 mb-6">
+                        {/* HLAVIČKA KALENDÁRA S PREPÍNANÍM MESIACOV */}
                         <div className="flex justify-between items-center mb-4 px-2">
-                          <span className="text-base font-bold tracking-tight text-gray-800">{t.month} 2026</span>
-                          <div className="flex space-x-3 text-xs text-gray-400 font-bold">
-                            <span>←</span>
-                            <span>→</span>
+                          <span className="text-base font-bold tracking-tight text-gray-800">
+                            {t.months[currentMonth]} {currentYear}
+                          </span>
+                          <div className="flex space-x-2">
+                            <button 
+                              type="button" 
+                              onClick={handlePrevMonth}
+                              className="p-1.5 px-3 bg-white border border-gray-200 rounded-lg text-xs font-bold text-gray-700 hover:bg-gray-100 transition shadow-sm"
+                            >
+                              ←
+                            </button>
+                            <button 
+                              type="button" 
+                              onClick={handleNextMonth}
+                              className="p-1.5 px-3 bg-white border border-gray-200 rounded-lg text-xs font-bold text-gray-700 hover:bg-gray-100 transition shadow-sm"
+                            >
+                              →
+                            </button>
                           </div>
                         </div>
 
@@ -462,25 +508,29 @@ export default function Home() {
                         </div>
 
                         <div className="grid grid-cols-7 gap-1.5">
-                          {/* Posun pre mesiac (Október 2026 začína vo Štvrtok) */}
-                          <div className="p-2"></div><div className="p-2"></div><div className="p-2"></div>
+                          {/* Prázdne bunky pred začiatkom mesiaca */}
+                          {emptyCells.map((_, idx) => (
+                            <div key={`empty-${idx}`} className="p-2"></div>
+                          ))}
 
-                          {daysInMonth.map((day) => {
-                            const hasSlots = !!slotsByDays[day] && slotsByDays[day].length > 0;
-                            const isCurrentSelected = selectedDay === day;
+                          {/* Reálne dni mesiaca */}
+                          {daysArray.map((day) => {
+                            const dateKey = getDateKey(currentYear, currentMonth, day);
+                            const hasSlots = !!slotsByDate[dateKey] && slotsByDate[dateKey].length > 0;
+                            const isCurrentSelected = selectedDateKey === dateKey;
 
                             return (
                               <button
                                 type="button"
-                                key={day}
+                                key={dateKey}
                                 disabled={!hasSlots}
-                                onClick={() => { setSelectedDay(day); setSelectedSlot(null); }}
+                                onClick={() => { setSelectedDateKey(dateKey); setSelectedSlot(null); }}
                                 className={`aspect-square flex items-center justify-center text-xs font-semibold rounded-lg transition-all ${
                                   hasSlots 
                                     ? isCurrentSelected
-                                      ? 'bg-emerald-600 text-white font-bold ring-2 ring-emerald-300'
+                                      ? 'bg-emerald-600 text-white font-bold ring-2 ring-emerald-300 shadow'
                                       : 'bg-emerald-100 text-emerald-800 font-bold hover:bg-emerald-200 border border-emerald-300/40 shadow-sm'
-                                    : 'text-gray-400 bg-white border border-gray-100 opacity-60'
+                                    : 'text-gray-400 bg-white border border-gray-100 opacity-60 cursor-not-allowed'
                                 }`}
                               >
                                 {day}
@@ -492,24 +542,24 @@ export default function Home() {
                     )}
 
                     {/* ZOBRAZENIE HODÍN PRE VYBRANÝ DEŇ */}
-                    {selectedDay && slotsByDays[selectedDay] && (
+                    {selectedDateKey && slotsByDate[selectedDateKey] && (
                       <div className="animate-fadeIn space-y-2 mb-6 bg-emerald-50/40 border border-emerald-100 p-4 rounded-xl">
                         <p className="text-xs font-bold text-emerald-900">{t.chooseTime}</p>
                         <div className="grid grid-cols-3 gap-2">
-                          {slotsByDays[selectedDay].map((slot) => {
-                            const slotIdentifier = `2026-10-${selectedDay.toString().padStart(2, '0')}T${slot}:00`;
+                          {slotsByDate[selectedDateKey].map((slotTime) => {
+                            const slotIdentifier = `${selectedDateKey}T${slotTime}:00`;
                             return (
                               <button
                                 type="button"
-                                key={slot}
+                                key={slotTime}
                                 onClick={() => setSelectedSlot(slotIdentifier)}
                                 className={`p-2.5 text-xs text-center font-bold rounded-lg border transition ${
                                   selectedSlot === slotIdentifier
-                                    ? 'bg-[#8a7355] text-white border-[#8a7355]'
+                                    ? 'bg-[#8a7355] text-white border-[#8a7355] shadow'
                                     : 'bg-white border-gray-200 text-gray-700 hover:border-amber-300'
                                 }`}
                               >
-                                {slot}
+                                {slotTime}
                               </button>
                             );
                           })}
