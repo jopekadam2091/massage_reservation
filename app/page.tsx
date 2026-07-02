@@ -1,21 +1,23 @@
 'use client';
 import { useState } from 'react';
 
-export default function Home() {
-  // Stav pre jazyk: 'SK' alebo 'EN'
-  const [lang, setLang] = useState<'SK' | 'EN'>('SK');
-  
-  // Stav pre vybranú sekciu: null (úvodná stránka), 'photo' (fotograf), 'massage' (masér)
-  const [mode, setMode] = useState<'photo' | 'massage' | null>(null);
+// Definícia typov pre TypeScript, aby Vercel build nezlyhal
+type LangType = 'SK' | 'EN';
+type ModeType = 'photo' | 'massage' | null;
+type MassageType = 'Klasik' | 'VIP';
 
-  // --- STAVY PRE MASÁŽNY FORMULÁR ---
-  const [massageStep, setMassageStep] = useState(1);
-  const [selectedType, setSelectedType] = useState<'Klasik' | 'VIP' | null>(null);
+export default function Home() {
+  const [lang, setLang] = useState<LangType>('SK');
+  const [mode, setMode] = useState<ModeType>(null);
+
+  // --- STAVY PRE MASÁŽE ---
+  const [massageStep, setMassageStep] = useState<number>(1);
+  const [selectedType, setSelectedType] = useState<MassageType | null>(null);
   const [selectedDuration, setSelectedDuration] = useState<number | null>(null);
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
   const [massageClientInfo, setMassageClientInfo] = useState({ name: '', email: '', phone: '' });
 
-  // --- STAVY PRE FOTO FORMULÁR ---
+  // --- STAVY PRE FOTO ---
   const [photoInfo, setPhotoInfo] = useState({
     type: 'Portrét',
     environment: 'Interiér',
@@ -25,7 +27,7 @@ export default function Home() {
   });
 
   // Textové preklady pre SK a EN
-  const t = {
+  const translations = {
     SK: {
       photo: 'Photography',
       massage: 'Massage',
@@ -84,9 +86,11 @@ export default function Home() {
       bookBtn: 'Book exclusive appointment',
       homeBtn: '🏠 Home'
     }
-  }[lang];
+  };
 
+  const t = translations[lang];
   const availableSlots = ["Pondelok 14:00", "Streda 10:30", "Piatok 16:00"];
+  
   const prices = {
     Klasik: { 30: '25€', 45: '35€', 60: '45€' },
     VIP: { 45: '55€', 60: '70€', 90: '95€' }
@@ -97,19 +101,17 @@ export default function Home() {
       mode === 'photo' ? 'bg-[#1a1a1a] text-white' : mode === 'massage' ? 'bg-[#f9f6f0] text-[#3a3225]' : 'bg-[#121212] text-white'
     }`}>
       
-      {/* JAZYKOVÝ PREPÍNAČ (Vždy viditeľný vpravo hore) */}
+      {/* JAZYKOVÝ PREPÍNAČ */}
       <div className="absolute top-6 right-6 z-50 flex space-x-2 bg-neutral-800 bg-opacity-60 p-1 rounded-full backdrop-blur-sm">
-        <button onClick={() => setLang('SK')} className={`px-3 py-1 text-xs font-bold rounded-full transition ${lang === 'SK' ? 'bg-white text-black' : 'text-gray-400'}`}>SK</button>
-        <button onClick={() => setLang('EN')} className={`px-3 py-1 text-xs font-bold rounded-full transition ${lang === 'EN' ? 'bg-white text-black' : 'text-gray-400'}`}>EN</button>
+        <button type="button" onClick={() => setLang('SK')} className={`px-3 py-1 text-xs font-bold rounded-full transition ${lang === 'SK' ? 'bg-white text-black' : 'text-gray-400'}`}>SK</button>
+        <button type="button" onClick={() => setLang('EN')} className={`px-3 py-1 text-xs font-bold rounded-full transition ${lang === 'EN' ? 'bg-white text-black' : 'text-gray-400'}`}>EN</button>
       </div>
 
-      {/* =======================================
-         0. KROK: ÚPLNE PRVÁ MINIMALISTICKÁ STRÁNKA
-         ======================================= */}
+      {/* 0. KROK: ÚPLNE PRVÁ MINIMALISTICKÁ STRÁNKA */}
       {mode === null && (
         <div className="flex flex-col md:flex-row h-screen w-full items-center justify-center font-sans">
-          {/* L'avá strana - FOTO */}
           <button 
+            type="button"
             onClick={() => setMode('photo')} 
             className="w-full md:w-1/2 h-1/2 md:h-full flex flex-col items-center justify-center group hover:bg-neutral-900 transition-all duration-500 border-b md:border-b-0 md:border-r border-neutral-800"
           >
@@ -117,8 +119,8 @@ export default function Home() {
             <span className="text-2xl font-light tracking-widest uppercase">{t.photo}</span>
           </button>
 
-          {/* Pravá strana - MASÁŽE */}
           <button 
+            type="button"
             onClick={() => setMode('massage')} 
             className="w-full md:w-1/2 h-1/2 md:h-full flex flex-col items-center justify-center group hover:bg-[#1f1f1f] transition-all duration-500"
           >
@@ -128,28 +130,26 @@ export default function Home() {
         </div>
       )}
 
-      {/* =======================================
-         VNÚTORNÝ OBSAH (PO PREKLIKU)
-         ======================================= */}
+      {/* VNÚTORNÝ OBSAH (PO PREKLIKU) */}
       {mode !== null && (
         <>
           <header className={`p-6 max-w-6xl mx-auto flex flex-col sm:flex-row justify-between items-center border-b transition-colors duration-700 ${
             mode === 'photo' ? 'border-gray-800' : 'border-amber-200'
           }`}>
-            <button onClick={() => { setMode(null); setMassageStep(1); }} className="text-xs uppercase tracking-wider opacity-60 hover:opacity-100 mb-4 sm:mb-0">
+            <button type="button" onClick={() => { setMode(null); setMassageStep(1); }} className="text-xs uppercase tracking-wider opacity-60 hover:opacity-100 mb-4 sm:mb-0">
               {t.homeBtn}
             </button>
             
             <div className="relative bg-opacity-20 bg-gray-500 rounded-full p-1 flex w-64 shadow-inner">
-              <button onClick={() => setMode('photo')} className={`w-1/2 py-2 text-sm font-semibold rounded-full transition ${mode === 'photo' ? 'bg-white text-black shadow-md' : 'text-gray-400'}`}>{t.photo}</button>
-              <button onClick={() => setMode('massage')} className={`w-1/2 py-2 text-sm font-semibold rounded-full transition ${mode === 'massage' ? 'bg-[#8a7355] text-white shadow-md' : 'text-gray-400'}`}>{t.massage}</button>
+              <button type="button" onClick={() => setMode('photo')} className={`w-1/2 py-2 text-sm font-semibold rounded-full transition ${mode === 'photo' ? 'bg-white text-black shadow-md' : 'text-gray-400'}`}>{t.photo}</button>
+              <button type="button" onClick={() => setMode('massage')} className={`w-1/2 py-2 text-sm font-semibold rounded-full transition ${mode === 'massage' ? 'bg-[#8a7355] text-white shadow-md' : 'text-gray-400'}`}>{t.massage}</button>
             </div>
           </header>
 
           <main className="max-w-4xl mx-auto p-6 mt-10">
             {mode === 'photo' ? (
               /* FOTO FORMULÁR */
-              <div className="space-y-8 animate-fadeIn">
+              <div className="space-y-8">
                 <div>
                   <h1 className="text-4xl font-extrabold mb-2">{t.photoTitle}</h1>
                   <p className="text-gray-400">{t.photoSubtitle}</p>
@@ -179,7 +179,7 @@ export default function Home() {
               </div>
             ) : (
               /* MASÁŽNY STEPPER */
-              <div className="space-y-8 animate-fadeIn">
+              <div className="space-y-8">
                 <div>
                   <h1 className="text-4xl font-extrabold mb-2 text-[#5c4a37]">{t.massageTitle}</h1>
                   <p className="text-amber-900 bg-amber-100/60 p-3 rounded border border-amber-200 inline-block text-sm">{t.massageSubtitle}</p>
@@ -199,11 +199,11 @@ export default function Home() {
                     <div className="space-y-6">
                       <h2 className="text-xl font-bold text-center text-[#5c4a37]">{t.step1Title}</h2>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <button onClick={() => { setSelectedType('Klasik'); setMassageStep(2); }} className="p-6 rounded-xl border text-left hover:border-amber-300">
+                        <button type="button" onClick={() => { setSelectedType('Klasik'); setMassageStep(2); }} className="p-6 rounded-xl border text-left hover:border-amber-300">
                           <h3 className="font-bold text-lg text-[#5c4a37]">Klasik</h3>
                           <p className="text-xs text-gray-500 mt-1">{t.klasikDesc}</p>
                         </button>
-                        <button onClick={() => { setSelectedType('VIP'); setMassageStep(2); }} className="p-6 rounded-xl border text-left hover:border-amber-300">
+                        <button type="button" onClick={() => { setSelectedType('VIP'); setMassageStep(2); }} className="p-6 rounded-xl border text-left hover:border-amber-300">
                           <h3 className="font-bold text-lg text-[#5c4a37]">VIP ✨</h3>
                           <p className="text-xs text-gray-500 mt-1">{t.vipDesc}</p>
                         </button>
@@ -216,13 +216,17 @@ export default function Home() {
                       <h2 className="text-xl font-bold text-center text-[#5c4a37]">{t.step2Title} ({selectedType})</h2>
                       <div className="flex flex-col space-y-3 max-w-sm mx-auto">
                         {(selectedType === 'Klasik' ? [30, 45, 60] : [45, 60, 90]).map((dur) => (
-                          <button key={dur} onClick={() => { setSelectedDuration(dur); setMassageStep(3); }} className="p-4 bg-gray-50 border rounded-lg flex justify-between items-center hover:border-amber-400">
+                          <button type="button" key={dur} onClick={() => { setSelectedDuration(dur); setMassageStep(3); }} className="p-4 bg-gray-50 border rounded-lg flex justify-between items-center hover:border-amber-400">
                             <span className="font-semibold">{dur} {t.minutes}</span>
-                            <span className="text-sm font-bold text-[#8a7355]">{prices[selectedType][dur as keyof typeof prices['Klasik']] || prices['VIP'][dur as keyof typeof prices['VIP']]}</span>
+                            <span className="text-sm font-bold text-[#8a7355]">
+                              {selectedType === 'Klasik' 
+                                ? prices.Klasik[dur as keyof typeof prices.Klasik] 
+                                : prices.VIP[dur as keyof typeof prices.VIP]}
+                            </span>
                           </button>
                         ))}
                       </div>
-                      <button onClick={() => setMassageStep(1)} className="text-xs text-gray-400 block text-center mt-4">{t.back}</button>
+                      <button type="button" onClick={() => setMassageStep(1)} className="text-xs text-gray-400 block text-center mt-4">{t.back}</button>
                     </div>
                   )}
 
@@ -231,7 +235,7 @@ export default function Home() {
                       <h2 className="text-xl font-bold text-center text-[#5c4a37]">{t.step3Title}</h2>
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         {availableSlots.map((slot) => (
-                          <button key={slot} onClick={() => setSelectedSlot(slot)} className={`p-3 text-sm rounded border ${selectedSlot === slot ? 'bg-[#8a7355] text-white' : 'bg-white'}`}>{slot}</button>
+                          <button type="button" key={slot} onClick={() => setSelectedSlot(slot)} className={`p-3 text-sm rounded border ${selectedSlot === slot ? 'bg-[#8a7355] text-white' : 'bg-white'}`}>{slot}</button>
                         ))}
                       </div>
                       {selectedSlot && (
@@ -241,7 +245,7 @@ export default function Home() {
                           <button type="submit" className="w-full bg-[#8a7355] text-white py-3 rounded-lg font-bold">{t.bookBtn}</button>
                         </form>
                       )}
-                      <button onClick={() => setMassageStep(2)} className="text-xs text-gray-400 block text-center mt-4">{t.back}</button>
+                      <button type="button" onClick={() => setMassageStep(2)} className="text-xs text-gray-400 block text-center mt-4">{t.back}</button>
                     </div>
                   )}
                 </div>
