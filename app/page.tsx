@@ -313,9 +313,30 @@ export default function Home() {
       mode === 'photo' ? 'bg-[#1a1a1a] text-white font-figtree' : mode === 'massage' ? 'bg-[#f9f6f0] text-[#3a3225] font-chillax' : 'bg-[#121212] text-white'
     }`}>
 
-      {/* ÚSPEŠNÁ REZERVÁCIA - OVERLAY */}   ← nové, vložíš toto
-      {showSuccessPopup && ( ... )}
-      
+      {/* ÚSPEŠNÁ REZERVÁCIA - OVERLAY */}
+      {showSuccessPopup && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm p-6 animate-fadeIn">
+          <div className="bg-white rounded-3xl p-8 max-w-md w-full text-center shadow-2xl border border-emerald-100">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-emerald-100 flex items-center justify-center text-3xl">
+              ✅
+            </div>
+            <h2 className="text-xl font-extrabold text-[#3a3225] mb-3">
+              {t.successTitle}
+            </h2>
+            <p className="text-sm text-gray-600 mb-6 leading-relaxed">
+              {t.successText}
+            </p>
+            <button
+              type="button"
+              onClick={() => setShowSuccessPopup(false)}
+              className="w-full bg-[#8a7355] text-white py-3 rounded-xl font-bold text-sm hover:bg-[#725e45] transition shadow-sm"
+            >
+              {t.successHomeBtn}
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* JAZYKOVÝ PREPÍNAČ */}
       <div className="absolute top-6 right-6 z-50 flex space-x-2 bg-neutral-800 bg-opacity-60 p-1 rounded-full backdrop-blur-sm border border-neutral-700 font-sans">
         <button type="button" onClick={() => setLang('SK')} className={`px-3 py-1.5 text-xs font-bold rounded-full transition flex items-center space-x-1 ${lang === 'SK' ? 'bg-white text-black shadow' : 'text-gray-400 hover:text-white'}`}>
