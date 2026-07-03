@@ -57,15 +57,6 @@ export async function POST(request: Request) {
         timeMax: timeMaxFetch,
         singleEvents: true,
       });
-
-      console.log('Hľadám slot:', localDateTimeString);
-      existingEvents.data.items?.forEach(item => {
-        if (item.start?.dateTime) {
-          const itemDate = new Date(item.start.dateTime);
-          const str = itemDate.toLocaleString('sv-SE', { timeZone: 'Europe/Bratislava' }).replace(' ', 'T');
-          console.log('Event v kalendári:', item.summary, '->', str);
-        }
-      });
       
       // Nájdeme správny slot pomocou striktného prevodu na bratislavský časový text
       const slotToDelete = existingEvents.data.items?.find((item) => {
