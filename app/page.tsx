@@ -23,7 +23,7 @@ export default function Home() {
   const [selectedDateKey, setSelectedDateKey] = useState<string | null>(null);
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
 
-  // --- STAVY PRE KONTAKT ---
+  // --- STAVY PRE KONTAKT A VALIDÁCIU TELEFÓNU ---
   const [activeContacts, setActiveContacts] = useState<Record<ContactMethod, boolean>>({
     phone: true,
     instagram: false,
@@ -34,6 +34,7 @@ export default function Home() {
     instagram: '',
     email: '',
   });
+  const [phonePrefix, setPhonePrefix] = useState<string>('+421'); // Predvolený štát SK
   const [clientName, setClientName] = useState('');
 
   // --- PREKLADY ---
@@ -62,7 +63,7 @@ export default function Home() {
       klasikTitle: 'MASÁŽ CLASSIC',
       klasikDesc: 'Dôkladné uvoľnenie svalového napätia, regenerácia tela.',
       vipTitle: 'MASÁŽ VIP PREMIUM ✨',
-      vipDesc: 'Exkluzívny rituál vrátane aromaterapie, masáže hlavy a maximálneho pokoja.',
+      vipDesc: 'Exkluzívny rituál vrátane aromaterapie, masáže hlavy and maximálneho pokoja.',
       step2Title: '2. Krok: Vyberte si optimálny balíček',
       step3Title: '3. Krok: Vyberte si exkluzívny voľný termín z kalendára',
       selected: 'Vybrané',
@@ -140,20 +141,16 @@ export default function Home() {
   const currentYear = currentDate.getFullYear();
   const currentMonth = currentDate.getMonth(); // 0-11
   
-  // Počet dní v aktuálnom mesiaci
   const daysInMonthCount = new Date(currentYear, currentMonth + 1, 0).getDate();
   const daysArray = Array.from({ length: daysInMonthCount }, (_, i) => i + 1);
   
-  // Deň v týždni, ktorým mesiac začína (aby pondelok bol 0 a nedeľa 6)
   const firstDayIndex = (new Date(currentYear, currentMonth, 1).getDay() + 6) % 7;
   const emptyCells = Array.from({ length: firstDayIndex }, (_, i) => i);
 
-  // Pomocná funkcia na vytvorenie kľúča vo formáte RRRR-MM-DD
   const getDateKey = (year: number, month: number, day: number) => {
     return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
   };
 
-  // Posun mesiacov
   const handlePrevMonth = () => {
     setCurrentDate(new Date(currentYear, currentMonth - 1, 1));
     setSelectedDateKey(null);
@@ -212,6 +209,14 @@ export default function Home() {
     setActiveContacts(prev => ({ ...prev, [method]: !prev[method] }));
   };
 
+  // Bezpečná zmena telefónneho čísla - povolí LEN čísla a max 9 znakov
+  const handlePhoneChange = (value: string) => {
+    const onlyNums = value.replace(/\D/g, ''); // Odstráni všetko čo nie je číslo
+    if (onlyNums.length <= 9) {
+      setContactValues(prev => ({ ...prev, phone: onlyNums }));
+    }
+  };
+
   const handleContactValueChange = (method: ContactMethod, value: string) => {
     setContactValues(prev => ({ ...prev, [method]: value }));
   };
@@ -221,10 +226,13 @@ export default function Home() {
     e.preventDefault();
     if (!selectedSlot) return;
 
+    // Spojíme vybranú predvoľbu a vyčistené 9-miestne číslo
+    const finalPhoneNumber = activeContacts.phone ? `${phonePrefix}${contactValues.phone}` : '';
+
     const payload = {
       name: clientName,
       email: contactValues.email,
-      phone: contactValues.phone,
+      phone: finalPhoneNumber,
       instagram: contactValues.instagram,
       slot: selectedSlot,
       duration: selectedDuration,
@@ -260,7 +268,8 @@ export default function Home() {
     if (!clientName.trim()) return false;
     const hasAtLeastOneChecked = activeContacts.phone || activeContacts.instagram || activeContacts.email;
     if (!hasAtLeastOneChecked) return false;
-    if (activeContacts.phone && !contactValues.phone.trim()) return false;
+    // SK/CZ mobilné čísla musia mať presne 9 číslic
+    if (activeContacts.phone && contactValues.phone.length !== 9) return false;
     if (activeContacts.instagram && !contactValues.instagram.trim()) return false;
     if (activeContacts.email && !contactValues.email.trim()) return false;
     return true;
@@ -314,7 +323,7 @@ export default function Home() {
       mode === 'photo' ? 'bg-[#1a1a1a] text-white font-figtree' : mode === 'massage' ? 'bg-[#F2EFE7] text-[#1E293B] font-chillax' : 'bg-[#121212] text-white'
     }`}>
 
-      {/* ÚSPEŠNÁ REZERVÁCIA - OVERLAY */}
+      {/* ÚSTEŠNÁ REZERVÁCIA - OVERLAY */}
       {showSuccessPopup && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm p-6 animate-fadeIn">
           <div className="bg-white rounded-3xl p-8 max-w-md w-full text-center shadow-2xl border border-emerald-100">
@@ -430,7 +439,6 @@ export default function Home() {
                         <p className="text-xs text-gray-500 mt-1">{t.klasikDesc}</p>
                       </button>
                       
-                      {/* VÝRAZNE ZVÝRAZNENÉ TLAČIDLO PRE VIP MASÁŽ S FARBOU #D4A373 */}
                       <button type="button" onClick={() => { setSelectedType('VIP'); setMassageStep(2); }} className="p-5 rounded-xl border-2 border-[#D4A373] text-left transition bg-[#D4A373]/20 hover:bg-[#D4A373]/30 shadow-md transform hover:scale-[1.01] duration-200">
                         <h3 className="font-extrabold text-base text-[#5c4228] flex items-center justify-between">
                           <span>{t.vipTitle}</span>
@@ -504,7 +512,6 @@ export default function Home() {
                       })}
                     </div>
                     
-                    {/* UPRAVENÉ, VÝRAZNÉ TLAČIDLO SPÄŤ PRE KROK 2 */}
                     <button 
                       type="button" 
                       onClick={() => setMassageStep(1)} 
@@ -527,7 +534,6 @@ export default function Home() {
                       <div className="text-center py-8 text-xs font-semibold text-gray-500">{t.loading}</div>
                     ) : (
                       <div className="border border-gray-100 rounded-2xl p-4 bg-gray-50/50 mb-6">
-                        {/* HLAVIČKA KALENDÁRA S PREPÍNANÍM MESIACOV */}
                         <div className="flex justify-between items-center mb-4 px-2">
                           <span className="text-base font-bold tracking-tight text-[#1E293B]">
                             {t.months[currentMonth]} {currentYear}
@@ -555,12 +561,10 @@ export default function Home() {
                         </div>
 
                         <div className="grid grid-cols-7 gap-1.5">
-                          {/* Prázdne bunky pred začiatkom mesiaca */}
                           {emptyCells.map((_, idx) => (
                             <div key={`empty-${idx}`} className="p-2"></div>
                           ))}
 
-                          {/* Reálne dni mesiaca */}
                           {daysArray.map((day) => {
                             const dateKey = getDateKey(currentYear, currentMonth, day);
                             const hasSlots = !!slotsByDate[dateKey] && slotsByDate[dateKey].length > 0;
@@ -588,7 +592,6 @@ export default function Home() {
                       </div>
                     )}
 
-                    {/* ZOBRAZENIE HODÍN PRE VYBRANÝ DEŇ */}
                     {selectedDateKey && slotsByDate[selectedDateKey] && (
                       <div className="animate-fadeIn space-y-2 mb-6 bg-[#A4B69A]/10 border border-[#A4B69A]/30 p-4 rounded-xl">
                         <p className="text-xs font-bold text-[#2F5D50]">{t.chooseTime}</p>
@@ -633,16 +636,39 @@ export default function Home() {
                           />
                         </div>
 
-                        <div className="space-y-2 bg-gray-50 p-3 rounded-xl border border-gray-100">
+                        <div className="space-y-3 bg-gray-50 p-3 rounded-xl border border-gray-100">
                           <p className="text-[11px] text-gray-500 font-medium">{t.contactNotice}</p>
                           
+                          {/* TELEFÓN S DRUŽICOU PREDVOLIEB A VALIDÁCIOU */}
                           <div className="space-y-1">
                             <label className="flex items-center space-x-2 text-xs font-semibold cursor-pointer text-[#1E293B]">
                               <input type="checkbox" checked={activeContacts.phone} onChange={() => handleContactCheckboxChange('phone')} className="rounded border-gray-300 text-[#2F5D50] focus:ring-[#2F5D50]" />
                               <span>{t.phone}</span>
                             </label>
                             {activeContacts.phone && (
-                              <input type="tel" required placeholder="+421 ..." value={contactValues.phone} onChange={(e) => handleContactValueChange('phone', e.target.value)} className="w-full p-2 border rounded-lg text-xs bg-white focus:outline-none text-[#1E293B]" />
+                              <div className="flex space-x-2">
+                                <select 
+                                  value={phonePrefix} 
+                                  onChange={(e) => setPhonePrefix(e.target.value)}
+                                  className="p-2 border rounded-lg text-xs bg-white focus:outline-none text-[#1E293B] font-sans"
+                                >
+                                  <option value="+421">🇸🇰 +421</option>
+                                  <option value="+420">🇨🇿 +420</option>
+                                </select>
+                                <input 
+                                  type="tel" 
+                                  required 
+                                  placeholder="905 123 456" 
+                                  value={contactValues.phone} 
+                                  onChange={(e) => handlePhoneChange(e.target.value)} 
+                                  className="flex-grow p-2 border rounded-lg text-xs bg-white focus:outline-none text-[#1E293B] tracking-wider" 
+                                />
+                              </div>
+                            )}
+                            {activeContacts.phone && contactValues.phone.length > 0 && contactValues.phone.length < 9 && (
+                              <p className="text-[10px] text-amber-700 font-medium pl-1">
+                                {lang === 'SK' ? 'Zadajte presne 9 číslic' : 'Enter exactly 9 digits'} ({contactValues.phone.length}/9)
+                              </p>
                             )}
                           </div>
 
@@ -679,7 +705,6 @@ export default function Home() {
                       </form>
                     )}
 
-                    {/* UPRAVENÉ, VÝRAZNÉ TLAČIDLO SPÄŤ PRE KROK 3 */}
                     <button 
                       type="button" 
                       onClick={() => setMassageStep(2)} 
