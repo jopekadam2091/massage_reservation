@@ -25,7 +25,7 @@ export async function GET() {
   }
 }
 
-// 2. ZÁPIS REZERVÁCIE DO KALENDÁRA (POST) - Opravený o časové pásmo
+// 2. ZÁPIS REZERVÁCIE DO KALENDÁRA + VYMAZANIE STARÉHO SLOTU (POST)
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -35,15 +35,51 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Chýba vybraný termín' }, { status: 400 });
     }
 
-    // 1. Očistíme textový reťazec, aby sme získali čistý lokálny čas (napr. "2026-07-03T16:00:00")
+    // 1. Očistíme textový reťazec lokálneho času (napr. "2026-07-03T16:00:00")
     const localDateTimeString = slot.slice(0, 19);
     
-    // 2. Vytvoríme pomocný dátum na bezpečné pripočítanie dĺžky masáže
+    // Vytvoríme pomocné dátumy pre novú rezerváciu
     const startDate = new Date(localDateTimeString + 'Z');
     const endDate = new Date(startDate.getTime() + (duration || 60) * 60000);
     const endDateTimeString = endDate.toISOString().slice(0, 19);
 
-    // 3. Pošleme do Google Kalendára presný čas aj s informáciou, že ide o Bratislavu
+    // ==========================================
+    // 🔥 KROK A: VYMAZANIE EXISTUJÚCEHO SLOTU "Volno na masaz"
+    // ==========================================
+    try {
+      const dayString = localDateTimeString.slice(0, 10); // Získame iba dátum, napr. "2026-07-03"
+      
+      // Vyhľadáme udalosti pre celý tento deň v kalendári
+      const existingEvents = await calendar.events.list({
+        calendarId: process.env.GOOGLE_CALENDAR_ID,
+        timeMin: `${dayString}T00:00:00Z`,
+        timeMax: `${dayString}T23:59:59Z`,
+        singleEvents: true,
+      });
+
+      // Nájdeme udalosť, ktorá obsahuje text "volno" a začína presne v rovnakom čase
+      const slotToDelete = existingEvents.data.items?.find((item) => {
+        const isTargetSlot = item.summary?.toLowerCase().includes('volno');
+        const itemLocalTime = item.start?.dateTime?.slice(0, 19); // Ostrihneme na čistý čas bez posunu
+        return isTargetSlot && itemLocalTime === localDateTimeString;
+      });
+
+      // Ak sme taký slot našli, vymažeme ho z Google kalendára
+      if (slotToDelete?.id) {
+        console.log(`Mažem starý slot s ID: ${slotToDelete.id}`);
+        await calendar.events.delete({
+          calendarId: process.env.GOOGLE_CALENDAR_ID,
+          eventId: slotToDelete.id,
+        });
+      }
+    } catch (deleteError) {
+      // Ak by mazanie z nejakého dôvodu zlyhalo, zalogujeme to, ale neprerušíme vytvorenie rezervácie
+      console.error('Nepodarilo sa vymazať starý slot:', deleteError);
+    }
+
+    // ==========================================
+    // 📝 KROK B: ZÁPIS NOVEJ REZERVÁCIE
+    // ==========================================
     const event = {
       summary: `REZERVÁCIA: ${type} - ${name}`,
       description: `Meno: ${name}\nEmail: ${email}\nTel: ${phone}\nIG: ${instagram}\nBalíček: ${type} (${duration} min)`,
@@ -64,7 +100,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true, event: response.data });
   } catch (error) {
-    console.error('Chyba pri zápise:', error);
+    console.error('Chyba pri kompletnom spracovaní rezervácie:', error);
     return NextResponse.json({ error: 'Chyba pri zápise do kalendára' }, { status: 500 });
   }
 }
