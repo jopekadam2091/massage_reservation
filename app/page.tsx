@@ -55,6 +55,7 @@ export default function Home() {
       descLabel: 'Vaša predstava a popis',
       name: 'Vaše meno',
       send: 'Poslať správu a dohodnúť termín',
+      photoAlertSuccess: 'Brief bol úspešne odoslaný!',
       massageTitle: 'Osobný Reset & Uvoľnenie',
       massageSubtitle: 'Exkluzívne privátne masáže u mňa na byte. Rezervácia možná len cez voľné sloty.',
       step1: 'Úroveň', step2: 'Balíček', step3: 'Termín',
@@ -66,7 +67,9 @@ export default function Home() {
       step2Title: '2. Krok: Vyberte si optimálny balíček',
       step3Title: '3. Krok: Vyberte si exkluzívny voľný termín z kalendára',
       selected: 'Vybrané',
+      selectedTerm: 'Vybraný termín',
       minutes: 'minút',
+      currency: 'eur',
       back: 'Späť',
       contactTitle: 'Kontaktné údaje pre overenie a zaslanie adresy',
       contactNotice: 'Zvoľte aspoň jeden spôsob kontaktu, kde vás zastihnem:',
@@ -82,7 +85,51 @@ export default function Home() {
       loading: 'Načítavam voľné termíny z kalendára...',
       successTitle: 'Rezervácia bola úspešná! 🎉',
       successText: 'Vaša rezervácia bola úspešne zapísaná do kalendára. Čoskoro vás budem kontaktovať pre potvrdenie a zaslanie adresy.',
-      successHomeBtn: 'Späť na domovskú stránku'
+      successHomeBtn: 'Späť na domovskú stránku',
+      errorSaving: 'Chyba pri ukladaní rezervácie.',
+      errorConnection: 'Nepodarilo sa spojiť so serverom.',
+      packagesData: {
+        Klasik: [
+          {
+            duration: 30,
+            badge: 'Lite',
+            desc: 'Vhodný pre rýchlu masáž konkrétnejšej oblasti tela.',
+            features: ['Masáž vybranej časti tela', 'Aromaterapia']
+          },
+          {
+            duration: 45,
+            badge: 'Supreme',
+            desc: 'Vhodný pre rýchly relax celého tela.',
+            features: ['Masáž celého tela', 'Možnosť vybrať extra čas na vybranú partiu', 'Aromaterapia']
+          },
+          {
+            duration: 60,
+            badge: 'Full Experience',
+            desc: 'Dokonalý zážitok s extra časom.',
+            features: ['Masáž celého tela', 'Možnosť vybrať extra čas na vybranú partiu', 'Aromaterapia']
+          }
+        ],
+        VIP: [
+          {
+            duration: 45,
+            badge: 'VIP Supreme',
+            desc: 'Rýchla ochutnávka VIP procedúr.',
+            features: ['Hĺbková masáž panvového dna', 'Masáž rúk', 'Hĺbková masáž gluteálnej oblasti', 'Aromaterapia']
+          },
+          {
+            duration: 60,
+            badge: 'VIP Pro',
+            desc: 'Kompletný prémium senzuálny rituál v plnom rozsahu.',
+            features: ['Hĺbková masáž panvového dna', 'Masáž rúk a dlaní', 'Terapeutická masáž prostaty', 'Hĺbková masáž gluteálnej oblasti', 'Aplikácia špeciálnych intímnych olejov', 'Aromaterapia', 'Dynamická perkusívna terapia (vibračná pištoľ)']
+          },
+          {
+            duration: 90,
+            badge: 'VIP Max',
+            desc: 'Pro zážitok vytiahnutý na maximum, pre pôžitkárov.',
+            features: ['Maximálne uvoľnenie', 'Hĺbková masáž panvového dna', 'Masáž rúk a dlaní', 'Terapeutická masáž prostaty', 'Hĺbková masáž gluteálnej oblasti', 'Aplikácia špeciálnych intímnych olejov', 'Aromaterapia', 'Dynamická perkusívna terapia', 'Nealko drink v cene', '+ Darček']
+          }
+        ]
+      }
     },
     EN: {
       photo: 'Photography',
@@ -101,6 +148,7 @@ export default function Home() {
       descLabel: 'Your vision and description',
       name: 'Your name',
       send: 'Send message and arrange date',
+      photoAlertSuccess: 'Brief sent successfully!',
       massageTitle: 'Personal Reset & Relaxation',
       massageSubtitle: 'Exclusive private massages at my apartment. Booking only via available slots.',
       step1: 'Level', step2: 'Package', step3: 'Date',
@@ -112,7 +160,9 @@ export default function Home() {
       step2Title: '2. Step: Choose your package',
       step3Title: '3. Step: Choose an exclusive available slot from the calendar',
       selected: 'Selected',
+      selectedTerm: 'Selected date',
       minutes: 'minutes',
+      currency: 'eur',
       back: 'Back',
       contactTitle: 'Contact details for verification and address delivery',
       contactNotice: 'Choose at least one contact method to reach you:',
@@ -128,7 +178,51 @@ export default function Home() {
       loading: 'Loading available slots from Google Calendar...',
       successTitle: 'Booking successful! 🎉',
       successText: 'Your booking has been successfully saved to the calendar. I will contact you shortly to confirm and send the address.',
-      successHomeBtn: 'Back to homepage'
+      successHomeBtn: 'Back to homepage',
+      errorSaving: 'Error saving appointment.',
+      errorConnection: 'Connection error.',
+      packagesData: {
+        Klasik: [
+          {
+            duration: 30,
+            badge: 'Lite',
+            desc: 'Suitable for a quick massage of a specific body area.',
+            features: ['Massage of the selected body part', 'Aromatherapy']
+          },
+          {
+            duration: 45,
+            badge: 'Supreme',
+            desc: 'Suitable for quick full-body relaxation.',
+            features: ['Full body massage', 'Option to choose extra time for a selected area', 'Aromatherapy']
+          },
+          {
+            duration: 60,
+            badge: 'Full Experience',
+            desc: 'Perfect experience with extra time.',
+            features: ['Full body massage', 'Option to choose extra time for a selected area', 'Aromatherapy']
+          }
+        ],
+        VIP: [
+          {
+            duration: 45,
+            badge: 'VIP Supreme',
+            desc: 'A quick taste of VIP procedures.',
+            features: ['Deep pelvic floor massage', 'Hand massage', 'Deep gluteal massage', 'Aromatherapy']
+          },
+          {
+            duration: 60,
+            badge: 'VIP Pro',
+            desc: 'Complete premium sensual ritual in full scope.',
+            features: ['Deep pelvic floor massage', 'Hand and palm massage', 'Therapeutic prostate massage', 'Deep gluteal massage', 'Application of special intimate oils', 'Aromatherapy', 'Dynamic percussive therapy (massage gun)']
+          },
+          {
+            duration: 90,
+            badge: 'VIP Max',
+            desc: 'Pro experience turned up to the maximum, for pleasure-seekers.',
+            features: ['Maximum relaxation', 'Deep pelvic floor massage', 'Hand and palm massage', 'Therapeutic prostate massage', 'Deep gluteal massage', 'Application of special intimate oils', 'Aromatherapy', 'Dynamic percussive therapy', 'Soft drink included', '+ Gift']
+          }
+        ]
+      }
     }
   };
 
@@ -165,8 +259,8 @@ export default function Home() {
   };
 
   const prices = {
-    Klasik: { 30: '30 eur', 45: '40 eur', 60: '45 eur' },
-    VIP: { 45: '65 eur', 60: '70 eur', 90: '90 eur' }
+    Klasik: { 30: '30', 45: '40', 60: '45' },
+    VIP: { 45: '65', 60: '70', 90: '90' }
   };
 
   // --- EFEKT: NAČÍTANIE Z GOOGLE KALENDÁRA ---
@@ -248,10 +342,10 @@ export default function Home() {
         setClientName('');
         setContactValues({ phone: '', instagram: '', email: '' });
       } else {
-        alert(lang === 'SK' ? 'Chyba pri ukladaní rezervácie.' : 'Error saving appointment.');
+        alert(t.errorSaving);
       }
     } catch {
-      alert(lang === 'SK' ? 'Nepodarilo sa spojiť so serverom.' : 'Connection error.');
+      alert(t.errorConnection);
     }
   };
 
@@ -263,49 +357,6 @@ export default function Home() {
     if (activeContacts.instagram && !contactValues.instagram.trim()) return false;
     if (activeContacts.email && !contactValues.email.trim()) return false;
     return true;
-  };
-
-  const packagesData = {
-    Klasik: [
-      {
-        duration: 30,
-        badge: 'Lite',
-        desc: 'Vhodný pre rýchlu masáž konkrétnejšej oblasti tela.',
-        features: ['Masáž vybranej časti tela', 'Aromaterapia']
-      },
-      {
-        duration: 45,
-        badge: 'Supreme',
-        desc: 'Vhodný pre rýchly relax celého tela.',
-        features: ['Masáž celého tela', 'Možnosť vybrať extra čas na vybranú partiu', 'Aromaterapia']
-      },
-      {
-        duration: 60,
-        badge: 'Full Experience',
-        desc: 'Dokonalý zážitok s extra časom.',
-        features: ['Masáž celého tela', 'Možnosť vybrať extra čas na vybranú partiu', 'Aromaterapia']
-      }
-    ],
-    VIP: [
-      {
-        duration: 45,
-        badge: 'VIP Supreme',
-        desc: 'Rýchla ochutnávka VIP procedúr.',
-        features: ['Hĺbková masáž panvového dna', 'Masáž rúk', 'Hĺbková masáž gluteálnej oblasti', 'Aromaterapia']
-      },
-      {
-        duration: 60,
-        badge: 'VIP Pro',
-        desc: 'Kompletný prémium senzuálny rituál v plnom rozsahu.',
-        features: ['Hĺbková masáž panvového dna', 'Masáž rúk a dlaní', 'Terapeutická masáž prostaty', 'Hĺbková masáž gluteálnej oblasti', 'Aplikácia špeciálnych intímnych olejov', 'Aromaterapia', 'Dynamická perkusívna terapia (vibračná pištoľ)']
-      },
-      {
-        duration: 90,
-        badge: 'VIP Max',
-        desc: 'Pro zážitok vytiahnutý na maximum, pre pôžitkárov.',
-        features: ['Maximálne uvoľnenie', 'Hĺbková masáž panvového dna', 'Masáž rúk a dlaní', 'Terapeutická masáž prostaty', 'Hĺbková masáž gluteálnej oblasti', 'Aplikácia špeciálnych intímnych olejov', 'Aromaterapia', 'Dynamická perkusívna terapia', 'Nealko drink v cene', '+ Darček']
-      }
-    ]
   };
 
   return (
@@ -380,7 +431,7 @@ export default function Home() {
                   <h1 className="text-3xl font-extrabold mb-2">{t.photoTitle}</h1>
                   <p className="text-gray-400 text-sm">{t.photoSubtitle}</p>
                 </div>
-                <form onSubmit={(e) => { e.preventDefault(); alert('Brief sent!'); }} className="bg-neutral-900 p-6 rounded-xl border border-neutral-800 space-y-6">
+                <form onSubmit={(e) => { e.preventDefault(); alert(t.photoAlertSuccess); }} className="bg-neutral-900 p-6 rounded-xl border border-neutral-800 space-y-6">
                   <h2 className="text-lg font-bold border-b border-neutral-800 pb-2">{t.photoFormTitle}</h2>
                   <div className="space-y-4">
                     <div>
@@ -442,7 +493,7 @@ export default function Home() {
                     <h2 className="text-2xl font-bold text-center text-[#5c4a37]">{t.step2Title} ({selectedType === 'Klasik' ? t.klasikTitle : t.vipTitle})</h2>
                     
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
-                      {packagesData[selectedType].map((pkg) => {
+                      {t.packagesData[selectedType].map((pkg) => {
                         const priceStr = selectedType === 'Klasik' 
                           ? prices.Klasik[pkg.duration as 30 | 45 | 60] 
                           : prices.VIP[pkg.duration as 45 | 60 | 90];
@@ -458,8 +509,8 @@ export default function Home() {
                                 {pkg.badge}
                               </span>
                               <div className="flex items-baseline text-gray-900 mb-1">
-                                <span className="text-4xl font-black tracking-tight">{priceStr.split(' ')[0]}</span>
-                                <span className="text-lg font-bold ml-1 text-gray-500">eur</span>
+                                <span className="text-4xl font-black tracking-tight">{priceStr}</span>
+                                <span className="text-lg font-bold ml-1 text-gray-500">{t.currency}</span>
                                 <span className="text-xs font-semibold text-gray-400 ml-2">/ {pkg.duration} {t.minutes}</span>
                               </div>
                               <p className="text-xs text-gray-500 min-h-[32px] mt-1">{pkg.desc}</p>
@@ -505,7 +556,7 @@ export default function Home() {
                   <div className="bg-white p-6 rounded-3xl border border-amber-100 shadow-sm text-gray-800 max-w-xl mx-auto">
                     <h2 className="text-lg font-bold text-center text-[#5c4a37] mb-2">{t.step3Title}</h2>
                     <div className="p-3 bg-amber-50 rounded-xl text-xs text-center border border-amber-100 text-[#5c4a37] mb-6">
-                      {t.selected}: <strong>{selectedType === 'Klasik' ? 'CLASSIC' : 'VIP PREMIUM'} - {selectedDuration} {t.minutes}</strong>
+                      {t.selected}: <strong>{selectedType === 'Klasik' ? t.klasikTitle : t.vipTitle} - {selectedDuration} {t.minutes}</strong>
                     </div>
 
                     {loadingCalendar ? (
@@ -604,7 +655,7 @@ export default function Home() {
                       <form onSubmit={handleBookingSubmit} className="space-y-4 pt-4 border-t border-gray-100 mt-4 animate-fadeIn">
                         <h3 className="font-bold text-xs text-gray-700">{t.contactTitle}</h3>
                         <div className="p-3 bg-emerald-600 text-white font-bold rounded-xl text-xs text-center shadow-sm">
-                          {t.selected} termín: {new Date(selectedSlot).toLocaleDateString('sk-SK')} o {new Date(selectedSlot).toLocaleTimeString('sk-SK', {hour: '2-digit', minute:'2-digit'})}
+                          {t.selectedTerm}: {new Date(selectedSlot).toLocaleDateString(lang === 'SK' ? 'sk-SK' : 'en-US')} o {new Date(selectedSlot).toLocaleTimeString(lang === 'SK' ? 'sk-SK' : 'en-US', {hour: '2-digit', minute:'2-digit'})}
                         </div>
                         
                         <div className="flex flex-col space-y-2">
@@ -663,7 +714,7 @@ export default function Home() {
                         </button>
                       </form>
                     )}
-                    <button type="button" onClick={() => setMassageStep(2)} className="text-xs text-gray-400 block text-center mt-4 hover:underline">{t.back}</button>
+                    <button type="button" onClick={() => setMassageStep(2)} className="text-xs text-gray-400 block text-center mt-4 hover:underline mx-auto">{t.back}</button>
                   </div>
                 )}
               </div>
