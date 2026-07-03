@@ -62,7 +62,7 @@ export async function POST(request: Request) {
       const slotToDelete = existingEvents.data.items?.find((item) => {
         if (!item.start?.dateTime) return false;
         
-        const isTargetSlot = item.summary?.toLowerCase().includes('free slot');
+        const isTargetSlot = item.summary?.toLowerCase().includes('fsm');
         
         // Prevedieme akýkoľvek čas z kalendára na čistý formát "YYYY-MM-DDTHH:mm:ss" v bratislavskom pásme
         const itemDate = new Date(item.start.dateTime);
