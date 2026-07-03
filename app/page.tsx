@@ -175,8 +175,8 @@ export default function Home() {
           if (data.events) {
             const processedSlots: Record<string, string[]> = {};
             data.events.forEach((event: any) => {
-              // Hľadáme udalosti s názvom "Voľno na masáž" v Google kalendári
-              if (event.summary === 'Voľno na masáž' && event.start?.dateTime) {
+              // Hľadáme udalosti s názvom "FSM" v Google kalendári
+              if (event.summary.toLowerCase() === 'fsm' && event.start?.dateTime) {
                 const date = new Date(event.start.dateTime);
                 const year = date.getFullYear();
                 const month = date.getMonth();
