@@ -7,9 +7,9 @@ type MassageType = 'Klasik' | 'VIP';
 type ContactMethod = 'phone' | 'instagram' | 'email';
 
 type TimeSlot = {
-  formattedTime: string;    // napr. "17:00"
+  formattedTime: string;    // napr. "21:45"
   startIso: string;         // kompletný ISO string pre API
-  availableMinutes: number; // koľko minút voľna nasleduje od tohto momentu
+  availableMinutes: number; // koľko minút voľna v bloku ešte zostáva od tohto momentu
 };
 
 export default function Home() {
@@ -185,38 +185,46 @@ export default function Home() {
         })
         .then((data) => {
           if (data.events) {
-            // Claudov filter upravený na .includes('fsm') pre flexibilnejšie hľadanie
             const fsmEvents = data.events
               .filter((e: any) => e.summary?.toLowerCase().includes('fsm') && e.start?.dateTime && e.end?.dateTime)
               .map((e: any) => ({
                 start: new Date(e.start.dateTime),
-                end: new Date(e.end.dateTime),
-                startIso: e.start.dateTime
+                end: new Date(e.end.dateTime)
               }))
               .sort((a: any, b: any) => a.start.getTime() - b.start.getTime());
 
             const processedSlots: Record<string, TimeSlot[]> = {};
 
-            fsmEvents.forEach((currentEvent: any) => {
+            fsmEvents.forEach((event: any) => {
               const dateKey = getDateKey(
-                currentEvent.start.getFullYear(),
-                currentEvent.start.getMonth(),
-                currentEvent.start.getDate()
+                event.start.getFullYear(),
+                event.start.getMonth(),
+                event.start.getDate()
               );
-
-              // Dynamický výpočet dĺžky trvania slotu v kalendári
-              const availableMinutes = Math.round((currentEvent.end.getTime() - currentEvent.start.getTime()) / 60000);
-              const formattedTime = currentEvent.start.toLocaleTimeString('sk-SK', { hour: '2-digit', minute: '2-digit' });
 
               if (!processedSlots[dateKey]) {
                 processedSlots[dateKey] = [];
               }
 
-              processedSlots[dateKey].push({
-                formattedTime,
-                startIso: currentEvent.startIso,
-                availableMinutes
-              });
+              let slotStart = new Date(event.start.getTime());
+              const blockEnd = event.end.getTime();
+
+              while (slotStart.getTime() < blockEnd) {
+                const remainingMinutes = Math.round((blockEnd - slotStart.getTime()) / 60000);
+                
+                const formattedTime = slotStart.toLocaleTimeString('sk-SK', { 
+                  hour: '2-digit', 
+                  minute: '2-digit' 
+                });
+
+                processedSlots[dateKey].push({
+                  formattedTime,
+                  startIso: slotStart.toISOString(),
+                  availableMinutes: remainingMinutes
+                });
+
+                slotStart.setMinutes(slotStart.getMinutes() + 15);
+              }
             });
 
             setSlotsByDate(processedSlots);
@@ -233,7 +241,7 @@ export default function Home() {
     setActiveContacts(prev => ({ ...prev, [method]: !prev[method] }));
   };
 
-  // Striktná filtrácia: Nepovolí napísať písmená a obmedzí dĺžku na 9 číslic
+  // Validácia: Iba čísla, maximálne 9 znakov
   const handlePhoneChange = (value: string) => {
     const onlyNums = value.replace(/\D/g, ''); 
     if (onlyNums.length <= 9) {
@@ -589,10 +597,9 @@ export default function Home() {
                           {daysArray.map((day) => {
                             const dateKey = getDateKey(currentYear, currentMonth, day);
                             
-                            // Na zobrazenie dňa ako aktívneho musí slot ponúkať dostatok času (dĺžka masáže + 30 min rezerva)
-                            const requiredTotalMinutes = selectedDuration + 30;
+                            // Deň je dostupný, ak zostávajúci čas bloku s 25-minútovou rezervou je postačujúci
                             const hasValidSlots = !!slotsByDate[dateKey] && slotsByDate[dateKey].some(
-                              slot => slot.availableMinutes >= requiredTotalMinutes
+                              slot => slot.availableMinutes >= (selectedDuration + 25)
                             );
 
                             return (
@@ -622,17 +629,15 @@ export default function Home() {
                         <p className="text-xs font-bold text-[#2F5D50]">{t.chooseTime}</p>
                         <div className="grid grid-cols-3 gap-2">
                           {slotsByDate[selectedDateKey].map((slot) => {
-                            const requiredTotalMinutes = selectedDuration + 30;
-                            
-                            // Ak daný FSM blok nemá dosť minút, tlačidlo hodiny skryjeme
-                            if (slot.availableMinutes < requiredTotalMinutes) {
+                            // Slot zobrazíme iba ak zostáva dosť času na masáž + 25-minútovú prestávku
+                            if (slot.availableMinutes < (selectedDuration + 25)) {
                               return null;
                             }
 
                             return (
                               <button
                                 type="button"
-                                key={slot.formattedTime}
+                                key={slot.startIso}
                                 onClick={() => setSelectedSlot(slot.startIso)}
                                 className={`p-2.5 text-xs text-center font-bold rounded-lg border transition ${
                                   selectedSlot === slot.startIso
