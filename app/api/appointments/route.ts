@@ -25,7 +25,7 @@ export async function GET() {
   }
 }
 
-// 2. ZÁPIS REZERVÁCIE DO KALENDÁRA (POST)
+// 2. ZÁPIS REZERVÁCIE DO KALENDÁRA (POST) - Opravený o časové pásmo
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -35,15 +35,26 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Chýba vybraný termín' }, { status: 400 });
     }
 
-    const startDate = new Date(slot);
-    // Vypočítame koniec masáže podľa vybranej dĺžky (v minútach)
+    // 1. Očistíme textový reťazec, aby sme získali čistý lokálny čas (napr. "2026-07-03T16:00:00")
+    const localDateTimeString = slot.slice(0, 19);
+    
+    // 2. Vytvoríme pomocný dátum na bezpečné pripočítanie dĺžky masáže
+    const startDate = new Date(localDateTimeString + 'Z');
     const endDate = new Date(startDate.getTime() + (duration || 60) * 60000);
+    const endDateTimeString = endDate.toISOString().slice(0, 19);
 
+    // 3. Pošleme do Google Kalendára presný čas aj s informáciou, že ide o Bratislavu
     const event = {
       summary: `REZERVÁCIA: ${type} - ${name}`,
       description: `Meno: ${name}\nEmail: ${email}\nTel: ${phone}\nIG: ${instagram}\nBalíček: ${type} (${duration} min)`,
-      start: { dateTime: startDate.toISOString() },
-      end: { dateTime: endDate.toISOString() },
+      start: { 
+        dateTime: localDateTimeString,
+        timeZone: 'Europe/Bratislava'
+      },
+      end: { 
+        dateTime: endDateTimeString,
+        timeZone: 'Europe/Bratislava'
+      },
     };
 
     const response = await calendar.events.insert({
