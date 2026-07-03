@@ -71,6 +71,8 @@ export default function Home() {
       minutes: 'minút',
       currency: 'eur',
       back: 'Späť',
+      backToLevel: 'Späť na výber úrovne',
+      backToPackages: 'Späť na výber balíčka',
       contactTitle: 'Kontaktné údaje pre overenie a zaslanie adresy',
       contactNotice: 'Zvoľte aspoň jeden spôsob kontaktu, kde vás zastihnem:',
       bookBtn: 'Záväzne rezervovať exkluzívny termín',
@@ -83,7 +85,7 @@ export default function Home() {
       mon: 'PO', tue: 'UT', wed: 'ST', thu: 'ŠT', fri: 'PI', sat: 'SO', sun: 'NE',
       chooseTime: 'Vyberte si čas na daný deň:',
       loading: 'Načítavam voľné termíny z kalendára...',
-      successTitle: 'Rezervácia bola úspešná! 🎉',
+      successTitle: 'Rezervácia bola úspešna! 🎉',
       successText: 'Vaša rezervácia bola úspešne zapísaná do kalendára. Čoskoro vás budem kontaktovať pre potvrdenie a zaslanie adresy.',
       successHomeBtn: 'Späť na domovskú stránku',
       errorSaving: 'Chyba pri ukladaní rezervácie.',
@@ -164,6 +166,8 @@ export default function Home() {
       minutes: 'minutes',
       currency: 'eur',
       back: 'Back',
+      backToLevel: 'Back to level selection',
+      backToPackages: 'Back to package selection',
       contactTitle: 'Contact details for verification and address delivery',
       contactNotice: 'Choose at least one contact method to reach you:',
       bookBtn: 'Book exclusive appointment',
@@ -479,9 +483,11 @@ export default function Home() {
                         <h3 className="font-bold text-base text-[#5c4a37]">{t.klasikTitle}</h3>
                         <p className="text-xs text-gray-500 mt-1">{t.klasikDesc}</p>
                       </button>
-                      <button type="button" onClick={() => { setSelectedType('VIP'); setMassageStep(2); }} className="p-5 rounded-xl border text-left hover:border-amber-300 transition bg-gray-50/50">
-                        <h3 className="font-bold text-base text-[#5c4a37]">{t.vipTitle}</h3>
-                        <p className="text-xs text-gray-500 mt-1">{t.vipDesc}</p>
+                      
+                      {/* ZVÝRAZNENÉ VIP TLAČIDLO */}
+                      <button type="button" onClick={() => { setSelectedType('VIP'); setMassageStep(2); }} className="p-5 rounded-xl border-2 border-amber-400 text-left transition bg-amber-50 shadow-md hover:bg-amber-100/70">
+                        <h3 className="font-bold text-base text-amber-950">{t.vipTitle}</h3>
+                        <p className="text-xs text-amber-800 mt-1">{t.vipDesc}</p>
                       </button>
                     </div>
                   </div>
@@ -547,7 +553,10 @@ export default function Home() {
                       })}
                     </div>
                     
-                    <button type="button" onClick={() => setMassageStep(1)} className="text-xs text-gray-400 block text-center mt-4 hover:underline mx-auto">{t.back}</button>
+                    {/* OPRAVENÉ TLAČIDLO SPÄŤ (KROK 2) */}
+                    <button type="button" onClick={() => setMassageStep(1)} className="mx-auto flex items-center justify-center space-x-2 px-5 py-3 rounded-xl border border-amber-200 text-[#5c4a37] bg-white shadow-sm font-semibold text-xs hover:bg-amber-50 hover:border-amber-300 transition-all">
+                      <span>⬅</span> <span>{t.backToLevel}</span>
+                    </button>
                   </div>
                 )}
 
@@ -714,7 +723,11 @@ export default function Home() {
                         </button>
                       </form>
                     )}
-                    <button type="button" onClick={() => setMassageStep(2)} className="text-xs text-gray-400 block text-center mt-4 hover:underline mx-auto">{t.back}</button>
+                    
+                    {/* OPRAVENÉ TLAČIDLO SPÄŤ (KROK 3) */}
+                    <button type="button" onClick={() => setMassageStep(2)} className="mx-auto mt-6 flex items-center justify-center space-x-2 px-5 py-3 rounded-xl border border-amber-200 text-[#5c4a37] bg-white shadow-sm font-semibold text-xs hover:bg-amber-50 hover:border-amber-300 transition-all">
+                      <span>⬅</span> <span>{t.backToPackages}</span>
+                    </button>
                   </div>
                 )}
               </div>
