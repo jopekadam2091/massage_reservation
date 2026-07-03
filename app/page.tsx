@@ -186,7 +186,7 @@ export default function Home() {
           if (data.events) {
             // 1. Vytiahneme a zoradíme všetky FSM udalosti podľa času vzostupne
             const fsmEvents = data.events
-              .filter((e: any) => e.summary?.toLowerCase() === 'fsm' && e.start?.dateTime && e.end?.dateTime)
+              .filter((e: any) => e.summary?.toLowerCase().includes('fsm') && e.start?.dateTime && e.end?.dateTime)
               .map((e: any) => ({
                 start: new Date(e.start.dateTime),
                 end: new Date(e.end.dateTime),
