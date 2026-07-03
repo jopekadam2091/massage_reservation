@@ -7,6 +7,7 @@ type MassageType = 'Klasik' | 'VIP';
 type ContactMethod = 'phone' | 'instagram' | 'email';
 
 export default function Home() {
+  const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   const [lang, setLang] = useState<LangType>('SK');
   const [mode, setMode] = useState<ModeType>(null);
 
