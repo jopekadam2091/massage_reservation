@@ -56,14 +56,14 @@ export default function Home() {
       descLabel: 'Vaša predstava a popis',
       name: 'Vaše meno',
       send: 'Poslať správu a dohodnúť termín',
-      massageTitle: 'Osobný Reset & Uvoľnenie',
+      massageTitle: 'Váš osobný relax',
       massageSubtitle: 'Exkluzívne privátne masáže u mňa na byte. Rezervácia možná len cez voľné sloty.',
       step1: 'Úroveň', step2: 'Balíček', step3: 'Termín',
       step1Title: '1. Krok: Vyberte si úroveň starostlivosti',
       klasikTitle: 'MASÁŽ CLASSIC',
       klasikDesc: 'Dôkladné uvoľnenie svalového napätia, regenerácia tela.',
       vipTitle: 'MASÁŽ VIP PREMIUM ✨',
-      vipDesc: 'Exkluzívny rituál vrátane aromaterapie, masáže hlavy and maximálneho pokoja.',
+      vipDesc: 'Exkluzívny rituál vrátane aromaterapie, masáže hlavy a maximálneho pokoja.',
       step2Title: '2. Krok: Vyberte si optimálny balíček',
       step3Title: '3. Krok: Vyberte si exkluzívny voľný termín z kalendára',
       selected: 'Vybrané',
@@ -103,7 +103,7 @@ export default function Home() {
       descLabel: 'Your vision and description',
       name: 'Your name',
       send: 'Send message and arrange date',
-      massageTitle: 'Personal Reset & Relaxation',
+      massageTitle: 'Your personal relaxation',
       massageSubtitle: 'Exclusive private massages at my apartment. Booking only via available slots.',
       step1: 'Level', step2: 'Package', step3: 'Date',
       step1Title: '1. Step: Choose your level of care',
@@ -211,7 +211,7 @@ export default function Home() {
 
   // Bezpečná zmena telefónneho čísla - povolí LEN čísla a max 9 znakov
   const handlePhoneChange = (value: string) => {
-    const onlyNums = value.replace(/\D/g, ''); // Odstráni všetko čo nie je číslo
+    const onlyNums = value.replace(/\D/g, ''); 
     if (onlyNums.length <= 9) {
       setContactValues(prev => ({ ...prev, phone: onlyNums }));
     }
@@ -226,7 +226,6 @@ export default function Home() {
     e.preventDefault();
     if (!selectedSlot) return;
 
-    // Spojíme vybranú predvoľbu a vyčistené 9-miestne číslo
     const finalPhoneNumber = activeContacts.phone ? `${phonePrefix}${contactValues.phone}` : '';
 
     const payload = {
@@ -268,7 +267,6 @@ export default function Home() {
     if (!clientName.trim()) return false;
     const hasAtLeastOneChecked = activeContacts.phone || activeContacts.instagram || activeContacts.email;
     if (!hasAtLeastOneChecked) return false;
-    // SK/CZ mobilné čísla musia mať presne 9 číslic
     if (activeContacts.phone && contactValues.phone.length !== 9) return false;
     if (activeContacts.instagram && !contactValues.instagram.trim()) return false;
     if (activeContacts.email && !contactValues.email.trim()) return false;
@@ -323,7 +321,7 @@ export default function Home() {
       mode === 'photo' ? 'bg-[#1a1a1a] text-white font-figtree' : mode === 'massage' ? 'bg-[#F2EFE7] text-[#1E293B] font-chillax' : 'bg-[#121212] text-white'
     }`}>
 
-      {/* ÚSTEŠNÁ REZERVÁCIA - OVERLAY */}
+      {/* ÚSPEŠNÁ REZERVÁCIA - OVERLAY */}
       {showSuccessPopup && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm p-6 animate-fadeIn">
           <div className="bg-white rounded-3xl p-8 max-w-md w-full text-center shadow-2xl border border-emerald-100">
