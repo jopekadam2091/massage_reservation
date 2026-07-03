@@ -79,7 +79,10 @@ export default function Home() {
       months: ['Január', 'Február', 'Marec', 'Apríl', 'Máj', 'Jún', 'Júl', 'August', 'September', 'Október', 'November', 'December'],
       mon: 'PO', tue: 'UT', wed: 'ST', thu: 'ŠT', fri: 'PI', sat: 'SO', sun: 'NE',
       chooseTime: 'Vyberte si čas na daný deň:',
-      loading: 'Načítavam voľné termíny z kalendára...'
+      loading: 'Načítavam voľné termíny z kalendára...',
+      successTitle: 'Rezervácia bola úspešná! 🎉',
+      successText: 'Vaša rezervácia bola úspešne zapísaná do kalendára. Čoskoro vás budem kontaktovať pre potvrdenie a zaslanie adresy.',
+      successHomeBtn: 'Späť na domovskú stránku'
     },
     EN: {
       photo: 'Photography',
@@ -122,7 +125,10 @@ export default function Home() {
       months: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
       mon: 'MO', tue: 'TU', wed: 'WE', thu: 'TH', fri: 'FR', sat: 'SA', sun: 'SU',
       chooseTime: 'Select time for the chosen day:',
-      loading: 'Loading available slots from Google Calendar...'
+      loading: 'Loading available slots from Google Calendar...',
+      successTitle: 'Booking successful! 🎉',
+      successText: 'Your booking has been successfully saved to the calendar. I will contact you shortly to confirm and send the address.',
+      successHomeBtn: 'Back to homepage'
     }
   };
 
@@ -232,7 +238,8 @@ export default function Home() {
       });
 
       if (response.ok) {
-        alert(lang === 'SK' ? 'Rezervácia bola úspešne zapísaná do Google Kalendára!' : 'Booking successfully added to Google Calendar!');
+        setShowSuccessPopup(true);
+        setMode(null);
         setMassageStep(1);
         setSelectedType(null);
         setSelectedDuration(null);
