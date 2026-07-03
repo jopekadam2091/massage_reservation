@@ -6,10 +6,9 @@ type ModeType = 'photo' | 'massage' | null;
 type MassageType = 'Klasik' | 'VIP';
 type ContactMethod = 'phone' | 'instagram' | 'email';
 
-// Definovanie štruktúry pre slot s detailnými časmi
 type TimeSlot = {
-  formattedTime: string; // napr. "17:00"
-  startIso: string;      // kompletný ISO string pre API
+  formattedTime: string;    // napr. "17:00"
+  startIso: string;         // kompletný ISO string pre API
   availableMinutes: number; // koľko minút voľna nasleduje od tohto momentu
 };
 
@@ -25,13 +24,12 @@ export default function Home() {
   
   // --- DYNAMICKÝ KALENDÁR A GOOGLE API STAVY ---
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
-  // Zmena: sloty teraz ukladajú pole objektov typu TimeSlot
   const [slotsByDate, setSlotsByDate] = useState<Record<string, TimeSlot[]>>({});
   const [loadingCalendar, setLoadingCalendar] = useState<boolean>(false);
   const [selectedDateKey, setSelectedDateKey] = useState<string | null>(null);
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
 
-  // --- STAVY PRE KONTAKT ---
+  // --- STAVY PRE KONTAKT A VALIDÁCIU TELEFÓNU ---
   const [activeContacts, setActiveContacts] = useState<Record<ContactMethod, boolean>>({
     phone: true,
     instagram: false,
@@ -42,6 +40,7 @@ export default function Home() {
     instagram: '',
     email: '',
   });
+  const [phonePrefix, setPhonePrefix] = useState<string>('+421'); 
   const [clientName, setClientName] = useState('');
 
   // --- PREKLADY ---
@@ -63,7 +62,7 @@ export default function Home() {
       descLabel: 'Vaša predstava a popis',
       name: 'Vaše meno',
       send: 'Poslať správu a dohodnúť termín',
-      massageTitle: 'Váš osobný relax',
+      massageTitle: 'Osobný Reset & Uvoľnenie',
       massageSubtitle: 'Exkluzívne privátne masáže u mňa na byte. Rezervácia možná len cez voľné sloty.',
       step1: 'Úroveň', step2: 'Balíček', step3: 'Termín',
       step1Title: '1. Krok: Vyberte si úroveň starostlivosti',
@@ -75,7 +74,8 @@ export default function Home() {
       step3Title: '3. Krok: Vyberte si exkluzívny voľný termín z kalendára',
       selected: 'Vybrané',
       minutes: 'minút',
-      back: 'Späť',
+      backToLevel: 'Späť na výber úrovne',
+      backToPackages: 'Späť na výber balíčka',
       contactTitle: 'Kontaktné údaje pre overenie a zaslanie adresy',
       contactNotice: 'Zvoľte aspoň jeden spôsob kontaktu, kde vás zastihnem:',
       bookBtn: 'Záväzne rezervovať exkluzívny termín',
@@ -109,7 +109,7 @@ export default function Home() {
       descLabel: 'Your vision and description',
       name: 'Your name',
       send: 'Send message and arrange date',
-      massageTitle: 'Your personal relaxation',
+      massageTitle: 'Personal Reset & Relaxation',
       massageSubtitle: 'Exclusive private massages at my apartment. Booking only via available slots.',
       step1: 'Level', step2: 'Package', step3: 'Date',
       step1Title: '1. Step: Choose your level of care',
@@ -121,7 +121,8 @@ export default function Home() {
       step3Title: '3. Step: Choose an exclusive available slot from the calendar',
       selected: 'Selected',
       minutes: 'minutes',
-      back: 'Back',
+      backToLevel: 'Back to level selection',
+      backToPackages: 'Back to package selection',
       contactTitle: 'Contact details for verification and address delivery',
       contactNotice: 'Choose at least one contact method to reach you:',
       bookBtn: 'Book exclusive appointment',
@@ -173,7 +174,7 @@ export default function Home() {
     VIP: { 45: '65 eur', 60: '70 eur', 90: '90 eur' }
   };
 
-  // --- EFEKT: NAČÍTANIE Z GOOGLE KALENDÁRA S INTELIGENTNOU LOGIKOU PREKRYTIA ---
+  // --- EFEKT: NAČÍTANIE Z GOOGLE KALENDÁRA ---
   useEffect(() => {
     if (massageStep === 3) {
       setLoadingCalendar(true);
@@ -184,7 +185,7 @@ export default function Home() {
         })
         .then((data) => {
           if (data.events) {
-            // 1. Vytiahneme a zoradíme všetky FSM udalosti podľa času vzostupne
+            // Claudov filter upravený na .includes('fsm') pre flexibilnejšie hľadanie
             const fsmEvents = data.events
               .filter((e: any) => e.summary?.toLowerCase().includes('fsm') && e.start?.dateTime && e.end?.dateTime)
               .map((e: any) => ({
@@ -196,30 +197,15 @@ export default function Home() {
 
             const processedSlots: Record<string, TimeSlot[]> = {};
 
-            // 2. Pre každý slot zistíme, aké dlhé neprerušené okno voľna po ňom nasleduje
-            fsmEvents.forEach((currentEvent: any, index: number) => {
+            fsmEvents.forEach((currentEvent: any) => {
               const dateKey = getDateKey(
                 currentEvent.start.getFullYear(),
                 currentEvent.start.getMonth(),
                 currentEvent.start.getDate()
               );
 
-              // Zistíme maximálny možný koniec prekrývajúcich sa/nadväzujúcich blokov voľna
-              let blockEnd = currentEvent.end.getTime();
-              
-              for (let j = index + 1; j < fsmEvents.length; j++) {
-                const nextEvent = fsmEvents[j];
-                // Ak nasledujúci blok začína presne tam, kde predošlý skončil (alebo skôr), predĺžime celkový čas voľna
-                if (nextEvent.start.getTime() <= blockEnd) {
-                  if (nextEvent.end.getTime() > blockEnd) {
-                    blockEnd = nextEvent.end.getTime();
-                  }
-                } else {
-                  break; // Medzera v kalendári, stop spájaniu
-                }
-              }
-
-              const availableMinutes = Math.round((blockEnd - currentEvent.start.getTime()) / 60000);
+              // Dynamický výpočet dĺžky trvania slotu v kalendári
+              const availableMinutes = Math.round((currentEvent.end.getTime() - currentEvent.start.getTime()) / 60000);
               const formattedTime = currentEvent.start.toLocaleTimeString('sk-SK', { hour: '2-digit', minute: '2-digit' });
 
               if (!processedSlots[dateKey]) {
@@ -247,6 +233,14 @@ export default function Home() {
     setActiveContacts(prev => ({ ...prev, [method]: !prev[method] }));
   };
 
+  // Striktná filtrácia: Nepovolí napísať písmená a obmedzí dĺžku na 9 číslic
+  const handlePhoneChange = (value: string) => {
+    const onlyNums = value.replace(/\D/g, ''); 
+    if (onlyNums.length <= 9) {
+      setContactValues(prev => ({ ...prev, phone: onlyNums }));
+    }
+  };
+
   const handleContactValueChange = (method: ContactMethod, value: string) => {
     setContactValues(prev => ({ ...prev, [method]: value }));
   };
@@ -255,10 +249,12 @@ export default function Home() {
     e.preventDefault();
     if (!selectedSlot) return;
 
+    const finalPhoneNumber = activeContacts.phone ? `${phonePrefix}${contactValues.phone}` : '';
+
     const payload = {
       name: clientName,
       email: contactValues.email,
-      phone: contactValues.phone,
+      phone: finalPhoneNumber,
       instagram: contactValues.instagram,
       slot: selectedSlot,
       duration: selectedDuration,
@@ -294,7 +290,7 @@ export default function Home() {
     if (!clientName.trim()) return false;
     const hasAtLeastOneChecked = activeContacts.phone || activeContacts.instagram || activeContacts.email;
     if (!hasAtLeastOneChecked) return false;
-    if (activeContacts.phone && !contactValues.phone.trim()) return false;
+    if (activeContacts.phone && contactValues.phone.length !== 9) return false;
     if (activeContacts.instagram && !contactValues.instagram.trim()) return false;
     if (activeContacts.email && !contactValues.email.trim()) return false;
     return true;
@@ -345,7 +341,7 @@ export default function Home() {
 
   return (
     <div className={`min-h-screen transition-all duration-700 ease-in-out pb-20 ${
-      mode === 'photo' ? 'bg-[#1a1a1a] text-white font-figtree' : mode === 'massage' ? 'bg-[#f9f6f0] text-[#3a3225] font-chillax' : 'bg-[#121212] text-white'
+      mode === 'photo' ? 'bg-[#1a1a1a] text-white font-figtree' : mode === 'massage' ? 'bg-[#F2EFE7] text-[#1E293B] font-chillax' : 'bg-[#121212] text-white'
     }`}>
 
       {/* ÚSPEŠNÁ REZERVÁCIA - OVERLAY */}
@@ -355,7 +351,7 @@ export default function Home() {
             <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-emerald-100 flex items-center justify-center text-3xl">
               ✅
             </div>
-            <h2 className="text-xl font-extrabold text-[#3a3225] mb-3">
+            <h2 className="text-xl font-extrabold text-[#1E293B] mb-3">
               {t.successTitle}
             </h2>
             <p className="text-sm text-gray-600 mb-6 leading-relaxed">
@@ -364,7 +360,7 @@ export default function Home() {
             <button
               type="button"
               onClick={() => setShowSuccessPopup(false)}
-              className="w-full bg-[#8a7355] text-white py-3 rounded-xl font-bold text-sm hover:bg-[#725e45] transition shadow-sm"
+              className="w-full bg-[#2F5D50] text-white py-3 rounded-xl font-bold text-sm hover:bg-[#1f3f36] transition shadow-sm"
             >
               {t.successHomeBtn}
             </button>
@@ -389,7 +385,7 @@ export default function Home() {
             <div className="text-5xl mb-2 group-hover:scale-110 transition-transform duration-300">👁️</div>
             <span className="text-xl font-light tracking-widest uppercase">{t.photo}</span>
           </button>
-          <button type="button" onClick={() => setMode('massage')} className="w-full h-1/2 flex flex-col items-center justify-center group hover:bg-[#1f1f1f] transition-all duration-500 font-chillax">
+          <button type="button" onClick={() => setMode('massage')} className="w-full h-1/2 flex flex-col items-center justify-center group hover:bg-[#F2EFE7] hover:text-[#1E293B] transition-all duration-500 font-chillax text-white">
             <div className="text-5xl mb-2 group-hover:scale-110 transition-transform duration-300">🙌</div>
             <span className="text-xl font-light tracking-widest uppercase">{t.massage}</span>
           </button>
@@ -441,31 +437,35 @@ export default function Home() {
             ) : (
               <div className="space-y-8 animate-fadeIn">
                 <div className="max-w-xl mx-auto">
-                  <h1 className="text-3xl font-extrabold mb-2 text-[#5c4a37]">{t.massageTitle}</h1>
-                  <p className="text-amber-900 bg-amber-100/60 p-3 rounded border border-amber-200 block text-sm">{t.massageSubtitle}</p>
+                  <h1 className="text-3xl font-extrabold mb-2 text-[#2F5D50]">{t.massageTitle}</h1>
+                  <p className="text-[#1E293B] bg-[#A4B69A]/30 p-3 rounded border border-[#A4B69A]/50 block text-sm">{t.massageSubtitle}</p>
                 </div>
 
                 <div className="flex justify-between max-w-xs mx-auto mb-8">
                   {[1, 2, 3].map((step) => (
                     <div key={step} className="flex items-center space-x-1">
-                      <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold border transition ${massageStep === step ? 'bg-[#8a7355] text-white' : 'bg-white text-gray-400'}`}>{step}</div>
-                      <span className={`text-[10px] font-semibold ${massageStep === step ? 'text-[#8a7355]' : 'text-gray-400'}`}>{step === 1 ? t.step1 : step === 2 ? t.step2 : t.step3}</span>
+                      <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold border transition ${massageStep === step ? 'bg-[#2F5D50] text-white border-[#2F5D50]' : 'bg-white text-gray-400 border-gray-200'}`}>{step}</div>
+                      <span className={`text-[10px] font-semibold ${massageStep === step ? 'text-[#2F5D50]' : 'text-gray-400'}`}>{step === 1 ? t.step1 : step === 2 ? t.step2 : t.step3}</span>
                     </div>
                   ))}
                 </div>
 
                 {/* KROK 1 */}
                 {massageStep === 1 && (
-                  <div className="bg-white p-6 rounded-xl border border-amber-100 shadow-sm text-gray-800 max-w-xl mx-auto">
-                    <h2 className="text-lg font-bold text-center text-[#5c4a37] mb-4">{t.step1Title}</h2>
+                  <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm text-[#1E293B] max-w-xl mx-auto">
+                    <h2 className="text-lg font-bold text-center text-[#2F5D50] mb-4">{t.step1Title}</h2>
                     <div className="flex flex-col space-y-3">
-                      <button type="button" onClick={() => { setSelectedType('Klasik'); setMassageStep(2); }} className="p-5 rounded-xl border text-left hover:border-amber-300 transition bg-gray-50/50">
-                        <h3 className="font-bold text-base text-[#5c4a37]">{t.klasikTitle}</h3>
+                      <button type="button" onClick={() => { setSelectedType('Klasik'); setMassageStep(2); }} className="p-5 rounded-xl border border-gray-200 text-left hover:border-[#A4B69A] transition bg-gray-50/50">
+                        <h3 className="font-bold text-base text-[#2F5D50]">{t.klasikTitle}</h3>
                         <p className="text-xs text-gray-500 mt-1">{t.klasikDesc}</p>
                       </button>
-                      <button type="button" onClick={() => { setSelectedType('VIP'); setMassageStep(2); }} className="p-5 rounded-xl border text-left hover:border-amber-300 transition bg-gray-50/50">
-                        <h3 className="font-bold text-base text-[#5c4a37]">{t.vipTitle}</h3>
-                        <p className="text-xs text-gray-500 mt-1">{t.vipDesc}</p>
+                      
+                      <button type="button" onClick={() => { setSelectedType('VIP'); setMassageStep(2); }} className="p-5 rounded-xl border-2 border-[#D4A373] text-left transition bg-[#D4A373]/20 hover:bg-[#D4A373]/30 shadow-md transform hover:scale-[1.01] duration-200">
+                        <h3 className="font-extrabold text-base text-[#5c4228] flex items-center justify-between">
+                          <span>{t.vipTitle}</span>
+                          <span className="bg-[#D4A373] text-white text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider">POPULAR</span>
+                        </h3>
+                        <p className="text-xs text-[#5c4228] font-medium mt-1">{t.vipDesc}</p>
                       </button>
                     </div>
                   </div>
@@ -474,7 +474,7 @@ export default function Home() {
                 {/* KROK 2 */}
                 {massageStep === 2 && selectedType && (
                   <div className="space-y-6">
-                    <h2 className="text-2xl font-bold text-center text-[#5c4a37]">{t.step2Title} ({selectedType === 'Klasik' ? t.klasikTitle : t.vipTitle})</h2>
+                    <h2 className="text-2xl font-bold text-center text-[#2F5D50]">{t.step2Title} ({selectedType === 'Klasik' ? t.klasikTitle : t.vipTitle})</h2>
                     
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
                       {packagesData[selectedType].map((pkg) => {
@@ -486,13 +486,15 @@ export default function Home() {
 
                         return (
                           <div key={pkg.duration} className={`flex flex-col bg-white rounded-3xl border shadow-sm transition-all overflow-hidden ${
-                            isMiddle ? 'border-amber-300 ring-2 ring-amber-200/50 bg-gradient-to-b from-amber-50/30 to-white' : 'border-gray-100'
+                            isMiddle ? 'border-[#D4A373] ring-2 ring-[#D4A373]/30 bg-gradient-to-b from-[#D4A373]/5 to-white' : 'border-gray-100'
                           }`}>
                             <div className="p-6 pb-0 flex flex-col items-start">
-                              <span className="px-3 py-1 bg-gray-100 text-[11px] font-bold tracking-wider uppercase rounded-full text-gray-600 mb-4">
+                              <span className={`px-3 py-1 text-[11px] font-bold tracking-wider uppercase rounded-full mb-4 ${
+                                isMiddle ? 'bg-[#D4A373] text-white' : 'bg-gray-100 text-gray-600'
+                              }`}>
                                 {pkg.badge}
                               </span>
-                              <div className="flex items-baseline text-gray-900 mb-1">
+                              <div className="flex items-baseline text-[#1E293B] mb-1">
                                 <span className="text-4xl font-black tracking-tight">{priceStr.split(' ')[0]}</span>
                                 <span className="text-lg font-bold ml-1 text-gray-500">eur</span>
                                 <span className="text-xs font-semibold text-gray-400 ml-2">/ {pkg.duration} {t.minutes}</span>
@@ -506,8 +508,8 @@ export default function Home() {
                                 onClick={() => { setSelectedDuration(pkg.duration); setMassageStep(3); }}
                                 className={`w-full py-3 rounded-xl font-bold text-xs uppercase tracking-wider shadow-sm transition-all duration-300 ${
                                   isMiddle 
-                                    ? 'bg-[#3a3225] text-white hover:bg-[#5c4a37]' 
-                                    : 'bg-gray-900 text-white hover:bg-black'
+                                    ? 'bg-[#2F5D50] text-white hover:bg-[#1f3f36]' 
+                                    : 'bg-[#1E293B] text-white hover:bg-black'
                                 }`}
                               >
                                 {t.selectBtn}
@@ -520,8 +522,8 @@ export default function Home() {
                               <ul className="space-y-2.5 text-xs text-gray-600">
                                 {pkg.features.map((feat, idx) => (
                                   <li key={idx} className="flex items-start space-x-2">
-                                    <span className="text-emerald-500 font-bold flex-shrink-0">✓</span>
-                                    <span>{feat}</span>
+                                    <span className="text-[#2F5D50] font-bold flex-shrink-0">✓</span>
+                                    <span className="text-[#1E293B]">{feat}</span>
                                   </li>
                                 ))}
                               </ul>
@@ -531,15 +533,21 @@ export default function Home() {
                       })}
                     </div>
                     
-                    <button type="button" onClick={() => setMassageStep(1)} className="text-xs text-gray-400 block text-center mt-4 hover:underline mx-auto">{t.back}</button>
+                    <button 
+                      type="button" 
+                      onClick={() => setMassageStep(1)} 
+                      className="mx-auto flex items-center justify-center space-x-2 px-6 py-3.5 rounded-xl border-2 border-[#1E293B] text-[#1E293B] bg-transparent font-bold text-xs tracking-wider uppercase hover:bg-[#1E293B] hover:text-white transition-all duration-200 shadow-sm"
+                    >
+                      <span>⬅</span> <span>{t.backToLevel}</span>
+                    </button>
                   </div>
                 )}
 
                 {/* KROK 3: PREPOJENÝ KALENDÁR */}
                 {massageStep === 3 && selectedType && selectedDuration && (
-                  <div className="bg-white p-6 rounded-3xl border border-amber-100 shadow-sm text-gray-800 max-w-xl mx-auto">
-                    <h2 className="text-lg font-bold text-center text-[#5c4a37] mb-2">{t.step3Title}</h2>
-                    <div className="p-3 bg-amber-50 rounded-xl text-xs text-center border border-amber-100 text-[#5c4a37] mb-6">
+                  <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm text-[#1E293B] max-w-xl mx-auto">
+                    <h2 className="text-lg font-bold text-center text-[#2F5D50] mb-2">{t.step3Title}</h2>
+                    <div className="p-3 bg-[#F2EFE7] rounded-xl text-xs text-center border border-gray-200 text-[#1E293B] mb-6">
                       {t.selected}: <strong>{selectedType === 'Klasik' ? 'CLASSIC' : 'VIP PREMIUM'} - {selectedDuration} {t.minutes}</strong>
                     </div>
 
@@ -548,7 +556,7 @@ export default function Home() {
                     ) : (
                       <div className="border border-gray-100 rounded-2xl p-4 bg-gray-50/50 mb-6">
                         <div className="flex justify-between items-center mb-4 px-2">
-                          <span className="text-base font-bold tracking-tight text-gray-800">
+                          <span className="text-base font-bold tracking-tight text-[#1E293B]">
                             {t.months[currentMonth]} {currentYear}
                           </span>
                           <div className="flex space-x-2">
@@ -581,8 +589,7 @@ export default function Home() {
                           {daysArray.map((day) => {
                             const dateKey = getDateKey(currentYear, currentMonth, day);
                             
-                            // Úprava: Zmena podmienky na zobrazenie zeleného dňa. 
-                            // Deň má voľné termíny iba vtedy, ak aspoň JEDEN z nich vyhovuje dĺžke masáže + 30 min rezerve
+                            // Na zobrazenie dňa ako aktívneho musí slot ponúkať dostatok času (dĺžka masáže + 30 min rezerva)
                             const requiredTotalMinutes = selectedDuration + 30;
                             const hasValidSlots = !!slotsByDate[dateKey] && slotsByDate[dateKey].some(
                               slot => slot.availableMinutes >= requiredTotalMinutes
@@ -597,8 +604,8 @@ export default function Home() {
                                 className={`aspect-square flex items-center justify-center text-xs font-semibold rounded-lg transition-all ${
                                   hasValidSlots 
                                     ? selectedDateKey === dateKey
-                                      ? 'bg-emerald-600 text-white font-bold ring-2 ring-emerald-300 shadow'
-                                      : 'bg-emerald-100 text-emerald-800 font-bold hover:bg-emerald-200 border border-emerald-300/40 shadow-sm'
+                                      ? 'bg-[#2F5D50] text-white font-bold ring-2 ring-[#A4B69A] shadow'
+                                      : 'bg-[#A4B69A]/30 text-[#2F5D50] font-bold hover:bg-[#A4B69A]/50 border border-[#A4B69A]/40 shadow-sm'
                                     : 'text-gray-400 bg-white border border-gray-100 opacity-60 cursor-not-allowed'
                                 }`}
                               >
@@ -610,15 +617,14 @@ export default function Home() {
                       </div>
                     )}
 
-                    {/* ZOBRAZENIE HODÍN PRE VYBRANÝ DEŇ S FILTROM NA MINUTÁŽ */}
                     {selectedDateKey && slotsByDate[selectedDateKey] && (
-                      <div className="animate-fadeIn space-y-2 mb-6 bg-emerald-50/40 border border-emerald-100 p-4 rounded-xl">
-                        <p className="text-xs font-bold text-emerald-900">{t.chooseTime}</p>
+                      <div className="animate-fadeIn space-y-2 mb-6 bg-[#A4B69A]/10 border border-[#A4B69A]/30 p-4 rounded-xl">
+                        <p className="text-xs font-bold text-[#2F5D50]">{t.chooseTime}</p>
                         <div className="grid grid-cols-3 gap-2">
                           {slotsByDate[selectedDateKey].map((slot) => {
-                            const requiredTotalMinutes = selectedDuration + 30; // napr. 90 + 30 = 120
+                            const requiredTotalMinutes = selectedDuration + 30;
                             
-                            // Ak nasledujúci blok nemá dostatok minút, čas úplne schováme (alebo zneaktívnime)
+                            // Ak daný FSM blok nemá dosť minút, tlačidlo hodiny skryjeme
                             if (slot.availableMinutes < requiredTotalMinutes) {
                               return null;
                             }
@@ -630,8 +636,8 @@ export default function Home() {
                                 onClick={() => setSelectedSlot(slot.startIso)}
                                 className={`p-2.5 text-xs text-center font-bold rounded-lg border transition ${
                                   selectedSlot === slot.startIso
-                                    ? 'bg-[#8a7355] text-white border-[#8a7355] shadow'
-                                    : 'bg-white border-gray-200 text-gray-700 hover:border-amber-300'
+                                    ? 'bg-[#2F5D50] text-white border-[#2F5D50] shadow'
+                                    : 'bg-white border-gray-200 text-[#1E293B] hover:border-[#2F5D50]'
                                 }`}
                               >
                                 {slot.formattedTime}
@@ -646,7 +652,7 @@ export default function Home() {
                     {selectedSlot && (
                       <form onSubmit={handleBookingSubmit} className="space-y-4 pt-4 border-t border-gray-100 mt-4 animate-fadeIn">
                         <h3 className="font-bold text-xs text-gray-700">{t.contactTitle}</h3>
-                        <div className="p-3 bg-emerald-600 text-white font-bold rounded-xl text-xs text-center shadow-sm">
+                        <div className="p-3 bg-[#2F5D50] text-white font-bold rounded-xl text-xs text-center shadow-sm">
                           {t.selected} termín: {new Date(selectedSlot).toLocaleDateString('sk-SK')} o {new Date(selectedSlot).toLocaleTimeString('sk-SK', {hour: '2-digit', minute:'2-digit'})}
                         </div>
                         
@@ -657,40 +663,62 @@ export default function Home() {
                             required 
                             value={clientName}
                             onChange={(e) => setClientName(e.target.value)}
-                            className="p-3 border rounded-xl text-sm bg-gray-50 focus:bg-white focus:outline-none" 
+                            className="p-3 border rounded-xl text-sm bg-gray-50 focus:bg-white focus:outline-none text-[#1E293B]" 
                           />
                         </div>
 
-                        <div className="space-y-2 bg-gray-50 p-3 rounded-xl border border-gray-100">
+                        <div className="space-y-3 bg-gray-50 p-3 rounded-xl border border-gray-100">
                           <p className="text-[11px] text-gray-500 font-medium">{t.contactNotice}</p>
                           
                           <div className="space-y-1">
-                            <label className="flex items-center space-x-2 text-xs font-semibold cursor-pointer">
-                              <input type="checkbox" checked={activeContacts.phone} onChange={() => handleContactCheckboxChange('phone')} className="rounded border-gray-300 text-[#8a7355] focus:ring-[#8a7355]" />
+                            <label className="flex items-center space-x-2 text-xs font-semibold cursor-pointer text-[#1E293B]">
+                              <input type="checkbox" checked={activeContacts.phone} onChange={() => handleContactCheckboxChange('phone')} className="rounded border-gray-300 text-[#2F5D50] focus:ring-[#2F5D50]" />
                               <span>{t.phone}</span>
                             </label>
                             {activeContacts.phone && (
-                              <input type="tel" required placeholder="+421 ..." value={contactValues.phone} onChange={(e) => handleContactValueChange('phone', e.target.value)} className="w-full p-2 border rounded-lg text-xs bg-white focus:outline-none" />
+                              <div className="flex space-x-2">
+                                <select 
+                                  value={phonePrefix} 
+                                  onChange={(e) => setPhonePrefix(e.target.value)}
+                                  className="p-2 border rounded-lg text-xs bg-white focus:outline-none text-[#1E293B] font-sans"
+                                >
+                                  <option value="+421">🇸🇰 +421</option>
+                                  <option value="+420">🇨🇿 +420</option>
+                                </select>
+                                <input 
+                                  type="tel" 
+                                  required 
+                                  placeholder="905 123 456" 
+                                  value={contactValues.phone} 
+                                  onChange={(e) => handlePhoneChange(e.target.value)} 
+                                  className="flex-grow p-2 border rounded-lg text-xs bg-white focus:outline-none text-[#1E293B] tracking-wider" 
+                                />
+                              </div>
+                            )}
+                            {activeContacts.phone && contactValues.phone.length > 0 && contactValues.phone.length < 9 && (
+                              <p className="text-[10px] text-amber-700 font-medium pl-1">
+                                {lang === 'SK' ? 'Zadajte presne 9 číslic' : 'Enter exactly 9 digits'} ({contactValues.phone.length}/9)
+                              </p>
                             )}
                           </div>
 
                           <div className="space-y-1 pt-1">
-                            <label className="flex items-center space-x-2 text-xs font-semibold cursor-pointer">
-                              <input type="checkbox" checked={activeContacts.instagram} onChange={() => handleContactCheckboxChange('instagram')} className="rounded border-gray-300 text-[#8a7355] focus:ring-[#8a7355]" />
+                            <label className="flex items-center space-x-2 text-xs font-semibold cursor-pointer text-[#1E293B]">
+                              <input type="checkbox" checked={activeContacts.instagram} onChange={() => handleContactCheckboxChange('instagram')} className="rounded border-gray-300 text-[#2F5D50] focus:ring-[#2F5D50]" />
                               <span>{t.instagram}</span>
                             </label>
                             {activeContacts.instagram && (
-                              <input type="text" required placeholder="@uzivatel" value={contactValues.instagram} onChange={(e) => handleContactValueChange('instagram', e.target.value)} className="w-full p-2 border rounded-lg text-xs bg-white focus:outline-none" />
+                              <input type="text" required placeholder="@uzivatel" value={contactValues.instagram} onChange={(e) => handleContactValueChange('instagram', e.target.value)} className="w-full p-2 border rounded-lg text-xs bg-white focus:outline-none text-[#1E293B]" />
                             )}
                           </div>
 
                           <div className="space-y-1 pt-1">
-                            <label className="flex items-center space-x-2 text-xs font-semibold cursor-pointer">
-                              <input type="checkbox" checked={activeContacts.email} onChange={() => handleContactCheckboxChange('email')} className="rounded border-gray-300 text-[#8a7355] focus:ring-[#8a7355]" />
+                            <label className="flex items-center space-x-2 text-xs font-semibold cursor-pointer text-[#1E293B]">
+                              <input type="checkbox" checked={activeContacts.email} onChange={() => handleContactCheckboxChange('email')} className="rounded border-gray-300 text-[#2F5D50] focus:ring-[#2F5D50]" />
                               <span>{t.email}</span>
                             </label>
                             {activeContacts.email && (
-                              <input type="email" required placeholder="meno@domena.com" value={contactValues.email} onChange={(e) => handleContactValueChange('email', e.target.value)} className="w-full p-2 border rounded-lg text-xs bg-white focus:outline-none" />
+                              <input type="email" required placeholder="meno@domena.com" value={contactValues.email} onChange={(e) => handleContactValueChange('email', e.target.value)} className="w-full p-2 border rounded-lg text-xs bg-white focus:outline-none text-[#1E293B]" />
                             )}
                           </div>
                         </div>
@@ -699,14 +727,21 @@ export default function Home() {
                           type="submit" 
                           disabled={!isContactValid()}
                           className={`w-full py-3 rounded-xl font-bold transition text-sm shadow-sm ${
-                            isContactValid() ? 'bg-[#8a7355] text-white hover:bg-[#725e45]' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                            isContactValid() ? 'bg-[#2F5D50] text-white hover:bg-[#1f3f36]' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                           }`}
                         >
                           {t.bookBtn}
                         </button>
                       </form>
                     )}
-                    <button type="button" onClick={() => setMassageStep(2)} className="text-xs text-gray-400 block text-center mt-4 hover:underline mx-auto">{t.back}</button>
+
+                    <button 
+                      type="button" 
+                      onClick={() => setMassageStep(2)} 
+                      className="mx-auto mt-6 flex items-center justify-center space-x-2 px-6 py-3.5 rounded-xl border-2 border-[#1E293B] text-[#1E293B] bg-transparent font-bold text-xs tracking-wider uppercase hover:bg-[#1E293B] hover:text-white transition-all duration-200 shadow-sm"
+                    >
+                      <span>⬅</span> <span>{t.backToPackages}</span>
+                    </button>
                   </div>
                 )}
               </div>
