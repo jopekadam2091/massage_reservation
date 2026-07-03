@@ -312,6 +312,9 @@ export default function Home() {
     <div className={`min-h-screen transition-all duration-700 ease-in-out pb-20 ${
       mode === 'photo' ? 'bg-[#1a1a1a] text-white font-figtree' : mode === 'massage' ? 'bg-[#f9f6f0] text-[#3a3225] font-chillax' : 'bg-[#121212] text-white'
     }`}>
+
+      {/* ÚSPEŠNÁ REZERVÁCIA - OVERLAY */}   ← nové, vložíš toto
+      {showSuccessPopup && ( ... )}
       
       {/* JAZYKOVÝ PREPÍNAČ */}
       <div className="absolute top-6 right-6 z-50 flex space-x-2 bg-neutral-800 bg-opacity-60 p-1 rounded-full backdrop-blur-sm border border-neutral-700 font-sans">
