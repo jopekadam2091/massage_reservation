@@ -25,7 +25,7 @@ export async function GET() {
   }
 }
 
-// 2. ZÁPIS REZERVÁCIE DO KALENDÁRA + ZELENÁ FARBA + VYMAZANIE STARÉHO SLOTU (POST)
+// 2. ZÁPIS REZERVÁCIE DO KALENDÁRA + ZELENÁ FARBA + VYMAZANIE SLOTU (POST)
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -35,39 +35,43 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Chýba vybraný termín' }, { status: 400 });
     }
 
-    // 1. Prevedieme vybraný slot na absolútny časový timestamp (odstráni chaos s pásmami)
-    const targetDate = new Date(slot);
-    const targetTimestamp = targetDate.getTime();
+    // Vytiahneme čistý lokálny čas bez ohľadu na posuny servera (napr. "2026-07-03T16:00:00")
+    const localDateTimeString = slot.slice(0, 19);
     
-    // Vypočítame koniec rezervácie
-    const endDate = new Date(targetTimestamp + (duration || 60) * 60000);
+    // Bezpečne vypočítame koniec masáže v čistom lokálnom formáte
+    const dummyDate = new Date(localDateTimeString + 'Z');
+    const dummyEndDate = new Date(dummyDate.getTime() + (duration || 60) * 60000);
+    const endLocalDateTimeString = dummyEndDate.toISOString().slice(0, 19);
 
     // ==========================================
     // 🔥 KROK A: NEPRIESTRELNÉ VYMAZANIE STARÉHO SLOTU
     // ==========================================
     try {
-      // Definujeme si časové okno pre celý daný deň, aby sme našli zástupný slot
-      const startOfDay = new Date(targetDate);
-      startOfDay.setHours(0, 0, 0, 0);
-      const endOfDay = new Date(targetDate);
-      endOfDay.setHours(23, 59, 59, 999);
+      // Vyhľadáme udalosti v okne +/- 12 hodín okolo zvoleného času pre 100% istotu zachytenia
+      const timeMinFetch = new Date(dummyDate.getTime() - 12 * 60 * 60 * 1000).toISOString();
+      const timeMaxFetch = new Date(dummyDate.getTime() + 12 * 60 * 60 * 1000).toISOString();
 
       const existingEvents = await calendar.events.list({
         calendarId: process.env.GOOGLE_CALENDAR_ID,
-        timeMin: startOfDay.toISOString(),
-        timeMax: endOfDay.toISOString(),
+        timeMin: timeMinFetch,
+        timeMax: timeMaxFetch,
         singleEvents: true,
       });
 
-      // Hľadáme udalosť, ktorá má v názve "volno" a jej začiatok sa presne rovná nášmu timestampu
+      // Nájdeme správny slot pomocou striktného prevodu na bratislavský časový text
       const slotToDelete = existingEvents.data.items?.find((item) => {
         if (!item.start?.dateTime) return false;
+        
         const isTargetSlot = item.summary?.toLowerCase().includes('volno');
-        const itemTimestamp = new Date(item.start.dateTime).getTime();
-        return isTargetSlot && itemTimestamp === targetTimestamp;
+        
+        // Prevedieme akýkoľvek čas z kalendára na čistý formát "YYYY-MM-DDTHH:mm:ss" v bratislavskom pásme
+        const itemDate = new Date(item.start.dateTime);
+        const itemBratislavaStr = itemDate.toLocaleString('sv-SE', { timeZone: 'Europe/Bratislava' }).replace(' ', 'T');
+        
+        // Porovnáme textové reťazce (napr. "2026-07-03T16:00:00" === "2026-07-03T16:00:00")
+        return isTargetSlot && itemBratislavaStr.startsWith(localDateTimeString);
       });
 
-      // Ak takýto slot existuje, vymažeme ho
       if (slotToDelete?.id) {
         console.log(`Úspešne mažem starý slot s ID: ${slotToDelete.id}`);
         await calendar.events.delete({
@@ -80,18 +84,20 @@ export async function POST(request: Request) {
     }
 
     // ==========================================
-    // 📝 KROK B: ZÁPIS NOVEJ REZERVÁCIE (NA ZELENO)
+    // 📝 KROK B: ZÁPIS NOVEJ REZERVÁCIE V BRATISLAVSKOM ČASE A NA ZELENO
     // ==========================================
     const event = {
       summary: `REZERVÁCIA: ${type} - ${name}`,
       description: `Meno: ${name}\nEmail: ${email}\nTel: ${phone}\nIG: ${instagram}\nBalíček: ${type} (${duration} min)`,
       start: { 
-        dateTime: targetDate.toISOString(),
+        dateTime: localDateTimeString,
+        timeZone: 'Europe/Bratislava'
       },
       end: { 
-        dateTime: endDate.toISOString(),
+        dateTime: endLocalDateTimeString,
+        timeZone: 'Europe/Bratislava'
       },
-      colorId: '10', // 🔥 Kód 10 nastaví v Google Kalendári krásnu zelenú farbu (Basil)
+      colorId: '10', // 🔥 Nastaví krásnu sýtozelenú farbu v Google Kalendári
     };
 
     const response = await calendar.events.insert({
