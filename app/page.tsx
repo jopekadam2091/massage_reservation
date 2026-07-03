@@ -55,9 +55,8 @@ export default function Home() {
       descLabel: 'Vaša predstava a popis',
       name: 'Vaše meno',
       send: 'Poslať správu a dohodnúť termín',
-      photoAlertSuccess: 'Brief bol úspešne odoslaný!',
       massageTitle: 'Osobný Reset & Uvoľnenie',
-      massageSubtitle: 'Exkluzívne privátne masáže. Rezervácia možná len cez voľné sloty.',
+      massageSubtitle: 'Exkluzívne privátne masáže u mňa na byte. Rezervácia možná len cez voľné sloty.',
       step1: 'Úroveň', step2: 'Balíček', step3: 'Termín',
       step1Title: '1. Krok: Vyberte si úroveň starostlivosti',
       klasikTitle: 'MASÁŽ CLASSIC',
@@ -67,10 +66,7 @@ export default function Home() {
       step2Title: '2. Krok: Vyberte si optimálny balíček',
       step3Title: '3. Krok: Vyberte si exkluzívny voľný termín z kalendára',
       selected: 'Vybrané',
-      selectedTerm: 'Vybraný termín',
       minutes: 'minút',
-      currency: 'eur',
-      back: 'Späť',
       backToLevel: 'Späť na výber úrovne',
       backToPackages: 'Späť na výber balíčka',
       contactTitle: 'Kontaktné údaje pre overenie a zaslanie adresy',
@@ -85,53 +81,9 @@ export default function Home() {
       mon: 'PO', tue: 'UT', wed: 'ST', thu: 'ŠT', fri: 'PI', sat: 'SO', sun: 'NE',
       chooseTime: 'Vyberte si čas na daný deň:',
       loading: 'Načítavam voľné termíny z kalendára...',
-      successTitle: 'Rezervácia bola úspešna! 🎉',
+      successTitle: 'Rezervácia bola úspešná! 🎉',
       successText: 'Vaša rezervácia bola úspešne zapísaná do kalendára. Čoskoro vás budem kontaktovať pre potvrdenie a zaslanie adresy.',
-      successHomeBtn: 'Späť na domovskú stránku',
-      errorSaving: 'Chyba pri ukladaní rezervácie.',
-      errorConnection: 'Nepodarilo sa spojiť so serverom.',
-      packagesData: {
-        Klasik: [
-          {
-            duration: 30,
-            badge: 'Lite',
-            desc: 'Vhodný pre rýchlu masáž konkrétnejšej oblasti tela.',
-            features: ['Masáž vybranej časti tela', 'Aromaterapia']
-          },
-          {
-            duration: 45,
-            badge: 'Supreme',
-            desc: 'Vhodný pre rýchly relax celého tela.',
-            features: ['Masáž celého tela', 'Možnosť vybrať extra čas na vybranú partiu', 'Aromaterapia']
-          },
-          {
-            duration: 60,
-            badge: 'Full Experience',
-            desc: 'Dokonalý zážitok s extra časom.',
-            features: ['Masáž celého tela', 'Možnosť vybrať extra čas na vybranú partiu', 'Aromaterapia']
-          }
-        ],
-        VIP: [
-          {
-            duration: 45,
-            badge: 'VIP Supreme',
-            desc: 'Rýchla ochutnávka VIP procedúr.',
-            features: ['Hĺbková masáž panvového dna', 'Masáž rúk', 'Hĺbková masáž gluteálnej oblasti', 'Aromaterapia']
-          },
-          {
-            duration: 60,
-            badge: 'VIP Pro',
-            desc: 'Kompletný prémium senzuálny rituál v plnom rozsahu.',
-            features: ['Hĺbková masáž panvového dna', 'Masáž rúk a dlaní', 'Terapeutická masáž prostaty', 'Hĺbková masáž gluteálnej oblasti', 'Aplikácia špeciálnych intímnych olejov', 'Aromaterapia', 'Dynamická perkusívna terapia (vibračná pištoľ)']
-          },
-          {
-            duration: 90,
-            badge: 'VIP Max',
-            desc: 'Pro zážitok vytiahnutý na maximum, pre pôžitkárov.',
-            features: ['Maximálne uvoľnenie', 'Hĺbková masáž panvového dna', 'Masáž rúk a dlaní', 'Terapeutická masáž prostaty', 'Hĺbková masáž gluteálnej oblasti', 'Aplikácia špeciálnych intímnych olejov', 'Aromaterapia', 'Dynamická perkusívna terapia', 'Nealko drink v cene', '+ Darček']
-          }
-        ]
-      }
+      successHomeBtn: 'Späť na domovskú stránku'
     },
     EN: {
       photo: 'Photography',
@@ -150,9 +102,8 @@ export default function Home() {
       descLabel: 'Your vision and description',
       name: 'Your name',
       send: 'Send message and arrange date',
-      photoAlertSuccess: 'Brief sent successfully!',
       massageTitle: 'Personal Reset & Relaxation',
-      massageSubtitle: 'Exclusive private massages. Booking only via available slots.',
+      massageSubtitle: 'Exclusive private massages at my apartment. Booking only via available slots.',
       step1: 'Level', step2: 'Package', step3: 'Date',
       step1Title: '1. Step: Choose your level of care',
       klasikTitle: 'CLASSIC MASSAGE',
@@ -162,10 +113,7 @@ export default function Home() {
       step2Title: '2. Step: Choose your package',
       step3Title: '3. Step: Choose an exclusive available slot from the calendar',
       selected: 'Selected',
-      selectedTerm: 'Selected date',
       minutes: 'minutes',
-      currency: 'eur',
-      back: 'Back',
       backToLevel: 'Back to level selection',
       backToPackages: 'Back to package selection',
       contactTitle: 'Contact details for verification and address delivery',
@@ -182,51 +130,7 @@ export default function Home() {
       loading: 'Loading available slots from Google Calendar...',
       successTitle: 'Booking successful! 🎉',
       successText: 'Your booking has been successfully saved to the calendar. I will contact you shortly to confirm and send the address.',
-      successHomeBtn: 'Back to homepage',
-      errorSaving: 'Error saving appointment.',
-      errorConnection: 'Connection error.',
-      packagesData: {
-        Klasik: [
-          {
-            duration: 30,
-            badge: 'Lite',
-            desc: 'Suitable for a quick massage of a specific body area.',
-            features: ['Massage of the selected body part', 'Aromatherapy']
-          },
-          {
-            duration: 45,
-            badge: 'Supreme',
-            desc: 'Suitable for quick full-body relaxation.',
-            features: ['Full body massage', 'Option to choose extra time for a selected area', 'Aromatherapy']
-          },
-          {
-            duration: 60,
-            badge: 'Full Experience',
-            desc: 'Perfect experience with extra time.',
-            features: ['Full body massage', 'Option to choose extra time for a selected area', 'Aromatherapy']
-          }
-        ],
-        VIP: [
-          {
-            duration: 45,
-            badge: 'VIP Supreme',
-            desc: 'A quick taste of VIP procedures.',
-            features: ['Deep pelvic floor massage', 'Hand massage', 'Deep gluteal massage', 'Aromatherapy']
-          },
-          {
-            duration: 60,
-            badge: 'VIP Pro',
-            desc: 'Complete premium sensual ritual in full scope.',
-            features: ['Deep pelvic floor massage', 'Hand and palm massage', 'Therapeutic prostate massage', 'Deep gluteal massage', 'Application of special intimate oils', 'Aromatherapy', 'Dynamic percussive therapy (massage gun)']
-          },
-          {
-            duration: 90,
-            badge: 'VIP Max',
-            desc: 'Pro experience turned up to the maximum, for pleasure-seekers.',
-            features: ['Maximum relaxation', 'Deep pelvic floor massage', 'Hand and palm massage', 'Therapeutic prostate massage', 'Deep gluteal massage', 'Application of special intimate oils', 'Aromatherapy', 'Dynamic percussive therapy', 'Soft drink included', '+ Gift']
-          }
-        ]
-      }
+      successHomeBtn: 'Back to homepage'
     }
   };
 
@@ -263,8 +167,8 @@ export default function Home() {
   };
 
   const prices = {
-    Klasik: { 30: '30', 45: '40', 60: '45' },
-    VIP: { 45: '65', 60: '70', 90: '90' }
+    Klasik: { 30: '30 eur', 45: '40 eur', 60: '45 eur' },
+    VIP: { 45: '65 eur', 60: '70 eur', 90: '90 eur' }
   };
 
   // --- EFEKT: NAČÍTANIE Z GOOGLE KALENDÁRA ---
@@ -280,7 +184,6 @@ export default function Home() {
           if (data.events) {
             const processedSlots: Record<string, string[]> = {};
             data.events.forEach((event: any) => {
-              // Hľadáme udalosti s názvom "FSM" v Google kalendári
               if (event.summary.toLowerCase() === 'fsm' && event.start?.dateTime) {
                 const date = new Date(event.start.dateTime);
                 const year = date.getFullYear();
@@ -346,10 +249,10 @@ export default function Home() {
         setClientName('');
         setContactValues({ phone: '', instagram: '', email: '' });
       } else {
-        alert(t.errorSaving);
+        alert(lang === 'SK' ? 'Chyba pri ukladaní rezervácie.' : 'Error saving appointment.');
       }
     } catch {
-      alert(t.errorConnection);
+      alert(lang === 'SK' ? 'Nepodarilo sa spojiť so serverom.' : 'Connection error.');
     }
   };
 
@@ -363,9 +266,52 @@ export default function Home() {
     return true;
   };
 
+  const packagesData = {
+    Klasik: [
+      {
+        duration: 30,
+        badge: 'Lite',
+        desc: 'Vhodný pre rýchlu masáž konkrétnejšej oblasti tela.',
+        features: ['Masáž vybranej časti tela', 'Aromaterapia']
+      },
+      {
+        duration: 45,
+        badge: 'Supreme',
+        desc: 'Vhodný pre rýchly relax celého tela.',
+        features: ['Masáž celého tela', 'Možnosť vybrať extra čas na vybranú partiu', 'Aromaterapia']
+      },
+      {
+        duration: 60,
+        badge: 'Full Experience',
+        desc: 'Dokonalý zážitok s extra časom.',
+        features: ['Masáž celého tela', 'Možnosť vybrať extra čas na vybranú partiu', 'Aromaterapia']
+      }
+    ],
+    VIP: [
+      {
+        duration: 45,
+        badge: 'VIP Supreme',
+        desc: 'Rýchla ochutnávka VIP procedúr.',
+        features: ['Hĺbková masáž panvového dna', 'Masáž rúk', 'Hĺbková masáž gluteálnej oblasti', 'Aromaterapia']
+      },
+      {
+        duration: 60,
+        badge: 'VIP Pro',
+        desc: 'Kompletný prémium senzuálny rituál v plnom rozsahu.',
+        features: ['Hĺbková masáž panvového dna', 'Masáž rúk a dlaní', 'Terapeutická masáž prostaty', 'Hĺbková masáž gluteálnej oblasti', 'Aplikácia špeciálnych intímnych olejov', 'Aromaterapia', 'Dynamická perkusívna terapia (vibračná pištoľ)']
+      },
+      {
+        duration: 90,
+        badge: 'VIP Max',
+        desc: 'Pro zážitok vytiahnutý na maximum, pre pôžitkárov.',
+        features: ['Maximálne uvoľnenie', 'Hĺbková masáž panvového dna', 'Masáž rúk a dlaní', 'Terapeutická masáž prostaty', 'Hĺbková masáž gluteálnej oblasti', 'Aplikácia špeciálnych intímnych olejov', 'Aromaterapia', 'Dynamická perkusívna terapia', 'Nealko drink v cene', '+ Darček']
+      }
+    ]
+  };
+
   return (
     <div className={`min-h-screen transition-all duration-700 ease-in-out pb-20 ${
-      mode === 'photo' ? 'bg-[#1a1a1a] text-white font-figtree' : mode === 'massage' ? 'bg-[#f9f6f0] text-[#3a3225] font-chillax' : 'bg-[#121212] text-white'
+      mode === 'photo' ? 'bg-[#1a1a1a] text-white font-figtree' : mode === 'massage' ? 'bg-[#F2EFE7] text-[#1E293B] font-chillax' : 'bg-[#121212] text-white'
     }`}>
 
       {/* ÚSPEŠNÁ REZERVÁCIA - OVERLAY */}
@@ -375,7 +321,7 @@ export default function Home() {
             <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-emerald-100 flex items-center justify-center text-3xl">
               ✅
             </div>
-            <h2 className="text-xl font-extrabold text-[#3a3225] mb-3">
+            <h2 className="text-xl font-extrabold text-[#1E293B] mb-3">
               {t.successTitle}
             </h2>
             <p className="text-sm text-gray-600 mb-6 leading-relaxed">
@@ -384,7 +330,7 @@ export default function Home() {
             <button
               type="button"
               onClick={() => setShowSuccessPopup(false)}
-              className="w-full bg-[#8a7355] text-white py-3 rounded-xl font-bold text-sm hover:bg-[#725e45] transition shadow-sm"
+              className="w-full bg-[#2F5D50] text-white py-3 rounded-xl font-bold text-sm hover:bg-[#1f3f36] transition shadow-sm"
             >
               {t.successHomeBtn}
             </button>
@@ -409,7 +355,7 @@ export default function Home() {
             <div className="text-5xl mb-2 group-hover:scale-110 transition-transform duration-300">👁️</div>
             <span className="text-xl font-light tracking-widest uppercase">{t.photo}</span>
           </button>
-          <button type="button" onClick={() => setMode('massage')} className="w-full h-1/2 flex flex-col items-center justify-center group hover:bg-[#1f1f1f] transition-all duration-500 font-chillax">
+          <button type="button" onClick={() => setMode('massage')} className="w-full h-1/2 flex flex-col items-center justify-center group hover:bg-[#F2EFE7] hover:text-[#1E293B] transition-all duration-500 font-chillax text-white">
             <div className="text-5xl mb-2 group-hover:scale-110 transition-transform duration-300">🙌</div>
             <span className="text-xl font-light tracking-widest uppercase">{t.massage}</span>
           </button>
@@ -435,7 +381,7 @@ export default function Home() {
                   <h1 className="text-3xl font-extrabold mb-2">{t.photoTitle}</h1>
                   <p className="text-gray-400 text-sm">{t.photoSubtitle}</p>
                 </div>
-                <form onSubmit={(e) => { e.preventDefault(); alert(t.photoAlertSuccess); }} className="bg-neutral-900 p-6 rounded-xl border border-neutral-800 space-y-6">
+                <form onSubmit={(e) => { e.preventDefault(); alert('Brief sent!'); }} className="bg-neutral-900 p-6 rounded-xl border border-neutral-800 space-y-6">
                   <h2 className="text-lg font-bold border-b border-neutral-800 pb-2">{t.photoFormTitle}</h2>
                   <div className="space-y-4">
                     <div>
@@ -461,33 +407,36 @@ export default function Home() {
             ) : (
               <div className="space-y-8 animate-fadeIn">
                 <div className="max-w-xl mx-auto">
-                  <h1 className="text-3xl font-extrabold mb-2 text-[#5c4a37]">{t.massageTitle}</h1>
-                  <p className="text-amber-900 bg-amber-100/60 p-3 rounded border border-amber-200 block text-sm">{t.massageSubtitle}</p>
+                  <h1 className="text-3xl font-extrabold mb-2 text-[#2F5D50]">{t.massageTitle}</h1>
+                  <p className="text-[#1E293B] bg-[#A4B69A]/30 p-3 rounded border border-[#A4B69A]/50 block text-sm">{t.massageSubtitle}</p>
                 </div>
 
                 <div className="flex justify-between max-w-xs mx-auto mb-8">
                   {[1, 2, 3].map((step) => (
                     <div key={step} className="flex items-center space-x-1">
-                      <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold border transition ${massageStep === step ? 'bg-[#8a7355] text-white' : 'bg-white text-gray-400'}`}>{step}</div>
-                      <span className={`text-[10px] font-semibold ${massageStep === step ? 'text-[#8a7355]' : 'text-gray-400'}`}>{step === 1 ? t.step1 : step === 2 ? t.step2 : t.step3}</span>
+                      <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold border transition ${massageStep === step ? 'bg-[#2F5D50] text-white border-[#2F5D50]' : 'bg-white text-gray-400 border-gray-200'}`}>{step}</div>
+                      <span className={`text-[10px] font-semibold ${massageStep === step ? 'text-[#2F5D50]' : 'text-gray-400'}`}>{step === 1 ? t.step1 : step === 2 ? t.step2 : t.step3}</span>
                     </div>
                   ))}
                 </div>
 
                 {/* KROK 1 */}
                 {massageStep === 1 && (
-                  <div className="bg-white p-6 rounded-xl border border-amber-100 shadow-sm text-gray-800 max-w-xl mx-auto">
-                    <h2 className="text-lg font-bold text-center text-[#5c4a37] mb-4">{t.step1Title}</h2>
+                  <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm text-[#1E293B] max-w-xl mx-auto">
+                    <h2 className="text-lg font-bold text-center text-[#2F5D50] mb-4">{t.step1Title}</h2>
                     <div className="flex flex-col space-y-3">
-                      <button type="button" onClick={() => { setSelectedType('Klasik'); setMassageStep(2); }} className="p-5 rounded-xl border text-left hover:border-amber-300 transition bg-gray-50/50">
-                        <h3 className="font-bold text-base text-[#5c4a37]">{t.klasikTitle}</h3>
+                      <button type="button" onClick={() => { setSelectedType('Klasik'); setMassageStep(2); }} className="p-5 rounded-xl border border-gray-200 text-left hover:border-[#A4B69A] transition bg-gray-50/50">
+                        <h3 className="font-bold text-base text-[#2F5D50]">{t.klasikTitle}</h3>
                         <p className="text-xs text-gray-500 mt-1">{t.klasikDesc}</p>
                       </button>
                       
-                      {/* ZVÝRAZNENÉ VIP TLAČIDLO */}
-                      <button type="button" onClick={() => { setSelectedType('VIP'); setMassageStep(2); }} className="p-5 rounded-xl border-2 border-amber-400 text-left transition bg-amber-50 shadow-md hover:bg-amber-100/70">
-                        <h3 className="font-bold text-base text-amber-950">{t.vipTitle}</h3>
-                        <p className="text-xs text-amber-800 mt-1">{t.vipDesc}</p>
+                      {/* VÝRAZNE ZVÝRAZNENÉ TLAČIDLO PRE VIP MASÁŽ S FARBOU #D4A373 */}
+                      <button type="button" onClick={() => { setSelectedType('VIP'); setMassageStep(2); }} className="p-5 rounded-xl border-2 border-[#D4A373] text-left transition bg-[#D4A373]/20 hover:bg-[#D4A373]/30 shadow-md transform hover:scale-[1.01] duration-200">
+                        <h3 className="font-extrabold text-base text-[#5c4228] flex items-center justify-between">
+                          <span>{t.vipTitle}</span>
+                          <span className="bg-[#D4A373] text-white text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider">POPULAR</span>
+                        </h3>
+                        <p className="text-xs text-[#5c4228] font-medium mt-1">{t.vipDesc}</p>
                       </button>
                     </div>
                   </div>
@@ -496,10 +445,10 @@ export default function Home() {
                 {/* KROK 2 */}
                 {massageStep === 2 && selectedType && (
                   <div className="space-y-6">
-                    <h2 className="text-2xl font-bold text-center text-[#5c4a37]">{t.step2Title} ({selectedType === 'Klasik' ? t.klasikTitle : t.vipTitle})</h2>
+                    <h2 className="text-2xl font-bold text-center text-[#2F5D50]">{t.step2Title} ({selectedType === 'Klasik' ? t.klasikTitle : t.vipTitle})</h2>
                     
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
-                      {t.packagesData[selectedType].map((pkg) => {
+                      {packagesData[selectedType].map((pkg) => {
                         const priceStr = selectedType === 'Klasik' 
                           ? prices.Klasik[pkg.duration as 30 | 45 | 60] 
                           : prices.VIP[pkg.duration as 45 | 60 | 90];
@@ -508,15 +457,17 @@ export default function Home() {
 
                         return (
                           <div key={pkg.duration} className={`flex flex-col bg-white rounded-3xl border shadow-sm transition-all overflow-hidden ${
-                            isMiddle ? 'border-amber-300 ring-2 ring-amber-200/50 bg-gradient-to-b from-amber-50/30 to-white' : 'border-gray-100'
+                            isMiddle ? 'border-[#D4A373] ring-2 ring-[#D4A373]/30 bg-gradient-to-b from-[#D4A373]/5 to-white' : 'border-gray-100'
                           }`}>
                             <div className="p-6 pb-0 flex flex-col items-start">
-                              <span className="px-3 py-1 bg-gray-100 text-[11px] font-bold tracking-wider uppercase rounded-full text-gray-600 mb-4">
+                              <span className={`px-3 py-1 text-[11px] font-bold tracking-wider uppercase rounded-full mb-4 ${
+                                isMiddle ? 'bg-[#D4A373] text-white' : 'bg-gray-100 text-gray-600'
+                              }`}>
                                 {pkg.badge}
                               </span>
-                              <div className="flex items-baseline text-gray-900 mb-1">
-                                <span className="text-4xl font-black tracking-tight">{priceStr}</span>
-                                <span className="text-lg font-bold ml-1 text-gray-500">{t.currency}</span>
+                              <div className="flex items-baseline text-[#1E293B] mb-1">
+                                <span className="text-4xl font-black tracking-tight">{priceStr.split(' ')[0]}</span>
+                                <span className="text-lg font-bold ml-1 text-gray-500">eur</span>
                                 <span className="text-xs font-semibold text-gray-400 ml-2">/ {pkg.duration} {t.minutes}</span>
                               </div>
                               <p className="text-xs text-gray-500 min-h-[32px] mt-1">{pkg.desc}</p>
@@ -528,8 +479,8 @@ export default function Home() {
                                 onClick={() => { setSelectedDuration(pkg.duration); setMassageStep(3); }}
                                 className={`w-full py-3 rounded-xl font-bold text-xs uppercase tracking-wider shadow-sm transition-all duration-300 ${
                                   isMiddle 
-                                    ? 'bg-[#3a3225] text-white hover:bg-[#5c4a37]' 
-                                    : 'bg-gray-900 text-white hover:bg-black'
+                                    ? 'bg-[#2F5D50] text-white hover:bg-[#1f3f36]' 
+                                    : 'bg-[#1E293B] text-white hover:bg-black'
                                 }`}
                               >
                                 {t.selectBtn}
@@ -542,8 +493,8 @@ export default function Home() {
                               <ul className="space-y-2.5 text-xs text-gray-600">
                                 {pkg.features.map((feat, idx) => (
                                   <li key={idx} className="flex items-start space-x-2">
-                                    <span className="text-emerald-500 font-bold flex-shrink-0">✓</span>
-                                    <span>{feat}</span>
+                                    <span className="text-[#2F5D50] font-bold flex-shrink-0">✓</span>
+                                    <span className="text-[#1E293B]">{feat}</span>
                                   </li>
                                 ))}
                               </ul>
@@ -553,8 +504,12 @@ export default function Home() {
                       })}
                     </div>
                     
-                    {/* OPRAVENÉ TLAČIDLO SPÄŤ (KROK 2) */}
-                    <button type="button" onClick={() => setMassageStep(1)} className="mx-auto flex items-center justify-center space-x-2 px-5 py-3 rounded-xl border border-amber-200 text-[#5c4a37] bg-white shadow-sm font-semibold text-xs hover:bg-amber-50 hover:border-amber-300 transition-all">
+                    {/* UPRAVENÉ, VÝRAZNÉ TLAČIDLO SPÄŤ PRE KROK 2 */}
+                    <button 
+                      type="button" 
+                      onClick={() => setMassageStep(1)} 
+                      className="mx-auto flex items-center justify-center space-x-2 px-6 py-3.5 rounded-xl border-2 border-[#1E293B] text-[#1E293B] bg-transparent font-bold text-xs tracking-wider uppercase hover:bg-[#1E293B] hover:text-white transition-all duration-200 shadow-sm"
+                    >
                       <span>⬅</span> <span>{t.backToLevel}</span>
                     </button>
                   </div>
@@ -562,10 +517,10 @@ export default function Home() {
 
                 {/* KROK 3: PREPOJENÝ KALENDÁR */}
                 {massageStep === 3 && selectedType && selectedDuration && (
-                  <div className="bg-white p-6 rounded-3xl border border-amber-100 shadow-sm text-gray-800 max-w-xl mx-auto">
-                    <h2 className="text-lg font-bold text-center text-[#5c4a37] mb-2">{t.step3Title}</h2>
-                    <div className="p-3 bg-amber-50 rounded-xl text-xs text-center border border-amber-100 text-[#5c4a37] mb-6">
-                      {t.selected}: <strong>{selectedType === 'Klasik' ? t.klasikTitle : t.vipTitle} - {selectedDuration} {t.minutes}</strong>
+                  <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm text-[#1E293B] max-w-xl mx-auto">
+                    <h2 className="text-lg font-bold text-center text-[#2F5D50] mb-2">{t.step3Title}</h2>
+                    <div className="p-3 bg-[#F2EFE7] rounded-xl text-xs text-center border border-gray-200 text-[#1E293B] mb-6">
+                      {t.selected}: <strong>{selectedType === 'Klasik' ? 'CLASSIC' : 'VIP PREMIUM'} - {selectedDuration} {t.minutes}</strong>
                     </div>
 
                     {loadingCalendar ? (
@@ -574,7 +529,7 @@ export default function Home() {
                       <div className="border border-gray-100 rounded-2xl p-4 bg-gray-50/50 mb-6">
                         {/* HLAVIČKA KALENDÁRA S PREPÍNANÍM MESIACOV */}
                         <div className="flex justify-between items-center mb-4 px-2">
-                          <span className="text-base font-bold tracking-tight text-gray-800">
+                          <span className="text-base font-bold tracking-tight text-[#1E293B]">
                             {t.months[currentMonth]} {currentYear}
                           </span>
                           <div className="flex space-x-2">
@@ -620,8 +575,8 @@ export default function Home() {
                                 className={`aspect-square flex items-center justify-center text-xs font-semibold rounded-lg transition-all ${
                                   hasSlots 
                                     ? isCurrentSelected
-                                      ? 'bg-emerald-600 text-white font-bold ring-2 ring-emerald-300 shadow'
-                                      : 'bg-emerald-100 text-emerald-800 font-bold hover:bg-emerald-200 border border-emerald-300/40 shadow-sm'
+                                      ? 'bg-[#2F5D50] text-white font-bold ring-2 ring-[#A4B69A] shadow'
+                                      : 'bg-[#A4B69A]/30 text-[#2F5D50] font-bold hover:bg-[#A4B69A]/50 border border-[#A4B69A]/40 shadow-sm'
                                     : 'text-gray-400 bg-white border border-gray-100 opacity-60 cursor-not-allowed'
                                 }`}
                               >
@@ -635,8 +590,8 @@ export default function Home() {
 
                     {/* ZOBRAZENIE HODÍN PRE VYBRANÝ DEŇ */}
                     {selectedDateKey && slotsByDate[selectedDateKey] && (
-                      <div className="animate-fadeIn space-y-2 mb-6 bg-emerald-50/40 border border-emerald-100 p-4 rounded-xl">
-                        <p className="text-xs font-bold text-emerald-900">{t.chooseTime}</p>
+                      <div className="animate-fadeIn space-y-2 mb-6 bg-[#A4B69A]/10 border border-[#A4B69A]/30 p-4 rounded-xl">
+                        <p className="text-xs font-bold text-[#2F5D50]">{t.chooseTime}</p>
                         <div className="grid grid-cols-3 gap-2">
                           {slotsByDate[selectedDateKey].map((slotTime) => {
                             const slotIdentifier = `${selectedDateKey}T${slotTime}:00`;
@@ -647,8 +602,8 @@ export default function Home() {
                                 onClick={() => setSelectedSlot(slotIdentifier)}
                                 className={`p-2.5 text-xs text-center font-bold rounded-lg border transition ${
                                   selectedSlot === slotIdentifier
-                                    ? 'bg-[#8a7355] text-white border-[#8a7355] shadow'
-                                    : 'bg-white border-gray-200 text-gray-700 hover:border-amber-300'
+                                    ? 'bg-[#2F5D50] text-white border-[#2F5D50] shadow'
+                                    : 'bg-white border-gray-200 text-[#1E293B] hover:border-[#2F5D50]'
                                 }`}
                               >
                                 {slotTime}
@@ -663,8 +618,8 @@ export default function Home() {
                     {selectedSlot && (
                       <form onSubmit={handleBookingSubmit} className="space-y-4 pt-4 border-t border-gray-100 mt-4 animate-fadeIn">
                         <h3 className="font-bold text-xs text-gray-700">{t.contactTitle}</h3>
-                        <div className="p-3 bg-emerald-600 text-white font-bold rounded-xl text-xs text-center shadow-sm">
-                          {t.selectedTerm}: {new Date(selectedSlot).toLocaleDateString(lang === 'SK' ? 'sk-SK' : 'en-US')} o {new Date(selectedSlot).toLocaleTimeString(lang === 'SK' ? 'sk-SK' : 'en-US', {hour: '2-digit', minute:'2-digit'})}
+                        <div className="p-3 bg-[#2F5D50] text-white font-bold rounded-xl text-xs text-center shadow-sm">
+                          {t.selected} termín: {new Date(selectedSlot).toLocaleDateString('sk-SK')} o {new Date(selectedSlot).toLocaleTimeString('sk-SK', {hour: '2-digit', minute:'2-digit'})}
                         </div>
                         
                         <div className="flex flex-col space-y-2">
@@ -674,7 +629,7 @@ export default function Home() {
                             required 
                             value={clientName}
                             onChange={(e) => setClientName(e.target.value)}
-                            className="p-3 border rounded-xl text-sm bg-gray-50 focus:bg-white focus:outline-none" 
+                            className="p-3 border rounded-xl text-sm bg-gray-50 focus:bg-white focus:outline-none text-[#1E293B]" 
                           />
                         </div>
 
@@ -682,32 +637,32 @@ export default function Home() {
                           <p className="text-[11px] text-gray-500 font-medium">{t.contactNotice}</p>
                           
                           <div className="space-y-1">
-                            <label className="flex items-center space-x-2 text-xs font-semibold cursor-pointer">
-                              <input type="checkbox" checked={activeContacts.phone} onChange={() => handleContactCheckboxChange('phone')} className="rounded border-gray-300 text-[#8a7355] focus:ring-[#8a7355]" />
+                            <label className="flex items-center space-x-2 text-xs font-semibold cursor-pointer text-[#1E293B]">
+                              <input type="checkbox" checked={activeContacts.phone} onChange={() => handleContactCheckboxChange('phone')} className="rounded border-gray-300 text-[#2F5D50] focus:ring-[#2F5D50]" />
                               <span>{t.phone}</span>
                             </label>
                             {activeContacts.phone && (
-                              <input type="tel" required placeholder="+421 ..." value={contactValues.phone} onChange={(e) => handleContactValueChange('phone', e.target.value)} className="w-full p-2 border rounded-lg text-xs bg-white focus:outline-none" />
+                              <input type="tel" required placeholder="+421 ..." value={contactValues.phone} onChange={(e) => handleContactValueChange('phone', e.target.value)} className="w-full p-2 border rounded-lg text-xs bg-white focus:outline-none text-[#1E293B]" />
                             )}
                           </div>
 
                           <div className="space-y-1 pt-1">
-                            <label className="flex items-center space-x-2 text-xs font-semibold cursor-pointer">
-                              <input type="checkbox" checked={activeContacts.instagram} onChange={() => handleContactCheckboxChange('instagram')} className="rounded border-gray-300 text-[#8a7355] focus:ring-[#8a7355]" />
+                            <label className="flex items-center space-x-2 text-xs font-semibold cursor-pointer text-[#1E293B]">
+                              <input type="checkbox" checked={activeContacts.instagram} onChange={() => handleContactCheckboxChange('instagram')} className="rounded border-gray-300 text-[#2F5D50] focus:ring-[#2F5D50]" />
                               <span>{t.instagram}</span>
                             </label>
                             {activeContacts.instagram && (
-                              <input type="text" required placeholder="@uzivatel" value={contactValues.instagram} onChange={(e) => handleContactValueChange('instagram', e.target.value)} className="w-full p-2 border rounded-lg text-xs bg-white focus:outline-none" />
+                              <input type="text" required placeholder="@uzivatel" value={contactValues.instagram} onChange={(e) => handleContactValueChange('instagram', e.target.value)} className="w-full p-2 border rounded-lg text-xs bg-white focus:outline-none text-[#1E293B]" />
                             )}
                           </div>
 
                           <div className="space-y-1 pt-1">
-                            <label className="flex items-center space-x-2 text-xs font-semibold cursor-pointer">
-                              <input type="checkbox" checked={activeContacts.email} onChange={() => handleContactCheckboxChange('email')} className="rounded border-gray-300 text-[#8a7355] focus:ring-[#8a7355]" />
+                            <label className="flex items-center space-x-2 text-xs font-semibold cursor-pointer text-[#1E293B]">
+                              <input type="checkbox" checked={activeContacts.email} onChange={() => handleContactCheckboxChange('email')} className="rounded border-gray-300 text-[#2F5D50] focus:ring-[#2F5D50]" />
                               <span>{t.email}</span>
                             </label>
                             {activeContacts.email && (
-                              <input type="email" required placeholder="meno@domena.com" value={contactValues.email} onChange={(e) => handleContactValueChange('email', e.target.value)} className="w-full p-2 border rounded-lg text-xs bg-white focus:outline-none" />
+                              <input type="email" required placeholder="meno@domena.com" value={contactValues.email} onChange={(e) => handleContactValueChange('email', e.target.value)} className="w-full p-2 border rounded-lg text-xs bg-white focus:outline-none text-[#1E293B]" />
                             )}
                           </div>
                         </div>
@@ -716,16 +671,20 @@ export default function Home() {
                           type="submit" 
                           disabled={!isContactValid()}
                           className={`w-full py-3 rounded-xl font-bold transition text-sm shadow-sm ${
-                            isContactValid() ? 'bg-[#8a7355] text-white hover:bg-[#725e45]' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                            isContactValid() ? 'bg-[#2F5D50] text-white hover:bg-[#1f3f36]' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                           }`}
                         >
                           {t.bookBtn}
                         </button>
                       </form>
                     )}
-                    
-                    {/* OPRAVENÉ TLAČIDLO SPÄŤ (KROK 3) */}
-                    <button type="button" onClick={() => setMassageStep(2)} className="mx-auto mt-6 flex items-center justify-center space-x-2 px-5 py-3 rounded-xl border border-amber-200 text-[#5c4a37] bg-white shadow-sm font-semibold text-xs hover:bg-amber-50 hover:border-amber-300 transition-all">
+
+                    {/* UPRAVENÉ, VÝRAZNÉ TLAČIDLO SPÄŤ PRE KROK 3 */}
+                    <button 
+                      type="button" 
+                      onClick={() => setMassageStep(2)} 
+                      className="mx-auto mt-6 flex items-center justify-center space-x-2 px-6 py-3.5 rounded-xl border-2 border-[#1E293B] text-[#1E293B] bg-transparent font-bold text-xs tracking-wider uppercase hover:bg-[#1E293B] hover:text-white transition-all duration-200 shadow-sm"
+                    >
                       <span>⬅</span> <span>{t.backToPackages}</span>
                     </button>
                   </div>
