@@ -27,7 +27,6 @@ export default function Home() {
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
   const [slotsByDate, setSlotsByDate] = useState<Record<string, TimeSlot[]>>({});
   const [loadingCalendar, setLoadingCalendar] = useState<boolean>(false);
-  const [debugEvents, setDebugEvents] = useState<any[]>([]); // DOČASNÉ - odstrániť po vyriešení
   const [selectedDateKey, setSelectedDateKey] = useState<string | null>(null);
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
 
@@ -231,30 +230,15 @@ export default function Home() {
             // Samostatné = nemajú okolitý "FSM" blok -> generujú si vlastné sloty so zľavou.
             const standaloneDiscountBlocks = discountEvents.filter((d: any) => !overlapsAny(d, plainBlocks));
 
-            // --- DOČASNÝ DEBUG - odstrániť po vyriešení ---
-            setDebugEvents([
-              ...plainBlocks.map((e: any) => ({
-                kind: 'PLAIN FSM blok',
-                start: e.start.toISOString(),
-                end: e.end.toISOString()
-              })),
-              ...nestedDiscountWindows.map((e: any) => ({
-                kind: `VNORENÉ okno -${e.percent}% (rozpoznané ako vnorené)`,
-                start: e.start.toISOString(),
-                end: e.end.toISOString()
-              })),
-              ...standaloneDiscountBlocks.map((e: any) => ({
-                kind: `SAMOSTATNÝ blok -${e.percent}% (rozpoznané ako samostatné)`,
-                start: e.start.toISOString(),
-                end: e.end.toISOString()
-              }))
-            ]);
-            // --- KONIEC DEBUGU ---
-
             const getNestedDiscountForSlot = (slotStart: Date) => {
               let maxPercent = 0;
+              if (!selectedDuration) return maxPercent;
+              const massageEndTime = slotStart.getTime() + selectedDuration * 60000;
               nestedDiscountWindows.forEach((w: any) => {
-                if (slotStart.getTime() >= w.start.getTime() && slotStart.getTime() < w.end.getTime()) {
+                // Zľava platí, len ak sa CELÁ masáž (od štartu po koniec) zmestí do zľavového okna
+                const fitsFully =
+                  slotStart.getTime() >= w.start.getTime() && massageEndTime <= w.end.getTime();
+                if (fitsFully) {
                   maxPercent = Math.max(maxPercent, w.percent);
                 }
               });
@@ -701,25 +685,6 @@ export default function Home() {
                     <div className="p-3 bg-[#F2EFE7] rounded-xl text-xs text-center border border-gray-200 text-[#1E293B] mb-6">
                       {t.selected}: <strong>{selectedType === 'Klasik' ? 'CLASSIC' : 'VIP PREMIUM'} - {selectedDuration} {t.minutes}</strong>
                     </div>
-
-                    {/* --- DOČASNÝ DEBUG PANEL - odstrániť po vyriešení problému --- */}
-                    {debugEvents.length > 0 && (
-                      <details className="mb-6 text-[10px] bg-yellow-50 border border-yellow-300 rounded-lg p-3 text-left">
-                        <summary className="font-bold cursor-pointer text-yellow-800">
-                          🐞 DEBUG: {debugEvents.length} rozpoznaných blokov (klikni pre rozbalenie)
-                        </summary>
-                        <div className="mt-2 space-y-2 overflow-x-auto">
-                          {debugEvents.map((ev, i) => (
-                            <div key={i} className="border-b border-yellow-200 pb-1">
-                              <div><strong>typ:</strong> {ev.kind}</div>
-                              <div><strong>start:</strong> {ev.start}</div>
-                              <div><strong>end:</strong> {ev.end}</div>
-                            </div>
-                          ))}
-                        </div>
-                      </details>
-                    )}
-                    {/* --- KONIEC DEBUG PANELU --- */}
 
                     {loadingCalendar ? (
                       <div className="text-center py-8 text-xs font-semibold text-gray-500">{t.loading}</div>
