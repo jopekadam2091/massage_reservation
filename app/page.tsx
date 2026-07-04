@@ -199,7 +199,6 @@ export default function Home() {
               let isMatch = false;
               let discountPercent = 0;
 
-              // Kontrola štandardného FSM alebo zľavového FSM_DXX
               if (summaryLower === 'fsm') {
                 isMatch = true;
               } else if (summaryLower.startsWith('fsm_d')) {
@@ -221,12 +220,22 @@ export default function Home() {
                 if (!processedSlots[dateKey]) {
                   processedSlots[dateKey] = [];
                 }
-                processedSlots[dateKey].push({
-                  time,
-                  discount: discountPercent
-                });
+                
+                // Zamedzenie duplicít, ak by API vrátilo rovnaký event viackrát
+                if (!processedSlots[dateKey].some(s => s.time === time)) {
+                  processedSlots[dateKey].push({
+                    time,
+                    discount: discountPercent
+                  });
+                }
               }
             });
+
+            // Zoradenie slotov podľa času vzostupne
+            Object.keys(processedSlots).forEach((key) => {
+              processedSlots[key].sort((a, b) => a.time.localeCompare(b.time));
+            });
+
             setSlotsByDate(processedSlots);
           }
           setLoadingCalendar(false);
@@ -249,7 +258,6 @@ export default function Home() {
   const getSelectedSlotDetails = () => {
     if (!selectedSlot || !selectedDateKey || !selectedDuration || !selectedType) return null;
     
-    // Extrahujeme čas zo slotIdentifieru (formát RRRR-MM-DDTHH:MM:00)
     const timePart = selectedSlot.split('T')[1]?.substring(0, 5);
     const slotObj = slotsByDate[selectedDateKey]?.find(s => s.time === timePart);
     const discount = slotObj ? slotObj.discount : 0;
@@ -373,7 +381,7 @@ export default function Home() {
       mode === 'photo' ? 'bg-[#1a1a1a] text-white font-figtree' : mode === 'massage' ? 'bg-[#f9f6f0] text-[#3a3225] font-chillax' : 'bg-[#121212] text-white'
     }`}>
 
-      {/* ÚSTEŠNÁ REZERVÁCIA - OVERLAY */}
+      {/* ÚSPEŠNÁ REZERVÁCIA - OVERLAY */}
       {showSuccessPopup && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm p-6 animate-fadeIn">
           <div className="bg-white rounded-3xl p-8 max-w-md w-full text-center shadow-2xl border border-emerald-100">
@@ -611,7 +619,6 @@ export default function Home() {
                             const hasSlots = daySlots.length > 0;
                             const isCurrentSelected = selectedDateKey === dateKey;
 
-                            // Nájdeme najvyššiu zľavu pre daný deň
                             const maxDiscount = daySlots.reduce((max, slot) => slot.discount > max ? slot.discount : max, 0);
 
                             return (
@@ -625,14 +632,14 @@ export default function Home() {
                                     ? isCurrentSelected
                                       ? 'bg-emerald-600 text-white font-bold ring-2 ring-emerald-300 shadow'
                                       : maxDiscount > 0
-                                        ? 'bg-amber-100 text-amber-900 font-bold border border-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.55)] hover:bg-amber-200 animate-pulse-subtle'
+                                        ? 'bg-cyan-50 text-cyan-900 font-bold border-2 border-cyan-400 shadow-[0_0_14px_rgba(6,182,212,0.65)] hover:bg-cyan-100'
                                         : 'bg-emerald-100 text-emerald-800 font-bold hover:bg-emerald-200 border border-emerald-300/40 shadow-sm'
                                     : 'text-gray-400 bg-white border border-gray-100 opacity-60 cursor-not-allowed'
                                 }`}
                               >
                                 <span>{day}</span>
                                 {maxDiscount > 0 && !isCurrentSelected && (
-                                  <span className="absolute -top-1 -right-1 bg-red-500 text-white font-black text-[8px] px-1 rounded-full scale-95 shadow">
+                                  <span className="absolute -top-1.5 -right-1.5 bg-cyan-500 text-white font-black text-[10px] px-1.5 py-0.5 rounded-full shadow scale-105">
                                     -{maxDiscount}%
                                   </span>
                                 )}
@@ -659,13 +666,13 @@ export default function Home() {
                                   selectedSlot === slotIdentifier
                                     ? 'bg-[#8a7355] text-white border-[#8a7355] shadow'
                                     : slot.discount > 0
-                                      ? 'bg-amber-50 border-amber-300 text-amber-900 hover:bg-amber-100'
+                                      ? 'bg-cyan-50 border-cyan-400 text-cyan-900 hover:bg-cyan-100'
                                       : 'bg-white border-gray-200 text-gray-700 hover:border-amber-300'
                                 }`}
                               >
                                 <span>{slot.time}</span>
                                 {slot.discount > 0 && (
-                                  <span className={`text-[9px] px-1 rounded-full font-extrabold ${selectedSlot === slotIdentifier ? 'bg-white/30 text-white' : 'bg-red-100 text-red-700'}`}>
+                                  <span className={`text-[9px] px-1 rounded-full font-extrabold mt-0.5 ${selectedSlot === slotIdentifier ? 'bg-white/30 text-white' : 'bg-cyan-100 text-cyan-800'}`}>
                                     -{slot.discount}%
                                   </span>
                                 )}
@@ -680,7 +687,7 @@ export default function Home() {
                     {selectedSlot && slotDetails && (
                       <form onSubmit={handleBookingSubmit} className="space-y-4 pt-4 border-t border-gray-100 mt-4 animate-fadeIn">
                         
-                        {/* NOVO PRIDANÝ DYNAMICKÝ SUMÁR OBJEDNÁVKY */}
+                        {/* DYNAMICKÝ SUMÁR OBJEDNÁVKY */}
                         <div className="bg-[#3a3225]/5 rounded-2xl p-4 border border-[#3a3225]/10 text-[#3a3225] space-y-3">
                           <h4 className="text-xs font-extrabold tracking-wider uppercase border-b border-[#3a3225]/10 pb-1.5 flex items-center justify-between">
                             <span>✨ {t.summaryTitle}</span>
@@ -703,7 +710,7 @@ export default function Home() {
                             </div>
 
                             {slotDetails.discount > 0 && (
-                              <div className="flex justify-between text-red-600 font-semibold bg-red-50 px-2 py-0.5 rounded">
+                              <div className="flex justify-between text-cyan-700 font-semibold bg-cyan-50 px-2 py-0.5 rounded border border-cyan-100">
                                 <span>{t.summaryDiscount} (-{slotDetails.discount}%):</span>
                                 <span>-{((slotDetails.basePrice * slotDetails.discount) / 100).toFixed(1)} EUR</span>
                               </div>
