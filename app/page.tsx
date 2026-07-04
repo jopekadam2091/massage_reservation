@@ -44,6 +44,12 @@ export default function Home() {
   const [phonePrefix, setPhonePrefix] = useState<string>('+421'); 
   const [clientName, setClientName] = useState('');
 
+  // --- STAVY PRE ZĽAVOVÝ KÓD ---
+  const [discountCodeInput, setDiscountCodeInput] = useState('');
+  const [appliedCode, setAppliedCode] = useState<string | null>(null);
+  const [appliedCodePercent, setAppliedCodePercent] = useState<number>(0);
+  const [codeCheckStatus, setCodeCheckStatus] = useState<'idle' | 'checking' | 'valid' | 'invalid'>('idle');
+
   // --- PREKLADY ---
   const translations = {
     SK: {
@@ -95,7 +101,15 @@ export default function Home() {
       summaryTitle: 'Súhrn objednávky',
       discountApplied: 'Zľava',
       finalPriceLabel: 'Cena k úhrade',
-      discountBadgeShort: 'AKCIA'
+      discountBadgeShort: 'AKCIA',
+      discountCodeLabel: 'Zľavový kód',
+      discountCodePlaceholder: 'Zadajte kód (napr. STUDENT50)',
+      applyCodeBtn: 'Použiť',
+      codeCheckingMsg: 'Overujem kód...',
+      codeValidMsg: 'Kód platný',
+      codeInvalidMsg: 'Neplatný alebo expirovaný kód',
+      removeCodeBtn: 'Odstrániť',
+      codeDiscountLabel: 'Zľava z kódu'
     },
     EN: {
       photo: 'Photography',
@@ -146,7 +160,15 @@ export default function Home() {
       summaryTitle: 'Order summary',
       discountApplied: 'Discount',
       finalPriceLabel: 'Total price',
-      discountBadgeShort: 'DEAL'
+      discountBadgeShort: 'DEAL',
+      discountCodeLabel: 'Discount code',
+      discountCodePlaceholder: 'Enter code (e.g. STUDENT50)',
+      applyCodeBtn: 'Apply',
+      codeCheckingMsg: 'Checking code...',
+      codeValidMsg: 'Code valid',
+      codeInvalidMsg: 'Invalid or expired code',
+      removeCodeBtn: 'Remove',
+      codeDiscountLabel: 'Code discount'
     }
   };
 
@@ -351,10 +373,45 @@ export default function Home() {
 
   const selectedDiscountPercent = selectedSlotObj?.discountPercent || 0;
   const basePrice = getBasePriceNumber();
-  const finalPrice =
+  const priceAfterSlotDiscount =
     selectedDiscountPercent > 0
-      ? Math.round(basePrice * (1 - selectedDiscountPercent / 100))
+      ? basePrice * (1 - selectedDiscountPercent / 100)
       : basePrice;
+  const finalPrice =
+    appliedCodePercent > 0
+      ? Math.round(priceAfterSlotDiscount * (1 - appliedCodePercent / 100))
+      : Math.round(priceAfterSlotDiscount);
+
+  const handleApplyDiscountCode = async () => {
+    const code = discountCodeInput.trim();
+    if (!code) return;
+    setCodeCheckStatus('checking');
+    try {
+      const res = await fetch(`/api/discount-code?code=${encodeURIComponent(code)}`);
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      if (data.valid && typeof data.percent === 'number' && data.percent > 0) {
+        setAppliedCode(code.toUpperCase());
+        setAppliedCodePercent(Math.min(100, Math.max(0, data.percent)));
+        setCodeCheckStatus('valid');
+      } else {
+        setAppliedCode(null);
+        setAppliedCodePercent(0);
+        setCodeCheckStatus('invalid');
+      }
+    } catch {
+      setAppliedCode(null);
+      setAppliedCodePercent(0);
+      setCodeCheckStatus('invalid');
+    }
+  };
+
+  const handleRemoveDiscountCode = () => {
+    setDiscountCodeInput('');
+    setAppliedCode(null);
+    setAppliedCodePercent(0);
+    setCodeCheckStatus('idle');
+  };
 
   const handleBookingSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -372,11 +429,16 @@ export default function Home() {
       type: selectedType === 'Klasik' ? 'CLASSIC' : 'VIP PREMIUM',
       basePrice,
       discountPercent: selectedDiscountPercent,
+      discountCode: appliedCode,
+      codeDiscountPercent: appliedCodePercent,
       finalPrice,
-      notes:
-        selectedDiscountPercent > 0
-          ? `Zľava ${selectedDiscountPercent}% (pôvodná cena ${basePrice}€ -> cena po zľave ${finalPrice}€)`
-          : `Cena: ${basePrice}€`
+      notes: (() => {
+        const parts: string[] = [];
+        if (selectedDiscountPercent > 0) parts.push(`Zľava z termínu: ${selectedDiscountPercent}%`);
+        if (appliedCode && appliedCodePercent > 0) parts.push(`Zľavový kód ${appliedCode}: -${appliedCodePercent}%`);
+        parts.push(`Pôvodná cena: ${basePrice}€ -> Cena po zľavách: ${finalPrice}€`);
+        return parts.join(' | ');
+      })()
     };
 
     try {
@@ -396,6 +458,10 @@ export default function Home() {
         setSelectedSlot(null);
         setClientName('');
         setContactValues({ phone: '', instagram: '', email: '' });
+        setDiscountCodeInput('');
+        setAppliedCode(null);
+        setAppliedCodePercent(0);
+        setCodeCheckStatus('idle');
       } else {
         alert(lang === 'SK' ? 'Chyba pri ukladaní rezervácie.' : 'Error saving appointment.');
       }
@@ -819,16 +885,17 @@ export default function Home() {
                         </div>
 
                         {/* CENOVÝ SÚHRN */}
-                        <div className="p-4 rounded-xl border border-gray-100 bg-gray-50/70 space-y-2">
+                        <div className="p-4 rounded-xl border border-gray-100 bg-gray-50/70 space-y-3">
                           <h3 className="font-bold text-[11px] uppercase tracking-wider text-gray-500">{t.summaryTitle}</h3>
-                          <div className="flex justify-between items-center text-sm text-[#1E293B]">
-                            <span>{selectedType === 'Klasik' ? t.klasikTitle : t.vipTitle} · {selectedDuration} {t.minutes}</span>
-                            <span className={selectedDiscountPercent > 0 ? 'line-through text-gray-400' : 'font-bold'}>
-                              {basePrice} €
-                            </span>
-                          </div>
-                          {selectedDiscountPercent > 0 && (
-                            <>
+
+                          <div className="space-y-2">
+                            <div className="flex justify-between items-center text-sm text-[#1E293B]">
+                              <span>{selectedType === 'Klasik' ? t.klasikTitle : t.vipTitle} · {selectedDuration} {t.minutes}</span>
+                              <span className={selectedDiscountPercent > 0 || appliedCodePercent > 0 ? 'line-through text-gray-400' : 'font-bold'}>
+                                {basePrice} €
+                              </span>
+                            </div>
+                            {selectedDiscountPercent > 0 && (
                               <div className="flex justify-between items-center text-sm text-cyan-600 font-semibold">
                                 <span className="inline-flex items-center gap-1">
                                   <span className="bg-cyan-500 text-white text-[9px] px-1.5 py-0.5 rounded-full uppercase tracking-wide">
@@ -836,13 +903,70 @@ export default function Home() {
                                   </span>
                                   {t.discountApplied} (-{selectedDiscountPercent}%)
                                 </span>
-                                <span>-{basePrice - finalPrice} €</span>
+                                <span>-{Math.round(basePrice - priceAfterSlotDiscount)} €</span>
                               </div>
-                              <div className="flex justify-between items-center text-base font-extrabold text-[#2F5D50] pt-2 border-t border-gray-200">
-                                <span>{t.finalPriceLabel}</span>
-                                <span>{finalPrice} €</span>
+                            )}
+                          </div>
+
+                          {/* ZĽAVOVÝ KÓD */}
+                          <div className="pt-2 border-t border-gray-200">
+                            {!appliedCode ? (
+                              <div className="space-y-1.5">
+                                <label className="text-[11px] font-semibold text-gray-600">{t.discountCodeLabel}</label>
+                                <div className="flex gap-2">
+                                  <input
+                                    type="text"
+                                    value={discountCodeInput}
+                                    onChange={(e) => {
+                                      setDiscountCodeInput(e.target.value);
+                                      if (codeCheckStatus === 'invalid') setCodeCheckStatus('idle');
+                                    }}
+                                    placeholder={t.discountCodePlaceholder}
+                                    className="flex-grow p-2.5 border rounded-lg text-xs bg-white focus:outline-none text-[#1E293B] uppercase"
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={handleApplyDiscountCode}
+                                    disabled={!discountCodeInput.trim() || codeCheckStatus === 'checking'}
+                                    className="px-4 py-2 rounded-lg text-xs font-bold bg-[#1E293B] text-white hover:bg-black transition disabled:bg-gray-300 disabled:cursor-not-allowed"
+                                  >
+                                    {t.applyCodeBtn}
+                                  </button>
+                                </div>
+                                {codeCheckStatus === 'checking' && (
+                                  <p className="text-[10px] text-gray-500">{t.codeCheckingMsg}</p>
+                                )}
+                                {codeCheckStatus === 'invalid' && (
+                                  <p className="text-[10px] text-red-600 font-medium">{t.codeInvalidMsg}</p>
+                                )}
                               </div>
-                            </>
+                            ) : (
+                              <div className="flex justify-between items-center text-sm text-emerald-700 font-semibold">
+                                <span className="inline-flex items-center gap-1.5">
+                                  <span className="bg-emerald-600 text-white text-[9px] px-1.5 py-0.5 rounded-full uppercase tracking-wide">
+                                    {appliedCode}
+                                  </span>
+                                  {t.codeDiscountLabel} (-{appliedCodePercent}%)
+                                </span>
+                                <span className="flex items-center gap-2">
+                                  -{Math.round(priceAfterSlotDiscount - finalPrice)} €
+                                  <button
+                                    type="button"
+                                    onClick={handleRemoveDiscountCode}
+                                    className="text-[10px] underline text-gray-400 hover:text-gray-600"
+                                  >
+                                    {t.removeCodeBtn}
+                                  </button>
+                                </span>
+                              </div>
+                            )}
+                          </div>
+
+                          {(selectedDiscountPercent > 0 || appliedCodePercent > 0) && (
+                            <div className="flex justify-between items-center text-base font-extrabold text-[#2F5D50] pt-2 border-t border-gray-200">
+                              <span>{t.finalPriceLabel}</span>
+                              <span>{finalPrice} €</span>
+                            </div>
                           )}
                         </div>
                         
