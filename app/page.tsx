@@ -304,13 +304,21 @@ export default function Home() {
     return true;
   };
 
-  // Pomocná funkcia, ktorá overí, či slot spĺňa podmienky dĺžky a rezervácie
+  // Pomocná funkcia, ktorá overí, či slot spĺňa podmienky dĺžky a inteligentnej rezervácie
   const isValidSlotDuration = (availableMinutes: number, duration: number) => {
-    // 1. Prípad: Masáž končí presne na konci bloku (posledný možný slot) -> rezerva netreba
-    if (availableMinutes === duration) return true;
-    // 2. Prípad: Masáž končí skôr -> musíme nechať 25 minút rezervu pre ďalšieho
-    if (availableMinutes >= (duration + 25)) return true;
-    return false;
+    // Ak v bloku vôbec neostáva dosť času ani na dĺžku masáže, slot je neplatný
+    if (availableMinutes < duration) return false;
+
+    const leftoverMinutes = availableMinutes - duration;
+
+    // Ak po skončení masáže zostane menej ako 30 minút (minimálna dĺžka masáže),
+    // znamená to, že za týmto klientom sa už nikto ďalší nezmestí. 
+    // Tým pádom nie je potrebné vynucovať 25-minútovú rezervu a slot schválime.
+    if (leftoverMinutes < 30) return true;
+
+    // Ak by po masáži zostalo v bloku 30 a viac minút, mohol by prísť ďalší človek,
+    // preto riadne vyžadujeme 25-minútovú rezervu.
+    return leftoverMinutes >= 25;
   };
 
   const packagesData = {
@@ -606,7 +614,7 @@ export default function Home() {
                           {daysArray.map((day) => {
                             const dateKey = getDateKey(currentYear, currentMonth, day);
                             
-                            // Deň je dostupný, ak má aspoň jeden platný sub-slot (vrátane inteligentnej kontroly konca bloku)
+                            // Deň je dostupný, ak má aspoň jeden inteligentne platný slot
                             const hasValidSlots = !!slotsByDate[dateKey] && slotsByDate[dateKey].some(
                               slot => isValidSlotDuration(slot.availableMinutes, selectedDuration)
                             );
@@ -638,7 +646,7 @@ export default function Home() {
                         <p className="text-xs font-bold text-[#2F5D50]">{t.chooseTime}</p>
                         <div className="grid grid-cols-3 gap-2">
                           {slotsByDate[selectedDateKey].map((slot) => {
-                            // Slot skryjeme, ak nespĺňa inteligentné overenie dĺžky/konca bloku
+                            // Skryjeme sloty, ktoré nespĺňajú novú inteligentnú podmienku konca bloku
                             if (!isValidSlotDuration(slot.availableMinutes, selectedDuration)) {
                               return null;
                             }
