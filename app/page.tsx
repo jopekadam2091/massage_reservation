@@ -5,6 +5,7 @@ type LangType = 'SK' | 'EN';
 type ModeType = 'photo' | 'massage' | null;
 type MassageType = 'Klasik' | 'VIP';
 type ContactMethod = 'phone' | 'instagram' | 'email';
+type PrefixType = '+421' | '+420';
 
 export default function Home() {
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
@@ -18,13 +19,13 @@ export default function Home() {
   
   // --- DYNAMICKÝ KALENDÁR A GOOGLE API STAVY ---
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
-  // OPRAVA TYPU: Stav teraz korektne drží pole objektov (čas + zľava)
-  const [slotsByDate, setSlotsByDate] = useState<Record<string, { time: string; discount: number }[]>>({});
+  const [slotsByDate, setSlotsByDate] = useState<Record<string, string[]>>({});
   const [loadingCalendar, setLoadingCalendar] = useState<boolean>(false);
   const [selectedDateKey, setSelectedDateKey] = useState<string | null>(null);
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
 
-  // --- STAVY PRE KONTAKT ---
+  // --- STAVY PRE KONTAKT A PREDVOĽBU ---
+  const [phonePrefix, setPhonePrefix] = useState<PrefixType>('+421');
   const [activeContacts, setActiveContacts] = useState<Record<ContactMethod, boolean>>({
     phone: true,
     instagram: false,
@@ -36,13 +37,6 @@ export default function Home() {
     email: '',
   });
   const [clientName, setClientName] = useState('');
-
-  // --- PREKVAPIVÉ PREDVYPLNENIE SK PREDVOĽBY ---
-  useEffect(() => {
-    if (activeContacts.phone && !contactValues.phone.trim()) {
-      setContactValues(prev => ({ ...prev, phone: '+421 ' }));
-    }
-  }, [activeContacts.phone]);
 
   // --- PREKLADY ---
   const translations = {
@@ -70,7 +64,7 @@ export default function Home() {
       klasikTitle: 'MASÁŽ CLASSIC',
       klasikDesc: 'Dôkladné uvoľnenie svalového napätia, regenerácia tela.',
       vipTitle: 'MASÁŽ VIP PREMIUM ✨',
-      vipDesc: 'Exkluzívny rituál vrátane aromaterapie, masáže hlavy a maximálneho pokoja.',
+      vipDesc: 'Exkluzívny rituál vrátane aromaterapie, masáže hlavy and maximálneho pokoja.',
       step2Title: '2. Krok: Vyberte si optimálny balíček',
       step3Title: '3. Krok: Vyberte si exkluzívny voľný termín z kalendára',
       selected: 'Vybrané',
@@ -90,8 +84,7 @@ export default function Home() {
       loading: 'Načítavam voľné termíny z kalendára...',
       successTitle: 'Rezervácia bola úspešná! 🎉',
       successText: 'Vaša rezervácia bola úspešne zapísaná do kalendára. Čoskoro vás budem kontaktovať pre potvrdenie a zaslanie adresy.',
-      successHomeBtn: 'Späť na domovskú stránku',
-      summaryTitle: 'Sumár objednávky'
+      successHomeBtn: 'Späť na domovskú stránku'
     },
     EN: {
       photo: 'Photography',
@@ -137,8 +130,7 @@ export default function Home() {
       loading: 'Loading available slots from Google Calendar...',
       successTitle: 'Booking successful! 🎉',
       successText: 'Your booking has been successfully saved to the calendar. I will contact you shortly to confirm and send the address.',
-      successHomeBtn: 'Back to homepage',
-      summaryTitle: 'Order Summary'
+      successHomeBtn: 'Back to homepage'
     }
   };
 
@@ -148,20 +140,16 @@ export default function Home() {
   const currentYear = currentDate.getFullYear();
   const currentMonth = currentDate.getMonth(); // 0-11
   
-  // Počet dní v aktuálnom mesiaci
   const daysInMonthCount = new Date(currentYear, currentMonth + 1, 0).getDate();
   const daysArray = Array.from({ length: daysInMonthCount }, (_, i) => i + 1);
   
-  // Deň v týždni, ktorým mesiac začína (aby pondelok bol 0 a nedeľa 6)
   const firstDayIndex = (new Date(currentYear, currentMonth, 1).getDay() + 6) % 7;
   const emptyCells = Array.from({ length: firstDayIndex }, (_, i) => i);
 
-  // Pomocná funkcia na vytvorenie kľúča vo formáte RRRR-MM-DD
   const getDateKey = (year: number, month: number, day: number) => {
     return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
   };
 
-  // Posun mesiacov
   const handlePrevMonth = () => {
     setCurrentDate(new Date(currentYear, currentMonth - 1, 1));
     setSelectedDateKey(null);
@@ -179,7 +167,7 @@ export default function Home() {
     VIP: { 45: '65 eur', 60: '70 eur', 90: '90 eur' }
   };
 
-  // --- EFEKT: NAČÍTANIE Z GOOGLE KALENDÁRA (OPRAVENÁ AGREGÁCIA VŠETKÝCH TERMÍNOV) ---
+  // --- EFEKT: NAČÍTANIE Z GOOGLE KALENDÁRA ---
   useEffect(() => {
     if (massageStep === 3) {
       setLoadingCalendar(true);
@@ -190,27 +178,10 @@ export default function Home() {
         })
         .then((data) => {
           if (data.events) {
-            const processedSlots: Record<string, { time: string; discount: number }[]> = {};
-            
+            const processedSlots: Record<string, string[]> = {};
             data.events.forEach((event: any) => {
-              if (!event.summary || !event.start?.dateTime) return;
-
-              const summaryLower = event.summary.toLowerCase();
-              let isMatch = false;
-              let discountPercent = 0;
-
-              // Podpora fsm aj fsm_dXX akciových slotov
-              if (summaryLower === 'fsm') {
-                isMatch = true;
-              } else if (summaryLower.startsWith('fsm_d')) {
-                isMatch = true;
-                const match = summaryLower.match(/fsm_d(\d+)/);
-                if (match) {
-                  discountPercent = parseInt(match[1], 10);
-                }
-              }
-
-              if (isMatch) {
+              // Upravené porovnanie: kontroluje, či text obsahuje 'fsm' bez ohľadu na veľkosť písmen a či existuje platný čas
+              if (event.summary && event.summary.toLowerCase().includes('fsm') && event.start?.dateTime) {
                 const date = new Date(event.start.dateTime);
                 const year = date.getFullYear();
                 const month = date.getMonth();
@@ -221,17 +192,16 @@ export default function Home() {
                 if (!processedSlots[dateKey]) {
                   processedSlots[dateKey] = [];
                 }
-                
-                // OPRAVA: Zabezpečí, aby sa uložili VŠETKY unikátne časy v daný deň a neprepisovali sa
-                if (!processedSlots[dateKey].some(s => s.time === time)) {
-                  processedSlots[dateKey].push({ time, discount: discountPercent });
+                // Zabránenie duplicitám v rovnaký čas
+                if (!processedSlots[dateKey].includes(time)) {
+                  processedSlots[dateKey].push(time);
                 }
               }
             });
 
-            // Zoradenie časov chronologicky vzostupne
+            // Zoradenie hodín chronologicky pre každý deň
             Object.keys(processedSlots).forEach((key) => {
-              processedSlots[key].sort((a, b) => a.time.localeCompare(b.time));
+              processedSlots[key].sort((a, b) => a.localeCompare(b));
             });
 
             setSlotsByDate(processedSlots);
@@ -249,45 +219,27 @@ export default function Home() {
   };
 
   const handleContactValueChange = (method: ContactMethod, value: string) => {
-    // UKOTVENIE PRE TELEFÓNNE ČÍSLO: Povolené len číslice, znak plus a medzery
     if (method === 'phone') {
-      const filteredValue = value.replace(/[^0-9+\s]/g, '');
-      setContactValues(prev => ({ ...prev, [method]: filteredValue }));
+      // Povolené sú LEN čisté čísla a medzery (žiadne písmená ani znaky ako +)
+      const sanitized = value.replace(/[^0-9\s]/g, '');
+      setContactValues(prev => ({ ...prev, [method]: sanitized }));
     } else {
       setContactValues(prev => ({ ...prev, [method]: value }));
     }
   };
-
-  // --- POMOCNÁ FUNKCIA PRE KALKULÁCIU CIEN V SUMÁRI ---
-  const getSelectedSlotDetails = () => {
-    if (!selectedSlot || !selectedDateKey || !selectedDuration || !selectedType) return null;
-    
-    const timePart = selectedSlot.split('T')[1]?.substring(0, 5);
-    const daySlots = slotsByDate[selectedDateKey];
-    const slotObj = daySlots?.find(s => s.time === timePart);
-    const discount = slotObj ? slotObj.discount : 0;
-
-    const basePriceStr = selectedType === 'Klasik' 
-      ? prices.Klasik[selectedDuration as 30 | 45 | 60] 
-      : prices.VIP[selectedDuration as 45 | 60 | 90];
-    const basePrice = parseInt(basePriceStr, 10);
-    
-    const finalPrice = discount > 0 ? basePrice * (1 - discount / 100) : basePrice;
-
-    return { basePrice, discount, finalPrice };
-  };
-
-  const slotDetails = getSelectedSlotDetails();
 
   // --- FINÁLNE ODOSLANIE REZERVÁCIE ---
   const handleBookingSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedSlot) return;
 
+    // Do payloadu odošleme skombinovanú predvoľbu s číslom zbaveným prebytočných medzier
+    const fullPhoneNumber = `${phonePrefix} ${contactValues.phone.trim().replace(/\s+/g, ' ')}`;
+
     const payload = {
       name: clientName,
       email: contactValues.email,
-      phone: contactValues.phone,
+      phone: activeContacts.phone ? fullPhoneNumber : '',
       instagram: contactValues.instagram,
       slot: selectedSlot,
       duration: selectedDuration,
@@ -324,11 +276,11 @@ export default function Home() {
     const hasAtLeastOneChecked = activeContacts.phone || activeContacts.instagram || activeContacts.email;
     if (!hasAtLeastOneChecked) return false;
     
-    // VALIDÁCIA TELEFÓNNEHO FORMÁTU (Regex): Musí obsahovať aspoň 9 číslic a povolené sú len +, čísla a medzery
     if (activeContacts.phone) {
-      const cleanPhone = contactValues.phone.replace(/\s/g, '');
-      const phoneRegex = /^\+?[0-9]{9,15}$/;
-      if (!phoneRegex.test(cleanPhone)) return false;
+      // Odstránime všetky medzery a skontrolujeme, či zostalo presne 9 číslic
+      const digitsOnly = contactValues.phone.replace(/\s/g, '');
+      const phoneRegex = /^[0-9]{9}$/;
+      if (!phoneRegex.test(digitsOnly)) return false;
     }
     
     if (activeContacts.instagram && !contactValues.instagram.trim()) return false;
@@ -571,7 +523,7 @@ export default function Home() {
                   </div>
                 )}
 
-                {/* KROK 3: PREPOJENÝ KALENDÁR */}
+                {/* KROK 3: KALENDÁR */}
                 {massageStep === 3 && selectedType && selectedDuration && (
                   <div className="bg-white p-6 rounded-3xl border border-amber-100 shadow-sm text-gray-800 max-w-xl mx-auto">
                     <h2 className="text-lg font-bold text-center text-[#5c4a37] mb-2">{t.step3Title}</h2>
@@ -583,7 +535,6 @@ export default function Home() {
                       <div className="text-center py-8 text-xs font-semibold text-gray-500">{t.loading}</div>
                     ) : (
                       <div className="border border-gray-100 rounded-2xl p-4 bg-gray-50/50 mb-6">
-                        {/* HLAVIČKA KALENDÁRA S PREPÍNANÍM MESIACOV */}
                         <div className="flex justify-between items-center mb-4 px-2">
                           <span className="text-base font-bold tracking-tight text-gray-800">
                             {t.months[currentMonth]} {currentYear}
@@ -610,7 +561,6 @@ export default function Home() {
                           <div>{t.mon}</div><div>{t.tue}</div><div>{t.wed}</div><div>{t.thu}</div><div>{t.fri}</div><div>{t.sat}</div><div>{t.sun}</div>
                         </div>
 
-                        {/* REÁLNE DNI A ZĽAVY */}
                         <div className="grid grid-cols-7 gap-1.5">
                           {emptyCells.map((_, idx) => (
                             <div key={`empty-${idx}`} className="p-2"></div>
@@ -618,11 +568,8 @@ export default function Home() {
 
                           {daysArray.map((day) => {
                             const dateKey = getDateKey(currentYear, currentMonth, day);
-                            const daySlots = slotsByDate[dateKey] || [];
-                            const hasSlots = daySlots.length > 0;
+                            const hasSlots = !!slotsByDate[dateKey] && slotsByDate[dateKey].length > 0;
                             const isCurrentSelected = selectedDateKey === dateKey;
-
-                            const maxDiscount = daySlots.reduce((max, slot) => slot.discount > max ? slot.discount : max, 0);
 
                             return (
                               <button
@@ -630,22 +577,15 @@ export default function Home() {
                                 key={dateKey}
                                 disabled={!hasSlots}
                                 onClick={() => { setSelectedDateKey(dateKey); setSelectedSlot(null); }}
-                                className={`aspect-square flex flex-col items-center justify-center text-xs font-semibold rounded-lg transition-all relative ${
+                                className={`aspect-square flex items-center justify-center text-xs font-semibold rounded-lg transition-all ${
                                   hasSlots 
                                     ? isCurrentSelected
                                       ? 'bg-emerald-600 text-white font-bold ring-2 ring-emerald-300 shadow'
-                                      : maxDiscount > 0
-                                        ? 'bg-cyan-50 text-cyan-950 font-bold border-2 border-cyan-400 shadow-[0_0_14px_rgba(6,182,212,0.65)] hover:bg-cyan-100'
-                                        : 'bg-emerald-100 text-emerald-800 font-bold hover:bg-emerald-200 border border-emerald-300/40 shadow-sm'
+                                      : 'bg-emerald-100 text-emerald-800 font-bold hover:bg-emerald-200 border border-emerald-300/40 shadow-sm'
                                     : 'text-gray-400 bg-white border border-gray-100 opacity-60 cursor-not-allowed'
                                 }`}
                               >
-                                <span>{day}</span>
-                                {maxDiscount > 0 && !isCurrentSelected && (
-                                  <span className="absolute -top-1.5 -right-2 bg-cyan-500 text-white font-black text-[9px] px-2 py-0.5 rounded-full shadow-md scale-150 origin-center z-10">
-                                    -{maxDiscount}%
-                                  </span>
-                                )}
+                                {day}
                               </button>
                             );
                           })}
@@ -653,32 +593,25 @@ export default function Home() {
                       </div>
                     )}
 
-                    {/* ZOBRAZENIE HODÍN PRE VYBRANÝ DEŇ */}
+                    {/* HODINY PRE VYBRANÝ DEŇ */}
                     {selectedDateKey && slotsByDate[selectedDateKey] && (
                       <div className="animate-fadeIn space-y-2 mb-6 bg-emerald-50/40 border border-emerald-100 p-4 rounded-xl">
                         <p className="text-xs font-bold text-emerald-900">{t.chooseTime}</p>
                         <div className="grid grid-cols-3 gap-2">
-                          {(slotsByDate[selectedDateKey] || []).map((slot) => {
-                            const slotIdentifier = `${selectedDateKey}T${slot.time}:00`;
+                          {slotsByDate[selectedDateKey].map((slotTime) => {
+                            const slotIdentifier = `${selectedDateKey}T${slotTime}:00`;
                             return (
                               <button
                                 type="button"
-                                key={slot.time}
+                                key={slotTime}
                                 onClick={() => setSelectedSlot(slotIdentifier)}
-                                className={`p-2.5 text-xs text-center font-bold rounded-lg border transition flex flex-col items-center justify-center ${
+                                className={`p-2.5 text-xs text-center font-bold rounded-lg border transition ${
                                   selectedSlot === slotIdentifier
                                     ? 'bg-[#8a7355] text-white border-[#8a7355] shadow'
-                                    : slot.discount > 0
-                                      ? 'bg-cyan-50 border-cyan-400 text-cyan-900 hover:bg-cyan-100'
-                                      : 'bg-white border-gray-200 text-gray-700 hover:border-amber-300'
+                                    : 'bg-white border-gray-200 text-gray-700 hover:border-amber-300'
                                 }`}
                               >
-                                <span>{slot.time}</span>
-                                {slot.discount > 0 && (
-                                  <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-extrabold mt-0.5 ${selectedSlot === slotIdentifier ? 'bg-white/30 text-white' : 'bg-cyan-100 text-cyan-800'}`}>
-                                    -{slot.discount}%
-                                  </span>
-                                )}
+                                {slotTime}
                               </button>
                             );
                           })}
@@ -686,49 +619,13 @@ export default function Home() {
                       </div>
                     )}
 
-                    {/* FINÁLNY REZERVAČNÝ FORMULÁR SO SUMÁROM OBJEDNÁVKY */}
-                    {selectedSlot && slotDetails && (
+                    {/* FORMULÁR */}
+                    {selectedSlot && (
                       <form onSubmit={handleBookingSubmit} className="space-y-4 pt-4 border-t border-gray-100 mt-4 animate-fadeIn">
-                        
-                        {/* DYNAMICKÝ SUMÁR OBJEDNÁVKY */}
-                        <div className="bg-[#3a3225]/5 rounded-2xl p-4 border border-[#3a3225]/10 text-[#3a3225] space-y-3">
-                          <h4 className="text-xs font-extrabold tracking-wider uppercase border-b border-[#3a3225]/10 pb-1.5 flex items-center justify-between">
-                            <span>✨ {t.summaryTitle || 'Sumár objednávky'}</span>
-                            <span className="text-[10px] font-normal text-gray-500">
-                              {new Date(selectedSlot).toLocaleDateString('sk-SK')} o {new Date(selectedSlot).toLocaleTimeString('sk-SK', {hour: '2-digit', minute:'2-digit'})}
-                            </span>
-                          </h4>
-                          
-                          <div className="space-y-1.5 text-xs">
-                            <div className="flex justify-between">
-                              <span className="text-gray-500">Balíček:</span>
-                              <span className="font-bold">{selectedType === 'Klasik' ? 'CLASSIC' : 'VIP PREMIUM'} ({selectedDuration} min)</span>
-                            </div>
-
-                            <div className="flex justify-between">
-                              <span className="text-gray-500">Pôvodná cena:</span>
-                              <span className={slotDetails.discount > 0 ? 'line-through text-gray-400' : 'font-semibold'}>
-                                {slotDetails.basePrice} EUR
-                              </span>
-                            </div>
-
-                            {slotDetails.discount > 0 && (
-                              <div className="flex justify-between text-cyan-700 font-semibold bg-cyan-50 px-2 py-0.5 rounded border border-cyan-100">
-                                <span>Akčná zľava (-{slotDetails.discount}%):</span>
-                                <span>-{((slotDetails.basePrice * slotDetails.discount) / 100).toFixed(1)} EUR</span>
-                              </div>
-                            )}
-
-                            <div className="flex justify-between items-baseline pt-2 border-t border-dashed border-[#3a3225]/10">
-                              <span className="font-extrabold text-sm">Cena k úhrade:</span>
-                              <span className="text-lg font-black text-emerald-700 bg-emerald-50 px-3 py-1 rounded-xl shadow-inner">
-                                {slotDetails.finalPrice.toFixed(1)} EUR
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-
                         <h3 className="font-bold text-xs text-gray-700">{t.contactTitle}</h3>
+                        <div className="p-3 bg-emerald-600 text-white font-bold rounded-xl text-xs text-center shadow-sm">
+                          {t.selected} termín: {new Date(selectedSlot).toLocaleDateString('sk-SK')} o {new Date(selectedSlot).toLocaleTimeString('sk-SK', {hour: '2-digit', minute:'2-digit'})}
+                        </div>
                         
                         <div className="flex flex-col space-y-2">
                           <input 
@@ -741,26 +638,58 @@ export default function Home() {
                           />
                         </div>
 
-                        <div className="space-y-2 bg-gray-50 p-3 rounded-xl border border-gray-100">
+                        <div className="space-y-4 bg-gray-50 p-4 rounded-xl border border-gray-100">
                           <p className="text-[11px] text-gray-500 font-medium">{t.contactNotice}</p>
                           
-                          <div className="space-y-1">
+                          {/* TELEFÓN S PREPÍNAČOM PREDVOLIEB */}
+                          <div className="space-y-2">
                             <label className="flex items-center space-x-2 text-xs font-semibold cursor-pointer">
                               <input type="checkbox" checked={activeContacts.phone} onChange={() => handleContactCheckboxChange('phone')} className="rounded border-gray-300 text-[#8a7355] focus:ring-[#8a7355]" />
                               <span>{t.phone}</span>
                             </label>
+                            
                             {activeContacts.phone && (
-                              <input 
-                                type="tel" 
-                                required 
-                                placeholder="+421 ..." 
-                                value={contactValues.phone} 
-                                onChange={(e) => handleContactValueChange('phone', e.target.value)} 
-                                className="w-full p-2 border rounded-lg text-xs bg-white focus:outline-none" 
-                              />
+                              <div className="flex space-x-2">
+                                {/* Prepínač predvolieb */}
+                                <div className="flex rounded-lg border bg-white p-1 shadow-sm text-xs font-bold">
+                                  <button
+                                    type="button"
+                                    onClick={() => setPhonePrefix('+421')}
+                                    className={`px-2 py-1 rounded transition-all ${phonePrefix === '+421' ? 'bg-[#8a7355] text-white' : 'text-gray-500'}`}
+                                  >
+                                    🇸🇰 +421
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => setPhonePrefix('+420')}
+                                    className={`px-2 py-1 rounded transition-all ${phonePrefix === '+420' ? 'bg-[#8a7355] text-white' : 'text-gray-500'}`}
+                                  >
+                                    🇨🇿 +420
+                                  </button>
+                                </div>
+
+                                {/* Samotný vstup pre 9-miestne číslo */}
+                                <input 
+                                  type="tel" 
+                                  required 
+                                  maxLength={13} // S rezervou na medzery medzi trojčíslami
+                                  placeholder="905 123 456" 
+                                  value={contactValues.phone} 
+                                  onChange={(e) => handleContactValueChange('phone', e.target.value)} 
+                                  className={`flex-grow p-2 border rounded-lg text-xs bg-white focus:outline-none ${
+                                    contactValues.phone.replace(/\s/g, '').length === 9 ? 'border-emerald-500 ring-1 ring-emerald-200' : ''
+                                  }`} 
+                                />
+                              </div>
+                            )}
+                            {activeContacts.phone && contactValues.phone.replace(/\s/g, '').length !== 9 && (
+                              <p className="text-[10px] text-amber-700 font-medium pl-1">
+                                Zadajte presne 9 číslic vášho telefónneho čísla (aktuálne: {contactValues.phone.replace(/\s/g, '').length}/9)
+                              </p>
                             )}
                           </div>
 
+                          {/* INSTAGRAM */}
                           <div className="space-y-1 pt-1">
                             <label className="flex items-center space-x-2 text-xs font-semibold cursor-pointer">
                               <input type="checkbox" checked={activeContacts.instagram} onChange={() => handleContactCheckboxChange('instagram')} className="rounded border-gray-300 text-[#8a7355] focus:ring-[#8a7355]" />
@@ -771,6 +700,7 @@ export default function Home() {
                             )}
                           </div>
 
+                          {/* EMAIL */}
                           <div className="space-y-1 pt-1">
                             <label className="flex items-center space-x-2 text-xs font-semibold cursor-pointer">
                               <input type="checkbox" checked={activeContacts.email} onChange={() => handleContactCheckboxChange('email')} className="rounded border-gray-300 text-[#8a7355] focus:ring-[#8a7355]" />
@@ -786,7 +716,7 @@ export default function Home() {
                           type="submit" 
                           disabled={!isContactValid()}
                           className={`w-full py-3 rounded-xl font-bold transition text-sm shadow-sm ${
-                            isContactValid() ? 'bg-[#8a7355] text-white hover:bg-[#725e45]' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                            isContactValid() ? 'bg-[#8a7355] text-white hover:bg-[#725e45] cursor-pointer' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                           }`}
                         >
                           {t.bookBtn}
