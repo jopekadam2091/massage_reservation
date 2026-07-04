@@ -304,6 +304,15 @@ export default function Home() {
     return true;
   };
 
+  // Pomocná funkcia, ktorá overí, či slot spĺňa podmienky dĺžky a rezervácie
+  const isValidSlotDuration = (availableMinutes: number, duration: number) => {
+    // 1. Prípad: Masáž končí presne na konci bloku (posledný možný slot) -> rezerva netreba
+    if (availableMinutes === duration) return true;
+    // 2. Prípad: Masáž končí skôr -> musíme nechať 25 minút rezervu pre ďalšieho
+    if (availableMinutes >= (duration + 25)) return true;
+    return false;
+  };
+
   const packagesData = {
     Klasik: [
       {
@@ -597,9 +606,9 @@ export default function Home() {
                           {daysArray.map((day) => {
                             const dateKey = getDateKey(currentYear, currentMonth, day);
                             
-                            // Deň je dostupný, ak zostávajúci čas bloku s 25-minútovou rezervou je postačujúci
+                            // Deň je dostupný, ak má aspoň jeden platný sub-slot (vrátane inteligentnej kontroly konca bloku)
                             const hasValidSlots = !!slotsByDate[dateKey] && slotsByDate[dateKey].some(
-                              slot => slot.availableMinutes >= (selectedDuration + 25)
+                              slot => isValidSlotDuration(slot.availableMinutes, selectedDuration)
                             );
 
                             return (
@@ -629,8 +638,8 @@ export default function Home() {
                         <p className="text-xs font-bold text-[#2F5D50]">{t.chooseTime}</p>
                         <div className="grid grid-cols-3 gap-2">
                           {slotsByDate[selectedDateKey].map((slot) => {
-                            // Slot zobrazíme iba ak zostáva dosť času na masáž + 25-minútovú prestávku
-                            if (slot.availableMinutes < (selectedDuration + 25)) {
+                            // Slot skryjeme, ak nespĺňa inteligentné overenie dĺžky/konca bloku
+                            if (!isValidSlotDuration(slot.availableMinutes, selectedDuration)) {
                               return null;
                             }
 
