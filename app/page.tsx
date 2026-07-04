@@ -27,7 +27,6 @@ export default function Home() {
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
   const [slotsByDate, setSlotsByDate] = useState<Record<string, TimeSlot[]>>({});
   const [loadingCalendar, setLoadingCalendar] = useState<boolean>(false);
-  const [debugEvents, setDebugEvents] = useState<any[]>([]); // DOČASNÉ - odstrániť po vyriešení
   const [selectedDateKey, setSelectedDateKey] = useState<string | null>(null);
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
 
@@ -195,19 +194,9 @@ export default function Home() {
         })
         .then((data) => {
           if (data.events) {
-            // --- DOČASNÝ DEBUG - odstrániť po vyriešení problému ---
-            setDebugEvents(
-              data.events.map((e: any) => ({
-                summary: e.summary || '(bez názvu)',
-                hasDateTime: !!(e.start?.dateTime),
-                hasDateOnly: !!(e.start?.date),
-                start: e.start?.dateTime || e.start?.date || '?',
-                end: e.end?.dateTime || e.end?.date || '?'
-              }))
-            );
-            // --- KONIEC DEBUGU ---
-
-            // Eventy typu "FSM_D20" označujú zľavový blok (D + číslo = percento zľavy)
+            // Eventy typu "FSM_D20" sú SAMOSTATNÉ voľné bloky, ktoré NAVYŠE nesú zľavu
+            // (D + číslo = percento zľavy platnej pre celý tento blok).
+            // Obyčajné "FSM" bloky sú bez zľavy.
             const discountRegex = /^FSM_D(\d{1,3})$/i;
 
             const fsmEvents = data.events
@@ -215,45 +204,23 @@ export default function Home() {
                 const summary = (e.summary || '').trim();
                 return (
                   summary.toLowerCase().includes('fsm') &&
-                  !discountRegex.test(summary) &&
                   e.start?.dateTime &&
                   e.end?.dateTime
                 );
               })
-              .map((e: any) => ({
-                start: new Date(e.start.dateTime),
-                end: new Date(e.end.dateTime)
-              }))
-              .sort((a: any, b: any) => a.start.getTime() - b.start.getTime());
-
-            const discountBlocks = data.events
-              .filter((e: any) => {
-                const summary = (e.summary || '').trim();
-                return discountRegex.test(summary) && e.start?.dateTime && e.end?.dateTime;
-              })
               .map((e: any) => {
                 const summary = (e.summary || '').trim();
                 const match = summary.match(discountRegex);
-                const percent = match ? Math.min(100, Math.max(0, parseInt(match[1], 10))) : 0;
+                const discountPercent = match
+                  ? Math.min(100, Math.max(0, parseInt(match[1], 10)))
+                  : 0;
                 return {
                   start: new Date(e.start.dateTime),
                   end: new Date(e.end.dateTime),
-                  percent
+                  discountPercent
                 };
-              });
-
-            // Ak sa zľavový event časovo prekrýva s voľným blokom, zľava platí pre CELÝ blok
-            const getBlockDiscount = (blockStart: Date, blockEnd: Date) => {
-              let maxPercent = 0;
-              discountBlocks.forEach((d: any) => {
-                const overlaps =
-                  d.start.getTime() < blockEnd.getTime() && d.end.getTime() > blockStart.getTime();
-                if (overlaps && d.percent > maxPercent) {
-                  maxPercent = d.percent;
-                }
-              });
-              return maxPercent;
-            };
+              })
+              .sort((a: any, b: any) => a.start.getTime() - b.start.getTime());
 
             const processedSlots: Record<string, TimeSlot[]> = {};
 
@@ -267,8 +234,6 @@ export default function Home() {
               if (!processedSlots[dateKey]) {
                 processedSlots[dateKey] = [];
               }
-
-              const blockDiscount = getBlockDiscount(event.start, event.end);
 
               let slotStart = new Date(event.start.getTime());
               const blockEnd = event.end.getTime();
@@ -285,7 +250,7 @@ export default function Home() {
                   formattedTime,
                   startIso: slotStart.toISOString(),
                   availableMinutes: remainingMinutes,
-                  discountPercent: blockDiscount
+                  discountPercent: event.discountPercent
                 });
 
                 slotStart.setMinutes(slotStart.getMinutes() + 15);
@@ -686,26 +651,6 @@ export default function Home() {
                     <div className="p-3 bg-[#F2EFE7] rounded-xl text-xs text-center border border-gray-200 text-[#1E293B] mb-6">
                       {t.selected}: <strong>{selectedType === 'Klasik' ? 'CLASSIC' : 'VIP PREMIUM'} - {selectedDuration} {t.minutes}</strong>
                     </div>
-
-                    {/* --- DOČASNÝ DEBUG PANEL - odstrániť po vyriešení problému --- */}
-                    {debugEvents.length > 0 && (
-                      <details className="mb-6 text-[10px] bg-yellow-50 border border-yellow-300 rounded-lg p-3 text-left">
-                        <summary className="font-bold cursor-pointer text-yellow-800">
-                          🐞 DEBUG: {debugEvents.length} eventov z kalendára (klikni pre rozbalenie)
-                        </summary>
-                        <div className="mt-2 space-y-2 overflow-x-auto">
-                          {debugEvents.map((ev, i) => (
-                            <div key={i} className="border-b border-yellow-200 pb-1">
-                              <div><strong>summary:</strong> "{ev.summary}"</div>
-                              <div><strong>hasDateTime:</strong> {String(ev.hasDateTime)} | <strong>hasDateOnly:</strong> {String(ev.hasDateOnly)}</div>
-                              <div><strong>start:</strong> {ev.start}</div>
-                              <div><strong>end:</strong> {ev.end}</div>
-                            </div>
-                          ))}
-                        </div>
-                      </details>
-                    )}
-                    {/* --- KONIEC DEBUG PANELU --- */}
 
                     {loadingCalendar ? (
                       <div className="text-center py-8 text-xs font-semibold text-gray-500">{t.loading}</div>
