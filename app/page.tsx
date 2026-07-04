@@ -17,6 +17,10 @@ export default function Home() {
   const [selectedType, setSelectedType] = useState<MassageType | null>(null);
   const [selectedDuration, setSelectedDuration] = useState<number | null>(null);
   
+  // --- ZĽAVOVÝ SYSTÉM ---
+  const [discountCode, setDiscountCode] = useState('');
+  const [appliedDiscount, setAppliedDiscount] = useState<number>(0); // v percentách (napr. 10 alebo 20)
+
   // --- DYNAMICKÝ KALENDÁR A GOOGLE API STAVY ---
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
   const [slotsByDate, setSlotsByDate] = useState<Record<string, string[]>>({});
@@ -64,7 +68,7 @@ export default function Home() {
       klasikTitle: 'MASÁŽ CLASSIC',
       klasikDesc: 'Dôkladné uvoľnenie svalového napätia, regenerácia tela.',
       vipTitle: 'MASÁŽ VIP PREMIUM ✨',
-      vipDesc: 'Exkluzívny rituál vrátane aromaterapie, masáže hlavy and maximálneho pokoja.',
+      vipDesc: 'Exkluzívny rituál vrátane aromaterapie, masáže hlavy a maximálneho pokoja.',
       step2Title: '2. Krok: Vyberte si optimálny balíček',
       step3Title: '3. Krok: Vyberte si exkluzívny voľný termín z kalendára',
       selected: 'Vybrané',
@@ -84,7 +88,12 @@ export default function Home() {
       loading: 'Načítavam voľné termíny z kalendára...',
       successTitle: 'Rezervácia bola úspešná! 🎉',
       successText: 'Vaša rezervácia bola úspešne zapísaná do kalendára. Čoskoro vás budem kontaktovať pre potvrdenie a zaslanie adresy.',
-      successHomeBtn: 'Späť na domovskú stránku'
+      successHomeBtn: 'Späť na domovskú stránku',
+      discountLabel: 'Máte zľavový kód?',
+      discountPlaceholder: 'Zadajte kód',
+      discountApply: 'Aplikovať',
+      discountSuccess: 'Zľava aktivovaná!',
+      discountInvalid: 'Neplatný kód'
     },
     EN: {
       photo: 'Photography',
@@ -130,7 +139,12 @@ export default function Home() {
       loading: 'Loading available slots from Google Calendar...',
       successTitle: 'Booking successful! 🎉',
       successText: 'Your booking has been successfully saved to the calendar. I will contact you shortly to confirm and send the address.',
-      successHomeBtn: 'Back to homepage'
+      successHomeBtn: 'Back to homepage',
+      discountLabel: 'Do you have a discount code?',
+      discountPlaceholder: 'Enter code',
+      discountApply: 'Apply',
+      discountSuccess: 'Discount applied!',
+      discountInvalid: 'Invalid code'
     }
   };
 
@@ -138,7 +152,7 @@ export default function Home() {
 
   // --- VÝPOČTY PRE DYNAMICKÝ KALENDÁR ---
   const currentYear = currentDate.getFullYear();
-  const currentMonth = currentDate.getMonth(); // 0-11
+  const currentMonth = currentDate.getMonth();
   
   const daysInMonthCount = new Date(currentYear, currentMonth + 1, 0).getDate();
   const daysArray = Array.from({ length: daysInMonthCount }, (_, i) => i + 1);
@@ -162,9 +176,35 @@ export default function Home() {
     setSelectedSlot(null);
   };
 
-  const prices = {
-    Klasik: { 30: '30 eur', 45: '40 eur', 60: '45 eur' },
-    VIP: { 45: '65 eur', 60: '70 eur', 90: '90 eur' }
+  // Pôvodné fixné ceny pred zľavou
+  const basePrices = {
+    Klasik: { 30: 30, 45: 40, 60: 45 },
+    VIP: { 45: 65, 60: 70, 90: 90 }
+  };
+
+  // Pomocná funkcia na zobrazenie ceny po započítaní prípadnej zľavy
+  const getCalculatedPriceString = (type: MassageType, duration: number) => {
+    const originalPrice = basePrices[type][duration as keyof (typeof basePrices)['Klasik' | 'VIP']];
+    if (appliedDiscount > 0) {
+      const discountedPrice = originalPrice * (1 - appliedDiscount / 100);
+      return `${discountedPrice.toFixed(0)} eur`;
+    }
+    return `${originalPrice} eur`;
+  };
+
+  // --- OVERENIE ZĽAVOVÉHO KÓDU ---
+  const handleApplyDiscount = () => {
+    const code = discountCode.trim().toUpperCase();
+    if (code === 'RELAX10') {
+      setAppliedDiscount(10);
+      alert(t.discountSuccess + ' (10%)');
+    } else if (code === 'VIP20') {
+      setAppliedDiscount(20);
+      alert(t.discountSuccess + ' (20%)');
+    } else {
+      alert(t.discountInvalid);
+      setAppliedDiscount(0);
+    }
   };
 
   // --- EFEKT: NAČÍTANIE Z GOOGLE KALENDÁRA ---
@@ -180,7 +220,7 @@ export default function Home() {
           if (data.events) {
             const processedSlots: Record<string, string[]> = {};
             data.events.forEach((event: any) => {
-              // Upravené porovnanie: kontroluje, či text obsahuje 'fsm' bez ohľadu na veľkosť písmen a či existuje platný čas
+              // Kontrola na text 'fsm' odolná voči veľkosti písmen a validný dátum/čas
               if (event.summary && event.summary.toLowerCase().includes('fsm') && event.start?.dateTime) {
                 const date = new Date(event.start.dateTime);
                 const year = date.getFullYear();
@@ -192,14 +232,13 @@ export default function Home() {
                 if (!processedSlots[dateKey]) {
                   processedSlots[dateKey] = [];
                 }
-                // Zabránenie duplicitám v rovnaký čas
                 if (!processedSlots[dateKey].includes(time)) {
                   processedSlots[dateKey].push(time);
                 }
               }
             });
 
-            // Zoradenie hodín chronologicky pre každý deň
+            // Chronologické zoradenie hodín v rámci každého dňa
             Object.keys(processedSlots).forEach((key) => {
               processedSlots[key].sort((a, b) => a.localeCompare(b));
             });
@@ -220,7 +259,7 @@ export default function Home() {
 
   const handleContactValueChange = (method: ContactMethod, value: string) => {
     if (method === 'phone') {
-      // Povolené sú LEN čisté čísla a medzery (žiadne písmená ani znaky ako +)
+      // Povolené sú iba čisté číslice a medzery
       const sanitized = value.replace(/[^0-9\s]/g, '');
       setContactValues(prev => ({ ...prev, [method]: sanitized }));
     } else {
@@ -231,10 +270,11 @@ export default function Home() {
   // --- FINÁLNE ODOSLANIE REZERVÁCIE ---
   const handleBookingSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedSlot) return;
+    if (!selectedSlot || !selectedType || !selectedDuration) return;
 
-    // Do payloadu odošleme skombinovanú predvoľbu s číslom zbaveným prebytočných medzier
     const fullPhoneNumber = `${phonePrefix} ${contactValues.phone.trim().replace(/\s+/g, ' ')}`;
+    const originalPrice = basePrices[selectedType][selectedDuration as keyof (typeof basePrices)['Klasik' | 'VIP']];
+    const finalPrice = appliedDiscount > 0 ? originalPrice * (1 - appliedDiscount / 100) : originalPrice;
 
     const payload = {
       name: clientName,
@@ -243,7 +283,9 @@ export default function Home() {
       instagram: contactValues.instagram,
       slot: selectedSlot,
       duration: selectedDuration,
-      type: selectedType === 'Klasik' ? 'CLASSIC' : 'VIP PREMIUM'
+      type: selectedType === 'Klasik' ? 'CLASSIC' : 'VIP PREMIUM',
+      price: `${finalPrice} EUR`,
+      discountApplied: appliedDiscount > 0 ? `${appliedDiscount}%` : 'None'
     };
 
     try {
@@ -262,6 +304,8 @@ export default function Home() {
         setSelectedDateKey(null);
         setSelectedSlot(null);
         setClientName('');
+        setDiscountCode('');
+        setAppliedDiscount(0);
         setContactValues({ phone: '', instagram: '', email: '' });
       } else {
         alert(lang === 'SK' ? 'Chyba pri ukladaní rezervácie.' : 'Error saving appointment.');
@@ -277,7 +321,6 @@ export default function Home() {
     if (!hasAtLeastOneChecked) return false;
     
     if (activeContacts.phone) {
-      // Odstránime všetky medzery a skontrolujeme, či zostalo presne 9 číslic
       const digitsOnly = contactValues.phone.replace(/\s/g, '');
       const phoneRegex = /^[0-9]{9}$/;
       if (!phoneRegex.test(digitsOnly)) return false;
@@ -388,7 +431,7 @@ export default function Home() {
       {mode !== null && (
         <>
           <header className="p-6 max-w-4xl mx-auto flex justify-between items-center">
-            <button type="button" onClick={() => { setMode(null); setMassageStep(1); setSelectedType(null); setSelectedDuration(null); setSelectedDateKey(null); setSelectedSlot(null); }} className="text-xs uppercase tracking-widest font-bold px-4 py-2 rounded-full border transition border-current opacity-80 hover:opacity-100">
+            <button type="button" onClick={() => { setMode(null); setMassageStep(1); setSelectedType(null); setSelectedDuration(null); setSelectedDateKey(null); setSelectedSlot(null); setAppliedDiscount(0); setDiscountCode(''); }} className="text-xs uppercase tracking-widest font-bold px-4 py-2 rounded-full border transition border-current opacity-80 hover:opacity-100">
               {t.homeBtn}
             </button>
             <div className="text-sm font-semibold tracking-wider uppercase opacity-40">
@@ -464,12 +507,33 @@ export default function Home() {
                   <div className="space-y-6">
                     <h2 className="text-2xl font-bold text-center text-[#5c4a37]">{t.step2Title} ({selectedType === 'Klasik' ? t.klasikTitle : t.vipTitle})</h2>
                     
+                    {/* ZĽAVOVÝ PANEL v 2. kroku */}
+                    <div className="max-w-md mx-auto bg-white p-4 rounded-2xl border border-amber-100 shadow-sm flex flex-col space-y-2 mb-4">
+                      <label className="text-xs font-bold text-gray-700">{t.discountLabel}</label>
+                      <div className="flex space-x-2">
+                        <input
+                          type="text"
+                          placeholder={t.discountPlaceholder}
+                          value={discountCode}
+                          onChange={(e) => setDiscountCode(e.target.value)}
+                          className="flex-grow p-2 border rounded-xl text-xs uppercase tracking-wider focus:outline-none focus:border-[#8a7355]"
+                        />
+                        <button
+                          type="button"
+                          onClick={handleApplyDiscount}
+                          className="px-4 py-2 bg-[#3a3225] text-white text-xs font-bold rounded-xl hover:bg-[#5c4a37] transition"
+                        >
+                          {t.discountApply}
+                        </button>
+                      </div>
+                      {appliedDiscount > 0 && (
+                        <p className="text-xs font-bold text-emerald-600">✓ {t.discountSuccess} (-{appliedDiscount}%)</p>
+                      )}
+                    </div>
+
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
                       {packagesData[selectedType].map((pkg) => {
-                        const priceStr = selectedType === 'Klasik' 
-                          ? prices.Klasik[pkg.duration as 30 | 45 | 60] 
-                          : prices.VIP[pkg.duration as 45 | 60 | 90];
-                        
+                        const priceDisplay = getCalculatedPriceString(selectedType, pkg.duration);
                         const isMiddle = pkg.badge === 'Supreme' || pkg.badge === 'VIP Pro';
 
                         return (
@@ -481,11 +545,16 @@ export default function Home() {
                                 {pkg.badge}
                               </span>
                               <div className="flex items-baseline text-gray-900 mb-1">
-                                <span className="text-4xl font-black tracking-tight">{priceStr.split(' ')[0]}</span>
+                                <span className="text-4xl font-black tracking-tight">{priceDisplay.split(' ')[0]}</span>
                                 <span className="text-lg font-bold ml-1 text-gray-500">eur</span>
                                 <span className="text-xs font-semibold text-gray-400 ml-2">/ {pkg.duration} {t.minutes}</span>
                               </div>
-                              <p className="text-xs text-gray-500 min-h-[32px] mt-1">{pkg.desc}</p>
+                              {appliedDiscount > 0 && (
+                                <span className="text-[11px] line-through text-gray-400 font-medium">
+                                  Pôvodne: {basePrices[selectedType][pkg.duration as keyof (typeof basePrices)['Klasik' | 'VIP']]} eur
+                                </span>
+                              )}
+                              <p className="text-xs text-gray-500 min-h-[32px] mt-2">{pkg.desc}</p>
                             </div>
 
                             <div className="p-6 pt-4">
@@ -528,7 +597,7 @@ export default function Home() {
                   <div className="bg-white p-6 rounded-3xl border border-amber-100 shadow-sm text-gray-800 max-w-xl mx-auto">
                     <h2 className="text-lg font-bold text-center text-[#5c4a37] mb-2">{t.step3Title}</h2>
                     <div className="p-3 bg-amber-50 rounded-xl text-xs text-center border border-amber-100 text-[#5c4a37] mb-6">
-                      {t.selected}: <strong>{selectedType === 'Klasik' ? 'CLASSIC' : 'VIP PREMIUM'} - {selectedDuration} {t.minutes}</strong>
+                      {t.selected}: <strong>{selectedType === 'Klasik' ? 'CLASSIC' : 'VIP PREMIUM'} - {selectedDuration} {t.minutes}</strong> ({getCalculatedPriceString(selectedType, selectedDuration)})
                     </div>
 
                     {loadingCalendar ? (
@@ -650,7 +719,6 @@ export default function Home() {
                             
                             {activeContacts.phone && (
                               <div className="flex space-x-2">
-                                {/* Prepínač predvolieb */}
                                 <div className="flex rounded-lg border bg-white p-1 shadow-sm text-xs font-bold">
                                   <button
                                     type="button"
@@ -668,11 +736,10 @@ export default function Home() {
                                   </button>
                                 </div>
 
-                                {/* Samotný vstup pre 9-miestne číslo */}
                                 <input 
                                   type="tel" 
                                   required 
-                                  maxLength={13} // S rezervou na medzery medzi trojčíslami
+                                  maxLength={13}
                                   placeholder="905 123 456" 
                                   value={contactValues.phone} 
                                   onChange={(e) => handleContactValueChange('phone', e.target.value)} 
