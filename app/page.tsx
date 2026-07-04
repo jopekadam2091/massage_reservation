@@ -194,6 +194,17 @@ export default function Home() {
         })
         .then((data) => {
           if (data.events) {
+            // --- DOČASNÝ DEBUG LOG - odstrániť po vyriešení problému ---
+            console.log('RAW EVENTS:', data.events.map((e: any) => ({
+              summary: e.summary,
+              summaryTrimmed: (e.summary || '').trim(),
+              hasDateTime: !!(e.start?.dateTime),
+              hasDateOnly: !!(e.start?.date),
+              start: e.start,
+              end: e.end
+            })));
+            // --- KONIEC DEBUG LOGU ---
+
             // Eventy typu "FSM_D20" označujú zľavový blok (D + číslo = percento zľavy)
             const discountRegex = /^FSM_D(\d{1,3})$/i;
 
