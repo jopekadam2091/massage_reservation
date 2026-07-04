@@ -27,6 +27,7 @@ export default function Home() {
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
   const [slotsByDate, setSlotsByDate] = useState<Record<string, TimeSlot[]>>({});
   const [loadingCalendar, setLoadingCalendar] = useState<boolean>(false);
+  const [debugEvents, setDebugEvents] = useState<any[]>([]); // DOČASNÉ - odstrániť po vyriešení
   const [selectedDateKey, setSelectedDateKey] = useState<string | null>(null);
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
 
@@ -194,37 +195,75 @@ export default function Home() {
         })
         .then((data) => {
           if (data.events) {
-            // Eventy typu "FSM_D20" sú SAMOSTATNÉ voľné bloky, ktoré NAVYŠE nesú zľavu
-            // (D + číslo = percento zľavy platnej pre celý tento blok).
-            // Obyčajné "FSM" bloky sú bez zľavy.
+            // Dva podporované vzory zliav:
+            // 1) SAMOSTATNÝ blok "FSM_D20" bez okolitého "FSM" bloku -> zľava platí pre celý tento blok.
+            // 2) "FSM_D20" VNORENÝ vnútri väčšieho "FSM" bloku -> zľava platí len pre časový úsek,
+            //    ktorý "FSM_D20" pokrýva; zvyšok "FSM" bloku ostáva za plnú cenu.
             const discountRegex = /^FSM_D(\d{1,3})$/i;
 
-            const fsmEvents = data.events
+            const allFsmRaw = data.events
               .filter((e: any) => {
                 const summary = (e.summary || '').trim();
-                return (
-                  summary.toLowerCase().includes('fsm') &&
-                  e.start?.dateTime &&
-                  e.end?.dateTime
-                );
+                return summary.toLowerCase().includes('fsm') && e.start?.dateTime && e.end?.dateTime;
               })
               .map((e: any) => {
                 const summary = (e.summary || '').trim();
                 const match = summary.match(discountRegex);
-                const discountPercent = match
-                  ? Math.min(100, Math.max(0, parseInt(match[1], 10)))
-                  : 0;
                 return {
                   start: new Date(e.start.dateTime),
                   end: new Date(e.end.dateTime),
-                  discountPercent
+                  isDiscount: !!match,
+                  percent: match ? Math.min(100, Math.max(0, parseInt(match[1], 10))) : 0
                 };
-              })
-              .sort((a: any, b: any) => a.start.getTime() - b.start.getTime());
+              });
+
+            const plainBlocks = allFsmRaw.filter((e: any) => !e.isDiscount);
+            const discountEvents = allFsmRaw.filter((e: any) => e.isDiscount);
+
+            const overlapsAny = (a: { start: Date; end: Date }, list: { start: Date; end: Date }[]) =>
+              list.some(
+                (b) => a.start.getTime() < b.end.getTime() && a.end.getTime() > b.start.getTime()
+              );
+
+            // Vnorené = prekrývajú sa s aspoň jedným čistým "FSM" blokom -> nevytvárajú vlastné sloty,
+            // len prekryjú zľavu na existujúce sloty daného bloku.
+            const nestedDiscountWindows = discountEvents.filter((d: any) => overlapsAny(d, plainBlocks));
+            // Samostatné = nemajú okolitý "FSM" blok -> generujú si vlastné sloty so zľavou.
+            const standaloneDiscountBlocks = discountEvents.filter((d: any) => !overlapsAny(d, plainBlocks));
+
+            // --- DOČASNÝ DEBUG - odstrániť po vyriešení ---
+            setDebugEvents([
+              ...plainBlocks.map((e: any) => ({
+                kind: 'PLAIN FSM blok',
+                start: e.start.toISOString(),
+                end: e.end.toISOString()
+              })),
+              ...nestedDiscountWindows.map((e: any) => ({
+                kind: `VNORENÉ okno -${e.percent}% (rozpoznané ako vnorené)`,
+                start: e.start.toISOString(),
+                end: e.end.toISOString()
+              })),
+              ...standaloneDiscountBlocks.map((e: any) => ({
+                kind: `SAMOSTATNÝ blok -${e.percent}% (rozpoznané ako samostatné)`,
+                start: e.start.toISOString(),
+                end: e.end.toISOString()
+              }))
+            ]);
+            // --- KONIEC DEBUGU ---
+
+            const getNestedDiscountForSlot = (slotStart: Date) => {
+              let maxPercent = 0;
+              nestedDiscountWindows.forEach((w: any) => {
+                if (slotStart.getTime() >= w.start.getTime() && slotStart.getTime() < w.end.getTime()) {
+                  maxPercent = Math.max(maxPercent, w.percent);
+                }
+              });
+              return maxPercent;
+            };
 
             const processedSlots: Record<string, TimeSlot[]> = {};
 
-            fsmEvents.forEach((event: any) => {
+            const generateSlotsForBlock = (event: { start: Date; end: Date }, bakedPercent: number | null) => {
               const dateKey = getDateKey(
                 event.start.getFullYear(),
                 event.start.getMonth(),
@@ -240,22 +279,33 @@ export default function Home() {
 
               while (slotStart.getTime() < blockEnd) {
                 const remainingMinutes = Math.round((blockEnd - slotStart.getTime()) / 60000);
-                
-                const formattedTime = slotStart.toLocaleTimeString('sk-SK', { 
-                  hour: '2-digit', 
-                  minute: '2-digit' 
+
+                const formattedTime = slotStart.toLocaleTimeString('sk-SK', {
+                  hour: '2-digit',
+                  minute: '2-digit'
                 });
+
+                const discountPercent =
+                  bakedPercent !== null ? bakedPercent : getNestedDiscountForSlot(slotStart);
 
                 processedSlots[dateKey].push({
                   formattedTime,
                   startIso: slotStart.toISOString(),
                   availableMinutes: remainingMinutes,
-                  discountPercent: event.discountPercent
+                  discountPercent
                 });
 
                 slotStart.setMinutes(slotStart.getMinutes() + 15);
               }
-            });
+            };
+
+            plainBlocks
+              .sort((a: any, b: any) => a.start.getTime() - b.start.getTime())
+              .forEach((event: any) => generateSlotsForBlock(event, null));
+
+            standaloneDiscountBlocks
+              .sort((a: any, b: any) => a.start.getTime() - b.start.getTime())
+              .forEach((event: any) => generateSlotsForBlock(event, event.percent));
 
             setSlotsByDate(processedSlots);
           }
@@ -651,6 +701,25 @@ export default function Home() {
                     <div className="p-3 bg-[#F2EFE7] rounded-xl text-xs text-center border border-gray-200 text-[#1E293B] mb-6">
                       {t.selected}: <strong>{selectedType === 'Klasik' ? 'CLASSIC' : 'VIP PREMIUM'} - {selectedDuration} {t.minutes}</strong>
                     </div>
+
+                    {/* --- DOČASNÝ DEBUG PANEL - odstrániť po vyriešení problému --- */}
+                    {debugEvents.length > 0 && (
+                      <details className="mb-6 text-[10px] bg-yellow-50 border border-yellow-300 rounded-lg p-3 text-left">
+                        <summary className="font-bold cursor-pointer text-yellow-800">
+                          🐞 DEBUG: {debugEvents.length} rozpoznaných blokov (klikni pre rozbalenie)
+                        </summary>
+                        <div className="mt-2 space-y-2 overflow-x-auto">
+                          {debugEvents.map((ev, i) => (
+                            <div key={i} className="border-b border-yellow-200 pb-1">
+                              <div><strong>typ:</strong> {ev.kind}</div>
+                              <div><strong>start:</strong> {ev.start}</div>
+                              <div><strong>end:</strong> {ev.end}</div>
+                            </div>
+                          ))}
+                        </div>
+                      </details>
+                    )}
+                    {/* --- KONIEC DEBUG PANELU --- */}
 
                     {loadingCalendar ? (
                       <div className="text-center py-8 text-xs font-semibold text-gray-500">{t.loading}</div>
