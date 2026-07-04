@@ -27,6 +27,7 @@ export default function Home() {
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
   const [slotsByDate, setSlotsByDate] = useState<Record<string, TimeSlot[]>>({});
   const [loadingCalendar, setLoadingCalendar] = useState<boolean>(false);
+  const [debugEvents, setDebugEvents] = useState<any[]>([]); // DOČASNÉ - odstrániť po vyriešení
   const [selectedDateKey, setSelectedDateKey] = useState<string | null>(null);
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
 
@@ -194,16 +195,17 @@ export default function Home() {
         })
         .then((data) => {
           if (data.events) {
-            // --- DOČASNÝ DEBUG LOG - odstrániť po vyriešení problému ---
-            console.log('RAW EVENTS:', data.events.map((e: any) => ({
-              summary: e.summary,
-              summaryTrimmed: (e.summary || '').trim(),
-              hasDateTime: !!(e.start?.dateTime),
-              hasDateOnly: !!(e.start?.date),
-              start: e.start,
-              end: e.end
-            })));
-            // --- KONIEC DEBUG LOGU ---
+            // --- DOČASNÝ DEBUG - odstrániť po vyriešení problému ---
+            setDebugEvents(
+              data.events.map((e: any) => ({
+                summary: e.summary || '(bez názvu)',
+                hasDateTime: !!(e.start?.dateTime),
+                hasDateOnly: !!(e.start?.date),
+                start: e.start?.dateTime || e.start?.date || '?',
+                end: e.end?.dateTime || e.end?.date || '?'
+              }))
+            );
+            // --- KONIEC DEBUGU ---
 
             // Eventy typu "FSM_D20" označujú zľavový blok (D + číslo = percento zľavy)
             const discountRegex = /^FSM_D(\d{1,3})$/i;
@@ -684,6 +686,26 @@ export default function Home() {
                     <div className="p-3 bg-[#F2EFE7] rounded-xl text-xs text-center border border-gray-200 text-[#1E293B] mb-6">
                       {t.selected}: <strong>{selectedType === 'Klasik' ? 'CLASSIC' : 'VIP PREMIUM'} - {selectedDuration} {t.minutes}</strong>
                     </div>
+
+                    {/* --- DOČASNÝ DEBUG PANEL - odstrániť po vyriešení problému --- */}
+                    {debugEvents.length > 0 && (
+                      <details className="mb-6 text-[10px] bg-yellow-50 border border-yellow-300 rounded-lg p-3 text-left">
+                        <summary className="font-bold cursor-pointer text-yellow-800">
+                          🐞 DEBUG: {debugEvents.length} eventov z kalendára (klikni pre rozbalenie)
+                        </summary>
+                        <div className="mt-2 space-y-2 overflow-x-auto">
+                          {debugEvents.map((ev, i) => (
+                            <div key={i} className="border-b border-yellow-200 pb-1">
+                              <div><strong>summary:</strong> "{ev.summary}"</div>
+                              <div><strong>hasDateTime:</strong> {String(ev.hasDateTime)} | <strong>hasDateOnly:</strong> {String(ev.hasDateOnly)}</div>
+                              <div><strong>start:</strong> {ev.start}</div>
+                              <div><strong>end:</strong> {ev.end}</div>
+                            </div>
+                          ))}
+                        </div>
+                      </details>
+                    )}
+                    {/* --- KONIEC DEBUG PANELU --- */}
 
                     {loadingCalendar ? (
                       <div className="text-center py-8 text-xs font-semibold text-gray-500">{t.loading}</div>
