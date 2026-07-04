@@ -6,11 +6,6 @@ type ModeType = 'photo' | 'massage' | null;
 type MassageType = 'Klasik' | 'VIP';
 type ContactMethod = 'phone' | 'instagram' | 'email';
 
-type SlotType = {
-  time: string;
-  discount: number;
-};
-
 export default function Home() {
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   const [lang, setLang] = useState<LangType>('SK');
@@ -23,7 +18,8 @@ export default function Home() {
   
   // --- DYNAMICKÝ KALENDÁR A GOOGLE API STAVY ---
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
-  const [slotsByDate, setSlotsByDate] = useState<Record<string, SlotType[]>>({});
+  // Úprava stavu, aby korektne držal časy aj informáciu o zľave
+  const [slotsByDate, setSlotsByDate] = useState<Record<string, { time: string; discount: number }[]>>({});
   const [loadingCalendar, setLoadingCalendar] = useState<boolean>(false);
   const [selectedDateKey, setSelectedDateKey] = useState<string | null>(null);
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
@@ -67,7 +63,7 @@ export default function Home() {
       klasikTitle: 'MASÁŽ CLASSIC',
       klasikDesc: 'Dôkladné uvoľnenie svalového napätia, regenerácia tela.',
       vipTitle: 'MASÁŽ VIP PREMIUM ✨',
-      vipDesc: 'Exkluzívny rituál vrátane aromaterapie, masáže hlavy a maximálneho pokoja.',
+      vipDesc: 'Exkluzívny rituál vrátane aromaterapie, masáže hlavy and maximálneho pokoja.',
       step2Title: '2. Krok: Vyberte si optimálny balíček',
       step3Title: '3. Krok: Vyberte si exkluzívny voľný termín z kalendára',
       selected: 'Vybrané',
@@ -88,11 +84,7 @@ export default function Home() {
       successTitle: 'Rezervácia bola úspešná! 🎉',
       successText: 'Vaša rezervácia bola úspešne zapísaná do kalendára. Čoskoro vás budem kontaktovať pre potvrdenie a zaslanie adresy.',
       successHomeBtn: 'Späť na domovskú stránku',
-      summaryTitle: 'Sumár objednávky',
-      summaryPackage: 'Zvolený balíček',
-      summaryBasePrice: 'Pôvodná cena',
-      summaryDiscount: 'Akčná zľava',
-      summaryFinalPrice: 'Cena k úhrade',
+      summaryTitle: 'Sumár objednávky'
     },
     EN: {
       photo: 'Photography',
@@ -139,11 +131,7 @@ export default function Home() {
       successTitle: 'Booking successful! 🎉',
       successText: 'Your booking has been successfully saved to the calendar. I will contact you shortly to confirm and send the address.',
       successHomeBtn: 'Back to homepage',
-      summaryTitle: 'Order summary',
-      summaryPackage: 'Selected package',
-      summaryBasePrice: 'Original price',
-      summaryDiscount: 'Special discount',
-      summaryFinalPrice: 'Total price',
+      summaryTitle: 'Order Summary'
     }
   };
 
@@ -151,18 +139,22 @@ export default function Home() {
 
   // --- VÝPOČTY PRE DYNAMICKÝ KALENDÁR ---
   const currentYear = currentDate.getFullYear();
-  const currentMonth = currentDate.getMonth();
+  const currentMonth = currentDate.getMonth(); // 0-11
   
+  // Počet dní v aktuálnom mesiaci
   const daysInMonthCount = new Date(currentYear, currentMonth + 1, 0).getDate();
   const daysArray = Array.from({ length: daysInMonthCount }, (_, i) => i + 1);
   
+  // Deň v týždni, ktorým mesiac začína (aby pondelok bol 0 a nedeľa 6)
   const firstDayIndex = (new Date(currentYear, currentMonth, 1).getDay() + 6) % 7;
   const emptyCells = Array.from({ length: firstDayIndex }, (_, i) => i);
 
+  // Pomocná funkcia na vytvorenie kľúča vo formáte RRRR-MM-DD
   const getDateKey = (year: number, month: number, day: number) => {
     return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
   };
 
+  // Posun mesiacov
   const handlePrevMonth = () => {
     setCurrentDate(new Date(currentYear, currentMonth - 1, 1));
     setSelectedDateKey(null);
@@ -180,7 +172,7 @@ export default function Home() {
     VIP: { 45: '65 eur', 60: '70 eur', 90: '90 eur' }
   };
 
-  // --- EFEKT: NAČÍTANIE Z GOOGLE KALENDÁRA ---
+  // --- EFEKT: NAČÍTANIE Z GOOGLE KALENDÁRA (S PODPOROU AKCIÍ) ---
   useEffect(() => {
     if (massageStep === 3) {
       setLoadingCalendar(true);
@@ -191,7 +183,7 @@ export default function Home() {
         })
         .then((data) => {
           if (data.events) {
-            const processedSlots: Record<string, SlotType[]> = {};
+            const processedSlots: Record<string, { time: string; discount: number }[]> = {};
             data.events.forEach((event: any) => {
               if (!event.summary || !event.start?.dateTime) return;
 
@@ -199,6 +191,7 @@ export default function Home() {
               let isMatch = false;
               let discountPercent = 0;
 
+              // Podpora klasického fsm aj fsm_dXX
               if (summaryLower === 'fsm') {
                 isMatch = true;
               } else if (summaryLower.startsWith('fsm_d')) {
@@ -221,17 +214,13 @@ export default function Home() {
                   processedSlots[dateKey] = [];
                 }
                 
-                // Zamedzenie duplicít, ak by API vrátilo rovnaký event viackrát
                 if (!processedSlots[dateKey].some(s => s.time === time)) {
-                  processedSlots[dateKey].push({
-                    time,
-                    discount: discountPercent
-                  });
+                  processedSlots[dateKey].push({ time, discount: discountPercent });
                 }
               }
             });
 
-            // Zoradenie slotov podľa času vzostupne
+            // Chronologické zoradenie časov v daný deň
             Object.keys(processedSlots).forEach((key) => {
               processedSlots[key].sort((a, b) => a.time.localeCompare(b.time));
             });
@@ -254,12 +243,13 @@ export default function Home() {
     setContactValues(prev => ({ ...prev, [method]: value }));
   };
 
-  // --- POMOCNÉ PRE VÝPOČET CIEN A ZĽAVY PRE FORMULÁR ---
+  // --- POMOCNÁ FUNKCIA PRE KALKULÁCIU CIEN V SUMÁRI ---
   const getSelectedSlotDetails = () => {
     if (!selectedSlot || !selectedDateKey || !selectedDuration || !selectedType) return null;
     
     const timePart = selectedSlot.split('T')[1]?.substring(0, 5);
-    const slotObj = slotsByDate[selectedDateKey]?.find(s => s.time === timePart);
+    const daySlots = slotsByDate[selectedDateKey];
+    const slotObj = daySlots?.find(s => s.time === timePart);
     const discount = slotObj ? slotObj.discount : 0;
 
     const basePriceStr = selectedType === 'Klasik' 
@@ -269,19 +259,15 @@ export default function Home() {
     
     const finalPrice = discount > 0 ? basePrice * (1 - discount / 100) : basePrice;
 
-    return {
-      basePrice,
-      discount,
-      finalPrice
-    };
+    return { basePrice, discount, finalPrice };
   };
+
+  const slotDetails = getSelectedSlotDetails();
 
   // --- FINÁLNE ODOSLANIE REZERVÁCIE ---
   const handleBookingSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedSlot) return;
-
-    const details = getSelectedSlotDetails();
 
     const payload = {
       name: clientName,
@@ -290,10 +276,7 @@ export default function Home() {
       instagram: contactValues.instagram,
       slot: selectedSlot,
       duration: selectedDuration,
-      type: selectedType === 'Klasik' ? 'CLASSIC' : 'VIP PREMIUM',
-      basePrice: details?.basePrice || 0,
-      discount: details?.discount || 0,
-      finalPrice: details?.finalPrice || 0
+      type: selectedType === 'Klasik' ? 'CLASSIC' : 'VIP PREMIUM'
     };
 
     try {
@@ -373,8 +356,6 @@ export default function Home() {
       }
     ]
   };
-
-  const slotDetails = getSelectedSlotDetails();
 
   return (
     <div className={`min-h-screen transition-all duration-700 ease-in-out pb-20 ${
@@ -607,18 +588,19 @@ export default function Home() {
                           <div>{t.mon}</div><div>{t.tue}</div><div>{t.wed}</div><div>{t.thu}</div><div>{t.fri}</div><div>{t.sat}</div><div>{t.sun}</div>
                         </div>
 
+                        {/* TU ZAČÍNA VÁŠ KÓD S KALENDÁROM PRE REÁLNE DNI A ZĽAVAMI */}
                         <div className="grid grid-cols-7 gap-1.5">
                           {emptyCells.map((_, idx) => (
                             <div key={`empty-${idx}`} className="p-2"></div>
                           ))}
 
-                          {/* Reálne dni mesiaca */}
                           {daysArray.map((day) => {
                             const dateKey = getDateKey(currentYear, currentMonth, day);
                             const daySlots = slotsByDate[dateKey] || [];
                             const hasSlots = daySlots.length > 0;
                             const isCurrentSelected = selectedDateKey === dateKey;
 
+                            // Zistenie najvyššej zľavy v daný deň
                             const maxDiscount = daySlots.reduce((max, slot) => slot.discount > max ? slot.discount : max, 0);
 
                             return (
@@ -632,14 +614,16 @@ export default function Home() {
                                     ? isCurrentSelected
                                       ? 'bg-emerald-600 text-white font-bold ring-2 ring-emerald-300 shadow'
                                       : maxDiscount > 0
-                                        ? 'bg-cyan-50 text-cyan-900 font-bold border-2 border-cyan-400 shadow-[0_0_14px_rgba(6,182,212,0.65)] hover:bg-cyan-100'
+                                        // Žiariaci Cyan modrý štýl dňa s akciou
+                                        ? 'bg-cyan-50 text-cyan-950 font-bold border-2 border-cyan-400 shadow-[0_0_14px_rgba(6,182,212,0.65)] hover:bg-cyan-100'
                                         : 'bg-emerald-100 text-emerald-800 font-bold hover:bg-emerald-200 border border-emerald-300/40 shadow-sm'
                                     : 'text-gray-400 bg-white border border-gray-100 opacity-60 cursor-not-allowed'
                                 }`}
                               >
                                 <span>{day}</span>
+                                {/* Odznak zväčšený o 50% pomocou scale-150 a upravených paddingov */}
                                 {maxDiscount > 0 && !isCurrentSelected && (
-                                  <span className="absolute -top-1.5 -right-1.5 bg-cyan-500 text-white font-black text-[10px] px-1.5 py-0.5 rounded-full shadow scale-105">
+                                  <span className="absolute -top-1.5 -right-2 bg-cyan-500 text-white font-black text-[9px] px-2 py-0.5 rounded-full shadow-md scale-150 origin-center z-10">
                                     -{maxDiscount}%
                                   </span>
                                 )}
@@ -655,7 +639,7 @@ export default function Home() {
                       <div className="animate-fadeIn space-y-2 mb-6 bg-emerald-50/40 border border-emerald-100 p-4 rounded-xl">
                         <p className="text-xs font-bold text-emerald-900">{t.chooseTime}</p>
                         <div className="grid grid-cols-3 gap-2">
-                          {slotsByDate[selectedDateKey].map((slot) => {
+                          {(slotsByDate[selectedDateKey] || []).map((slot) => {
                             const slotIdentifier = `${selectedDateKey}T${slot.time}:00`;
                             return (
                               <button
@@ -672,7 +656,7 @@ export default function Home() {
                               >
                                 <span>{slot.time}</span>
                                 {slot.discount > 0 && (
-                                  <span className={`text-[9px] px-1 rounded-full font-extrabold mt-0.5 ${selectedSlot === slotIdentifier ? 'bg-white/30 text-white' : 'bg-cyan-100 text-cyan-800'}`}>
+                                  <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-extrabold mt-0.5 ${selectedSlot === slotIdentifier ? 'bg-white/30 text-white' : 'bg-cyan-100 text-cyan-800'}`}>
                                     -{slot.discount}%
                                   </span>
                                 )}
@@ -683,14 +667,14 @@ export default function Home() {
                       </div>
                     )}
 
-                    {/* FINÁLNY REZERVAČNÝ FORMULÁR S DYNAMICKÝM SUMÁROM */}
+                    {/* FINÁLNY REZERVAČNÝ FORMULÁR SO SUMÁROM OBJEDNÁVKY */}
                     {selectedSlot && slotDetails && (
                       <form onSubmit={handleBookingSubmit} className="space-y-4 pt-4 border-t border-gray-100 mt-4 animate-fadeIn">
                         
                         {/* DYNAMICKÝ SUMÁR OBJEDNÁVKY */}
                         <div className="bg-[#3a3225]/5 rounded-2xl p-4 border border-[#3a3225]/10 text-[#3a3225] space-y-3">
                           <h4 className="text-xs font-extrabold tracking-wider uppercase border-b border-[#3a3225]/10 pb-1.5 flex items-center justify-between">
-                            <span>✨ {t.summaryTitle}</span>
+                            <span>✨ {t.summaryTitle || 'Sumár objednávky'}</span>
                             <span className="text-[10px] font-normal text-gray-500">
                               {new Date(selectedSlot).toLocaleDateString('sk-SK')} o {new Date(selectedSlot).toLocaleTimeString('sk-SK', {hour: '2-digit', minute:'2-digit'})}
                             </span>
@@ -698,12 +682,12 @@ export default function Home() {
                           
                           <div className="space-y-1.5 text-xs">
                             <div className="flex justify-between">
-                              <span className="text-gray-500">{t.summaryPackage}:</span>
+                              <span className="text-gray-500">Balíček:</span>
                               <span className="font-bold">{selectedType === 'Klasik' ? 'CLASSIC' : 'VIP PREMIUM'} ({selectedDuration} min)</span>
                             </div>
 
                             <div className="flex justify-between">
-                              <span className="text-gray-500">{t.summaryBasePrice}:</span>
+                              <span className="text-gray-500">Pôvodná cena:</span>
                               <span className={slotDetails.discount > 0 ? 'line-through text-gray-400' : 'font-semibold'}>
                                 {slotDetails.basePrice} EUR
                               </span>
@@ -711,13 +695,13 @@ export default function Home() {
 
                             {slotDetails.discount > 0 && (
                               <div className="flex justify-between text-cyan-700 font-semibold bg-cyan-50 px-2 py-0.5 rounded border border-cyan-100">
-                                <span>{t.summaryDiscount} (-{slotDetails.discount}%):</span>
+                                <span>Akčná zľava (-{slotDetails.discount}%):</span>
                                 <span>-{((slotDetails.basePrice * slotDetails.discount) / 100).toFixed(1)} EUR</span>
                               </div>
                             )}
 
                             <div className="flex justify-between items-baseline pt-2 border-t border-dashed border-[#3a3225]/10">
-                              <span className="font-extrabold text-sm">{t.summaryFinalPrice}:</span>
+                              <span className="font-extrabold text-sm">Cena k úhrade:</span>
                               <span className="text-lg font-black text-emerald-700 bg-emerald-50 px-3 py-1 rounded-xl shadow-inner">
                                 {slotDetails.finalPrice.toFixed(1)} EUR
                               </span>
