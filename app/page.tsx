@@ -18,7 +18,7 @@ export default function Home() {
   
   // --- DYNAMICKÝ KALENDÁR A GOOGLE API STAVY ---
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
-  // Úprava stavu, aby korektne držal časy aj informáciu o zľave
+  // OPRAVA TYPU: Stav teraz korektne drží pole objektov (čas + zľava)
   const [slotsByDate, setSlotsByDate] = useState<Record<string, { time: string; discount: number }[]>>({});
   const [loadingCalendar, setLoadingCalendar] = useState<boolean>(false);
   const [selectedDateKey, setSelectedDateKey] = useState<string | null>(null);
@@ -36,6 +36,13 @@ export default function Home() {
     email: '',
   });
   const [clientName, setClientName] = useState('');
+
+  // --- PREKVAPIVÉ PREDVYPLNENIE SK PREDVOĽBY ---
+  useEffect(() => {
+    if (activeContacts.phone && !contactValues.phone.trim()) {
+      setContactValues(prev => ({ ...prev, phone: '+421 ' }));
+    }
+  }, [activeContacts.phone]);
 
   // --- PREKLADY ---
   const translations = {
@@ -63,7 +70,7 @@ export default function Home() {
       klasikTitle: 'MASÁŽ CLASSIC',
       klasikDesc: 'Dôkladné uvoľnenie svalového napätia, regenerácia tela.',
       vipTitle: 'MASÁŽ VIP PREMIUM ✨',
-      vipDesc: 'Exkluzívny rituál vrátane aromaterapie, masáže hlavy and maximálneho pokoja.',
+      vipDesc: 'Exkluzívny rituál vrátane aromaterapie, masáže hlavy a maximálneho pokoja.',
       step2Title: '2. Krok: Vyberte si optimálny balíček',
       step3Title: '3. Krok: Vyberte si exkluzívny voľný termín z kalendára',
       selected: 'Vybrané',
@@ -172,7 +179,7 @@ export default function Home() {
     VIP: { 45: '65 eur', 60: '70 eur', 90: '90 eur' }
   };
 
-  // --- EFEKT: NAČÍTANIE Z GOOGLE KALENDÁRA (S PODPOROU AKCIÍ) ---
+  // --- EFEKT: NAČÍTANIE Z GOOGLE KALENDÁRA (OPRAVENÁ AGREGÁCIA VŠETKÝCH TERMÍNOV) ---
   useEffect(() => {
     if (massageStep === 3) {
       setLoadingCalendar(true);
@@ -184,6 +191,7 @@ export default function Home() {
         .then((data) => {
           if (data.events) {
             const processedSlots: Record<string, { time: string; discount: number }[]> = {};
+            
             data.events.forEach((event: any) => {
               if (!event.summary || !event.start?.dateTime) return;
 
@@ -191,7 +199,7 @@ export default function Home() {
               let isMatch = false;
               let discountPercent = 0;
 
-              // Podpora klasického fsm aj fsm_dXX
+              // Podpora fsm aj fsm_dXX akciových slotov
               if (summaryLower === 'fsm') {
                 isMatch = true;
               } else if (summaryLower.startsWith('fsm_d')) {
@@ -214,13 +222,14 @@ export default function Home() {
                   processedSlots[dateKey] = [];
                 }
                 
+                // OPRAVA: Zabezpečí, aby sa uložili VŠETKY unikátne časy v daný deň a neprepisovali sa
                 if (!processedSlots[dateKey].some(s => s.time === time)) {
                   processedSlots[dateKey].push({ time, discount: discountPercent });
                 }
               }
             });
 
-            // Chronologické zoradenie časov v daný deň
+            // Zoradenie časov chronologicky vzostupne
             Object.keys(processedSlots).forEach((key) => {
               processedSlots[key].sort((a, b) => a.time.localeCompare(b.time));
             });
@@ -240,7 +249,13 @@ export default function Home() {
   };
 
   const handleContactValueChange = (method: ContactMethod, value: string) => {
-    setContactValues(prev => ({ ...prev, [method]: value }));
+    // UKOTVENIE PRE TELEFÓNNE ČÍSLO: Povolené len číslice, znak plus a medzery
+    if (method === 'phone') {
+      const filteredValue = value.replace(/[^0-9+\s]/g, '');
+      setContactValues(prev => ({ ...prev, [method]: filteredValue }));
+    } else {
+      setContactValues(prev => ({ ...prev, [method]: value }));
+    }
   };
 
   // --- POMOCNÁ FUNKCIA PRE KALKULÁCIU CIEN V SUMÁRI ---
@@ -308,7 +323,14 @@ export default function Home() {
     if (!clientName.trim()) return false;
     const hasAtLeastOneChecked = activeContacts.phone || activeContacts.instagram || activeContacts.email;
     if (!hasAtLeastOneChecked) return false;
-    if (activeContacts.phone && !contactValues.phone.trim()) return false;
+    
+    // VALIDÁCIA TELEFÓNNEHO FORMÁTU (Regex): Musí obsahovať aspoň 9 číslic a povolené sú len +, čísla a medzery
+    if (activeContacts.phone) {
+      const cleanPhone = contactValues.phone.replace(/\s/g, '');
+      const phoneRegex = /^\+?[0-9]{9,15}$/;
+      if (!phoneRegex.test(cleanPhone)) return false;
+    }
+    
     if (activeContacts.instagram && !contactValues.instagram.trim()) return false;
     if (activeContacts.email && !contactValues.email.trim()) return false;
     return true;
@@ -588,7 +610,7 @@ export default function Home() {
                           <div>{t.mon}</div><div>{t.tue}</div><div>{t.wed}</div><div>{t.thu}</div><div>{t.fri}</div><div>{t.sat}</div><div>{t.sun}</div>
                         </div>
 
-                        {/* TU ZAČÍNA VÁŠ KÓD S KALENDÁROM PRE REÁLNE DNI A ZĽAVAMI */}
+                        {/* REÁLNE DNI A ZĽAVY */}
                         <div className="grid grid-cols-7 gap-1.5">
                           {emptyCells.map((_, idx) => (
                             <div key={`empty-${idx}`} className="p-2"></div>
@@ -600,7 +622,6 @@ export default function Home() {
                             const hasSlots = daySlots.length > 0;
                             const isCurrentSelected = selectedDateKey === dateKey;
 
-                            // Zistenie najvyššej zľavy v daný deň
                             const maxDiscount = daySlots.reduce((max, slot) => slot.discount > max ? slot.discount : max, 0);
 
                             return (
@@ -614,14 +635,12 @@ export default function Home() {
                                     ? isCurrentSelected
                                       ? 'bg-emerald-600 text-white font-bold ring-2 ring-emerald-300 shadow'
                                       : maxDiscount > 0
-                                        // Žiariaci Cyan modrý štýl dňa s akciou
                                         ? 'bg-cyan-50 text-cyan-950 font-bold border-2 border-cyan-400 shadow-[0_0_14px_rgba(6,182,212,0.65)] hover:bg-cyan-100'
                                         : 'bg-emerald-100 text-emerald-800 font-bold hover:bg-emerald-200 border border-emerald-300/40 shadow-sm'
                                     : 'text-gray-400 bg-white border border-gray-100 opacity-60 cursor-not-allowed'
                                 }`}
                               >
                                 <span>{day}</span>
-                                {/* Odznak zväčšený o 50% pomocou scale-150 a upravených paddingov */}
                                 {maxDiscount > 0 && !isCurrentSelected && (
                                   <span className="absolute -top-1.5 -right-2 bg-cyan-500 text-white font-black text-[9px] px-2 py-0.5 rounded-full shadow-md scale-150 origin-center z-10">
                                     -{maxDiscount}%
@@ -731,7 +750,14 @@ export default function Home() {
                               <span>{t.phone}</span>
                             </label>
                             {activeContacts.phone && (
-                              <input type="tel" required placeholder="+421 ..." value={contactValues.phone} onChange={(e) => handleContactValueChange('phone', e.target.value)} className="w-full p-2 border rounded-lg text-xs bg-white focus:outline-none" />
+                              <input 
+                                type="tel" 
+                                required 
+                                placeholder="+421 ..." 
+                                value={contactValues.phone} 
+                                onChange={(e) => handleContactValueChange('phone', e.target.value)} 
+                                className="w-full p-2 border rounded-lg text-xs bg-white focus:outline-none" 
+                              />
                             )}
                           </div>
 
