@@ -694,7 +694,7 @@ export default function Home() {
 const packagesData = packagesTranslations[lang];
   return (
     <div className={`min-h-screen transition-all duration-700 ease-in-out pb-20 ${
-      mode === 'photo' ? 'bg-[#1a1a1a] text-white font-figtree' : mode === 'massage' ? 'bg-[#071739] text-[#CDD5DB]' : 'bg-[#121212] text-white'
+      mode === 'photo' ? 'bg-[#1a1a1a] text-white font-figtree' : mode === 'massage' ? 'bg-[#141E30] text-[#CDD5DB]' : 'bg-[#121212] text-white'
     }`}>
 
       {/* ÚSPEŠNÁ REZERVÁCIA - OVERLAY */}
@@ -804,33 +804,33 @@ const packagesData = packagesTranslations[lang];
             ) : (
               <div className="space-y-8 animate-fadeIn">
                <div className="max-w-xl mx-auto text-center">
-                <h1 className="text-3xl font-extrabold mb-1 text-[#E3C39D] font-chillax">{t.massageTitle}</h1>
+                <h1 className="text-3xl font-extrabold mb-1 text-[#A485C4] font-chillax">{t.massageTitle}</h1>
                 <p className="text-[#A4B5C4] text-sm">{t.massageSubtitle}</p>
               </div>
                 <div className="flex justify-between max-w-xs mx-auto mb-8">
                   {[1, 2, 3].map((step) => (
                     <div key={step} className="flex items-center space-x-1">
-                      <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold border transition ${massageStep === step ? 'bg-[#E3C39D] text-[#071739] border-[#E3C39D]' : 'bg-[#4B6382] text-[#A4B5C4] border-[#4B6382]'}`}>{step}</div>
-                      <span className={`text-[10px] font-semibold ${massageStep === step ? 'text-[#E3C39D]' : 'text-[#A4B5C4]'}`}>{step === 1 ? t.step1 : step === 2 ? t.step2 : t.step3}</span>
+                      <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold border transition ${massageStep === step ? 'bg-[#A485C4] text-[#141E30] border-[#A485C4]' : 'bg-[#4B6382] text-[#A4B5C4] border-[#4B6382]'}`}>{step}</div>
+                      <span className={`text-[10px] font-semibold ${massageStep === step ? 'text-[#A485C4]' : 'text-[#A4B5C4]'}`}>{step === 1 ? t.step1 : step === 2 ? t.step2 : t.step3}</span>
                     </div>
                   ))}
                 </div>
                 {/* KROK 1 */}
                 {massageStep === 1 && (
                   <div className="bg-[#4B6382]/30 p-6 rounded-xl border border-[#4B6382] text-[#CDD5DB] max-w-xl mx-auto">
-                    <h2 className="text-lg font-bold text-center text-[#E3C39D] mb-4">{t.step1Title}</h2>
+                    <h2 className="text-lg font-bold text-center text-[#A485C4] mb-4">{t.step1Title}</h2>
                     <div className="flex flex-col space-y-3">
-                      <button type="button" onClick={() => { setSelectedType('Klasik'); setMassageStep(2); }} className="p-5 rounded-xl border border-[#4B6382] text-left hover:border-[#A68868] transition bg-[#071739]/40">
+                      <button type="button" onClick={() => { setSelectedType('Klasik'); setMassageStep(2); }} className="p-5 rounded-xl border border-[#4B6382] text-left hover:border-[#A68868] transition bg-[#141E30]/40">
                         <h3 className="font-bold text-base text-[#CDD5DB]">{t.klasikTitle}</h3>
                         <p className="text-xs text-[#A4B5C4] mt-1">{t.klasikDesc}</p>
                       </button>
                       
                       <button type="button" onClick={() => { setSelectedType('VIP'); setMassageStep(2); }} className="p-5 rounded-xl border-2 border-[#A68868] text-left transition bg-[#A68868]/20 hover:bg-[#A68868]/30 shadow-md transform hover:scale-[1.01] duration-200">
-                        <h3 className="font-extrabold text-base text-[#E3C39D] flex items-center justify-between">
+                        <h3 className="font-extrabold text-base text-[#A485C4] flex items-center justify-between">
                           <span>{t.vipTitle}</span>
                           <span className="bg-[#A68868] text-white text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider">POPULAR</span>
                         </h3>
-                        <p className="text-xs text-[#E3C39D]/90 font-medium mt-1">{t.vipDesc}</p>
+                        <p className="text-xs text-[#A485C4]/90 font-medium mt-1">{t.vipDesc}</p>
                       </button>
                     </div>
                   </div>
@@ -839,7 +839,7 @@ const packagesData = packagesTranslations[lang];
                 {/* KROK 2 */}
                 {massageStep === 2 && selectedType && (
                   <div className="space-y-6">
-                    <h2 className="text-2xl font-bold text-center text-[#E3C39D]">{t.step2Title} ({selectedType === 'Klasik' ? t.klasikTitle : t.vipTitle})</h2>
+                    <h2 className="text-2xl font-bold text-center text-[#A485C4]">{t.step2Title} ({selectedType === 'Klasik' ? t.klasikTitle : t.vipTitle})</h2>
                     
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
                       {packagesData[selectedType].map((pkg) => {
@@ -851,11 +851,11 @@ const packagesData = packagesTranslations[lang];
                 
                         return (
                           <div key={pkg.duration} className={`flex flex-col bg-[#4B6382]/20 rounded-3xl border shadow-sm transition-all overflow-hidden ${
-                            isMiddle ? 'border-[#E3C39D] ring-2 ring-[#E3C39D]/30 bg-gradient-to-b from-[#A68868]/10 to-[#4B6382]/20' : 'border-[#4B6382]'
+                            isMiddle ? 'border-[#A485C4] ring-2 ring-[#A485C4]/30 bg-gradient-to-b from-[#A68868]/10 to-[#4B6382]/20' : 'border-[#4B6382]'
                           }`}>
                             <div className="p-6 pb-0 flex flex-col items-start">
                               <span className={`px-3 py-1 text-[11px] font-bold tracking-wider uppercase rounded-full mb-4 ${
-                                isMiddle ? 'bg-[#E3C39D] text-[#071739]' : 'bg-[#4B6382] text-[#CDD5DB]'
+                                isMiddle ? 'bg-[#A485C4] text-[#141E30]' : 'bg-[#4B6382] text-[#CDD5DB]'
                               }`}>
                                 {pkg.badge}
                               </span>
@@ -873,8 +873,8 @@ const packagesData = packagesTranslations[lang];
                                 onClick={() => { setSelectedDuration(pkg.duration); setMassageStep(3); }}
                                 className={`w-full py-3 rounded-xl font-bold text-xs uppercase tracking-wider shadow-sm transition-all duration-300 ${
                                   isMiddle 
-                                    ? 'bg-[#E3C39D] text-[#071739] hover:bg-[#A68868] hover:text-white' 
-                                    : 'bg-[#CDD5DB] text-[#071739] hover:bg-white'
+                                    ? 'bg-[#A485C4] text-[#141E30] hover:bg-[#A68868] hover:text-white' 
+                                    : 'bg-[#CDD5DB] text-[#141E30] hover:bg-white'
                                 }`}
                               >
                                 {t.selectBtn}
@@ -887,7 +887,7 @@ const packagesData = packagesTranslations[lang];
                               <ul className="space-y-2.5 text-xs text-[#A4B5C4]">
                                 {pkg.features.map((feat, idx) => (
                                   <li key={idx} className="flex items-start space-x-2">
-                                    <span className="w-4 flex-shrink-0 text-center text-[#E3C39D] font-bold">
+                                    <span className="w-4 flex-shrink-0 text-center text-[#A485C4] font-bold">
                                       {featureIcons[feat.icon ?? 'check']}
                                     </span>
                                     <span className="text-[#CDD5DB]">{feat.text}</span>
@@ -903,7 +903,7 @@ const packagesData = packagesTranslations[lang];
                     <button 
                       type="button" 
                       onClick={() => setMassageStep(1)} 
-                      className="mx-auto flex items-center justify-center space-x-2 px-6 py-3.5 rounded-xl border-2 border-[#A4B5C4] text-[#A4B5C4] bg-transparent font-bold text-xs tracking-wider uppercase hover:bg-[#A4B5C4] hover:text-[#071739] transition-all duration-200 shadow-sm"
+                      className="mx-auto flex items-center justify-center space-x-2 px-6 py-3.5 rounded-xl border-2 border-[#A4B5C4] text-[#A4B5C4] bg-transparent font-bold text-xs tracking-wider uppercase hover:bg-[#A4B5C4] hover:text-[#141E30] transition-all duration-200 shadow-sm"
                     >
                       <span>⬅</span> <span>{t.backToLevel}</span>
                     </button>
@@ -913,15 +913,15 @@ const packagesData = packagesTranslations[lang];
                 {/* KROK 3: PREPOJENÝ KALENDÁR */}
                 {massageStep === 3 && selectedType && selectedDuration && (
                   <div className="bg-[#4B6382]/20 p-6 rounded-3xl border border-[#4B6382] text-[#CDD5DB] max-w-xl mx-auto">
-                    <h2 className="text-lg font-bold text-center text-[#E3C39D] mb-2">{t.step3Title}</h2>
-                    <div className="p-3 bg-[#071739]/40 rounded-xl text-xs text-center border border-[#4B6382] text-[#CDD5DB] mb-6">
+                    <h2 className="text-lg font-bold text-center text-[#A485C4] mb-2">{t.step3Title}</h2>
+                    <div className="p-3 bg-[#141E30]/40 rounded-xl text-xs text-center border border-[#4B6382] text-[#CDD5DB] mb-6">
                       {t.selected}: <strong>{selectedType === 'Klasik' ? 'CLASSIC' : 'VIP PREMIUM'} - {selectedDuration} {t.minutes}</strong>
                     </div>
                 
                     {loadingCalendar ? (
                       <div className="text-center py-8 text-xs font-semibold text-[#A4B5C4]">{t.loading}</div>
                     ) : (
-                      <div className="border border-[#4B6382] rounded-2xl p-4 bg-[#071739]/30 mb-6">
+                      <div className="border border-[#4B6382] rounded-2xl p-4 bg-[#141E30]/30 mb-6">
                         <div className="flex justify-between items-center mb-4 px-2">
                           <span className="text-base font-bold tracking-tight text-[#CDD5DB]">
                             {t.months[currentMonth]} {currentYear}
@@ -980,9 +980,9 @@ const packagesData = packagesTranslations[lang];
                                         ? 'bg-cyan-500 text-white font-bold ring-2 ring-cyan-300 shadow-[0_0_14px_rgba(34,211,238,0.85)]'
                                         : 'bg-cyan-50 text-cyan-700 font-bold border border-cyan-300 shadow-[0_0_10px_rgba(34,211,238,0.55)] hover:shadow-[0_0_14px_rgba(34,211,238,0.75)]'
                                       : selectedDateKey === dateKey
-                                        ? 'bg-[#E3C39D] text-[#071739] font-bold ring-2 ring-[#A68868] shadow'
+                                        ? 'bg-[#A485C4] text-[#141E30] font-bold ring-2 ring-[#A68868] shadow'
                                         : 'bg-[#4B6382]/40 text-[#CDD5DB] font-bold hover:bg-[#4B6382]/60 border border-[#4B6382] shadow-sm'
-                                    : 'text-[#4B6382] bg-[#071739]/20 border border-[#4B6382]/40 opacity-60 cursor-not-allowed'
+                                    : 'text-[#4B6382] bg-[#141E30]/20 border border-[#4B6382]/40 opacity-60 cursor-not-allowed'
                                 }`}
                               >
                                 {day}
@@ -999,8 +999,8 @@ const packagesData = packagesTranslations[lang];
                     )}
                 
                     {selectedDateKey && slotsByDate[selectedDateKey] && (
-                      <div className="animate-fadeIn space-y-2 mb-6 bg-[#071739]/30 border border-[#4B6382] p-4 rounded-xl">
-                        <p className="text-xs font-bold text-[#E3C39D]">{t.chooseTime}</p>
+                      <div className="animate-fadeIn space-y-2 mb-6 bg-[#141E30]/30 border border-[#4B6382] p-4 rounded-xl">
+                        <p className="text-xs font-bold text-[#A485C4]">{t.chooseTime}</p>
                         <div className="grid grid-cols-3 gap-2">
                           {slotsByDate[selectedDateKey].map((slot) => {
                             if (!isValidSlotDuration(slot.availableMinutes, selectedDuration)) {
@@ -1018,10 +1018,10 @@ const packagesData = packagesTranslations[lang];
                                   selectedSlot === slot.startIso
                                     ? hasDiscount
                                       ? 'bg-cyan-500 text-white border-cyan-400 shadow-[0_0_12px_rgba(34,211,238,0.85)]'
-                                      : 'bg-[#E3C39D] text-[#071739] border-[#E3C39D] shadow'
+                                      : 'bg-[#A485C4] text-[#141E30] border-[#A485C4] shadow'
                                     : hasDiscount
                                       ? 'bg-cyan-50 border-cyan-300 text-cyan-700 shadow-[0_0_8px_rgba(34,211,238,0.45)] hover:shadow-[0_0_10px_rgba(34,211,238,0.65)]'
-                                      : 'bg-[#4B6382]/30 border-[#4B6382] text-[#CDD5DB] hover:border-[#E3C39D]'
+                                      : 'bg-[#4B6382]/30 border-[#4B6382] text-[#CDD5DB] hover:border-[#A485C4]'
                                 }`}
                               >
                                 {slot.formattedTime}
@@ -1048,7 +1048,7 @@ const packagesData = packagesTranslations[lang];
                         </div>
                 
                         {/* CENOVÝ SÚHRN */}
-                        <div className="p-4 rounded-xl border border-[#4B6382] bg-[#071739]/30 space-y-3">
+                        <div className="p-4 rounded-xl border border-[#4B6382] bg-[#141E30]/30 space-y-3">
                           <h3 className="font-bold text-[11px] uppercase tracking-wider text-[#A4B5C4]">{t.summaryTitle}</h3>
                 
                           <div className="space-y-2">
@@ -1085,13 +1085,13 @@ const packagesData = packagesTranslations[lang];
                                       if (codeCheckStatus === 'invalid') setCodeCheckStatus('idle');
                                     }}
                                     placeholder={t.discountCodePlaceholder}
-                                    className="flex-grow p-2.5 border border-[#4B6382] rounded-lg text-xs bg-[#071739]/40 focus:outline-none text-[#CDD5DB] uppercase placeholder:text-[#A4B5C4]"
+                                    className="flex-grow p-2.5 border border-[#4B6382] rounded-lg text-xs bg-[#141E30]/40 focus:outline-none text-[#CDD5DB] uppercase placeholder:text-[#A4B5C4]"
                                   />
                                   <button
                                     type="button"
                                     onClick={handleApplyDiscountCode}
                                     disabled={!discountCodeInput.trim() || codeCheckStatus === 'checking'}
-                                    className="px-4 py-2 rounded-lg text-xs font-bold bg-[#E3C39D] text-[#071739] hover:bg-[#A68868] hover:text-white transition disabled:bg-[#4B6382] disabled:text-[#A4B5C4] disabled:cursor-not-allowed"
+                                    className="px-4 py-2 rounded-lg text-xs font-bold bg-[#A485C4] text-[#141E30] hover:bg-[#A68868] hover:text-white transition disabled:bg-[#4B6382] disabled:text-[#A4B5C4] disabled:cursor-not-allowed"
                                   >
                                     {t.applyCodeBtn}
                                   </button>
@@ -1126,7 +1126,7 @@ const packagesData = packagesTranslations[lang];
                           </div>
                 
                           {(selectedDiscountPercent > 0 || appliedCodePercent > 0) && (
-                            <div className="flex justify-between items-center text-base font-extrabold text-[#E3C39D] pt-2 border-t border-[#4B6382]">
+                            <div className="flex justify-between items-center text-base font-extrabold text-[#A485C4] pt-2 border-t border-[#4B6382]">
                               <span>{t.finalPriceLabel}</span>
                               <span>{finalPrice} €</span>
                             </div>
@@ -1134,21 +1134,21 @@ const packagesData = packagesTranslations[lang];
                         </div>
                 
                         {/* KONTAKTNÁ KARTA — meno + spôsoby kontaktu zlúčené do jedného boxu */}
-                        <div className="space-y-3 bg-[#071739]/30 p-3 rounded-xl border border-[#4B6382]">
+                        <div className="space-y-3 bg-[#141E30]/30 p-3 rounded-xl border border-[#4B6382]">
                           <input 
                             type="text" 
                             placeholder={t.name} 
                             required 
                             value={clientName}
                             onChange={(e) => setClientName(e.target.value)}
-                            className="w-full p-3 border border-[#4B6382] rounded-xl text-sm bg-[#071739]/40 focus:bg-[#071739]/60 focus:outline-none text-[#CDD5DB] placeholder:text-[#A4B5C4]" 
+                            className="w-full p-3 border border-[#4B6382] rounded-xl text-sm bg-[#141E30]/40 focus:bg-[#141E30]/60 focus:outline-none text-[#CDD5DB] placeholder:text-[#A4B5C4]" 
                           />
                 
                           <p className="text-[11px] text-[#A4B5C4] font-medium">{t.contactNotice}</p>
                           
                           <div className="space-y-1">
                             <label className="flex items-center space-x-2 text-xs font-semibold cursor-pointer text-[#CDD5DB]">
-                              <input type="checkbox" checked={activeContacts.phone} onChange={() => handleContactCheckboxChange('phone')} className="rounded border-[#4B6382] text-[#E3C39D] focus:ring-[#E3C39D]" />
+                              <input type="checkbox" checked={activeContacts.phone} onChange={() => handleContactCheckboxChange('phone')} className="rounded border-[#4B6382] text-[#A485C4] focus:ring-[#A485C4]" />
                               <span>{t.phone}</span>
                             </label>
                             {activeContacts.phone && (
@@ -1156,7 +1156,7 @@ const packagesData = packagesTranslations[lang];
                                 <select 
                                   value={phonePrefix} 
                                   onChange={(e) => setPhonePrefix(e.target.value)}
-                                  className="p-2 border border-[#4B6382] rounded-lg text-xs bg-[#071739]/40 focus:outline-none text-[#CDD5DB] font-sans"
+                                  className="p-2 border border-[#4B6382] rounded-lg text-xs bg-[#141E30]/40 focus:outline-none text-[#CDD5DB] font-sans"
                                 >
                                   <option value="+421">🇸🇰 +421</option>
                                   <option value="+420">🇨🇿 +420</option>
@@ -1167,7 +1167,7 @@ const packagesData = packagesTranslations[lang];
                                   placeholder="905 123 456" 
                                   value={contactValues.phone} 
                                   onChange={(e) => handlePhoneChange(e.target.value)} 
-                                  className="flex-grow p-2 border border-[#4B6382] rounded-lg text-xs bg-[#071739]/40 focus:outline-none text-[#CDD5DB] tracking-wider placeholder:text-[#A4B5C4]" 
+                                  className="flex-grow p-2 border border-[#4B6382] rounded-lg text-xs bg-[#141E30]/40 focus:outline-none text-[#CDD5DB] tracking-wider placeholder:text-[#A4B5C4]" 
                                 />
                               </div>
                             )}
@@ -1180,32 +1180,32 @@ const packagesData = packagesTranslations[lang];
                 
                           <div className="space-y-1 pt-1">
                             <label className="flex items-center space-x-2 text-xs font-semibold cursor-pointer text-[#CDD5DB]">
-                              <input type="checkbox" checked={activeContacts.instagram} onChange={() => handleContactCheckboxChange('instagram')} className="rounded border-[#4B6382] text-[#E3C39D] focus:ring-[#E3C39D]" />
+                              <input type="checkbox" checked={activeContacts.instagram} onChange={() => handleContactCheckboxChange('instagram')} className="rounded border-[#4B6382] text-[#A485C4] focus:ring-[#A485C4]" />
                               <span>{t.instagram}</span>
                             </label>
                             {activeContacts.instagram && (
-                              <input type="text" required placeholder="@uzivatel" value={contactValues.instagram} onChange={(e) => handleContactValueChange('instagram', e.target.value)} className="w-full p-2 border border-[#4B6382] rounded-lg text-xs bg-[#071739]/40 focus:outline-none text-[#CDD5DB] placeholder:text-[#A4B5C4]" />
+                              <input type="text" required placeholder="@uzivatel" value={contactValues.instagram} onChange={(e) => handleContactValueChange('instagram', e.target.value)} className="w-full p-2 border border-[#4B6382] rounded-lg text-xs bg-[#141E30]/40 focus:outline-none text-[#CDD5DB] placeholder:text-[#A4B5C4]" />
                             )}
                           </div>
                 
                           <div className="space-y-1 pt-1">
                             <label className="flex items-center space-x-2 text-xs font-semibold cursor-pointer text-[#CDD5DB]">
-                              <input type="checkbox" checked={activeContacts.email} onChange={() => handleContactCheckboxChange('email')} className="rounded border-[#4B6382] text-[#E3C39D] focus:ring-[#E3C39D]" />
+                              <input type="checkbox" checked={activeContacts.email} onChange={() => handleContactCheckboxChange('email')} className="rounded border-[#4B6382] text-[#A485C4] focus:ring-[#A485C4]" />
                               <span>{t.email}</span>
                             </label>
                             {activeContacts.email && (
-                              <input type="email" required placeholder="meno@domena.com" value={contactValues.email} onChange={(e) => handleContactValueChange('email', e.target.value)} className="w-full p-2 border border-[#4B6382] rounded-lg text-xs bg-[#071739]/40 focus:outline-none text-[#CDD5DB] placeholder:text-[#A4B5C4]" />
+                              <input type="email" required placeholder="meno@domena.com" value={contactValues.email} onChange={(e) => handleContactValueChange('email', e.target.value)} className="w-full p-2 border border-[#4B6382] rounded-lg text-xs bg-[#141E30]/40 focus:outline-none text-[#CDD5DB] placeholder:text-[#A4B5C4]" />
                             )}
                           </div>
                         </div>
                 
-                        <div className="space-y-1.5 bg-[#071739]/30 p-3 rounded-xl border border-[#4B6382]">
+                        <div className="space-y-1.5 bg-[#141E30]/30 p-3 rounded-xl border border-[#4B6382]">
                           <label className="flex items-center space-x-2 text-xs font-semibold cursor-pointer text-[#CDD5DB]">
                             <input
                               type="checkbox"
                               checked={wantsNote}
                               onChange={() => setWantsNote((prev) => !prev)}
-                              className="rounded border-[#4B6382] text-[#E3C39D] focus:ring-[#E3C39D]"
+                              className="rounded border-[#4B6382] text-[#A485C4] focus:ring-[#A485C4]"
                             />
                             <span>{t.noteCheckboxLabel}</span>
                           </label>
@@ -1215,7 +1215,7 @@ const packagesData = packagesTranslations[lang];
                               value={customerNote}
                               onChange={(e) => setCustomerNote(e.target.value)}
                               placeholder={t.notePlaceholder}
-                              className="w-full p-2.5 border border-[#4B6382] rounded-lg text-xs bg-[#071739]/40 focus:outline-none text-[#CDD5DB] placeholder:text-[#A4B5C4]"
+                              className="w-full p-2.5 border border-[#4B6382] rounded-lg text-xs bg-[#141E30]/40 focus:outline-none text-[#CDD5DB] placeholder:text-[#A4B5C4]"
                             />
                           )}
                         </div>
@@ -1224,7 +1224,7 @@ const packagesData = packagesTranslations[lang];
                           type="submit" 
                           disabled={!isContactValid()}
                           className={`w-full py-3 rounded-xl font-bold transition text-sm shadow-sm ${
-                            isContactValid() ? 'bg-[#E3C39D] text-[#071739] hover:bg-[#A68868] hover:text-white' : 'bg-[#4B6382]/40 text-[#A4B5C4] cursor-not-allowed'
+                            isContactValid() ? 'bg-[#A485C4] text-[#141E30] hover:bg-[#A68868] hover:text-white' : 'bg-[#4B6382]/40 text-[#A4B5C4] cursor-not-allowed'
                           }`}
                         >
                           {t.bookBtn}
@@ -1235,7 +1235,7 @@ const packagesData = packagesTranslations[lang];
                     <button 
                       type="button" 
                       onClick={() => setMassageStep(2)} 
-                      className="mx-auto mt-6 flex items-center justify-center space-x-2 px-6 py-3.5 rounded-xl border-2 border-[#A4B5C4] text-[#A4B5C4] bg-transparent font-bold text-xs tracking-wider uppercase hover:bg-[#A4B5C4] hover:text-[#071739] transition-all duration-200 shadow-sm"
+                      className="mx-auto mt-6 flex items-center justify-center space-x-2 px-6 py-3.5 rounded-xl border-2 border-[#A4B5C4] text-[#A4B5C4] bg-transparent font-bold text-xs tracking-wider uppercase hover:bg-[#A4B5C4] hover:text-[#141E30] transition-all duration-200 shadow-sm"
                     >
                       <span>⬅</span> <span>{t.backToPackages}</span>
                     </button>
