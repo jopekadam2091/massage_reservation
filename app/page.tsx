@@ -51,6 +51,7 @@ export default function Home() {
   const [appliedCode, setAppliedCode] = useState<string | null>(null);
   const [appliedCodePercent, setAppliedCodePercent] = useState<number>(0);
   const [codeCheckStatus, setCodeCheckStatus] = useState<'idle' | 'checking' | 'valid' | 'invalid'>('idle');
+  const [codeDebugInfo, setCodeDebugInfo] = useState<string>(''); // DOČASNÉ - odstrániť po vyriešení
 
   // --- PREKLADY ---
   const translations = {
@@ -392,10 +393,31 @@ export default function Home() {
     const code = discountCodeInput.trim();
     if (!code) return;
     setCodeCheckStatus('checking');
+    setCodeDebugInfo('');
     try {
-      const res = await fetch(`/api/discount-code?code=${encodeURIComponent(code)}`);
-      if (!res.ok) throw new Error();
-      const data = await res.json();
+      const url = `/api/discount-code?code=${encodeURIComponent(code)}`;
+      const res = await fetch(url);
+      const rawText = await res.text();
+
+      // --- DOČASNÝ DEBUG - odstrániť po vyriešení ---
+      setCodeDebugInfo(
+        `URL: ${url}\nHTTP status: ${res.status}\nOdpoveď: ${rawText}`
+      );
+      // --- KONIEC DEBUGU ---
+
+      let data: any = null;
+      try {
+        data = JSON.parse(rawText);
+      } catch {
+        setCodeCheckStatus('invalid');
+        return;
+      }
+
+      if (!res.ok) {
+        setCodeCheckStatus('invalid');
+        return;
+      }
+
       if (data.valid && typeof data.percent === 'number' && data.percent > 0) {
         setAppliedCode(code.toUpperCase());
         setAppliedCodePercent(Math.min(100, Math.max(0, data.percent)));
@@ -405,7 +427,8 @@ export default function Home() {
         setAppliedCodePercent(0);
         setCodeCheckStatus('invalid');
       }
-    } catch {
+    } catch (err: any) {
+      setCodeDebugInfo(`Fetch zlyhal: ${err?.message || String(err)}`);
       setAppliedCode(null);
       setAppliedCodePercent(0);
       setCodeCheckStatus('invalid');
@@ -417,6 +440,7 @@ export default function Home() {
     setAppliedCode(null);
     setAppliedCodePercent(0);
     setCodeCheckStatus('idle');
+    setCodeDebugInfo('');
   };
 
   const handleBookingSubmit = async (e: React.FormEvent) => {
@@ -948,6 +972,17 @@ export default function Home() {
                                 {codeCheckStatus === 'invalid' && (
                                   <p className="text-[10px] text-red-600 font-medium">{t.codeInvalidMsg}</p>
                                 )}
+
+                                {/* --- DOČASNÝ DEBUG PANEL - odstrániť po vyriešení --- */}
+                                {codeDebugInfo && (
+                                  <details className="mt-1 text-[10px] bg-yellow-50 border border-yellow-300 rounded-lg p-2 text-left" open>
+                                    <summary className="font-bold cursor-pointer text-yellow-800">
+                                      🐞 DEBUG odpoveď z /api/discount-code
+                                    </summary>
+                                    <pre className="whitespace-pre-wrap break-all mt-1 text-yellow-900">{codeDebugInfo}</pre>
+                                  </details>
+                                )}
+                                {/* --- KONIEC DEBUG PANELU --- */}
                               </div>
                             ) : (
                               <div className="flex justify-between items-center text-sm text-emerald-700 font-semibold">
