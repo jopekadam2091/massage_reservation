@@ -35,6 +35,7 @@ const featureIcons: Record<string, string> = {
 export default function Home() {
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   const [lang, setLang] = useState<LangType>('SK');
+  const [showLanding, setShowLanding] = useState<boolean>(true);
 
   // --- STAVY PRE MASÁŽNY STEPPER ---
   const [massageStep, setMassageStep] = useState<number>(1);
@@ -74,6 +75,8 @@ export default function Home() {
   // --- PREKLADY ---
   const translations = {
     SK: {
+      massage: 'Masáže',
+      massageHoverCta: 'Rezervujte si masáž',
       massageTitle: 'Rezervácia masáže',
       massageSubtitle: 'Exkluzívne privátne masáže. Rezervácia možná len cez voľné sloty.',
       step1: 'Úroveň', step2: 'Balíček', step3: 'Termín',
@@ -123,6 +126,8 @@ export default function Home() {
       selectLevelBtn: 'Vybrať túto úroveň'
     },
     EN: {
+      massage: 'Massage',
+      massageHoverCta: 'Book a massage',
       massageTitle: 'Massage reservation',
       massageSubtitle: 'Exclusive private massages. Booking only via available slots.',
       step1: 'Level', step2: 'Package', step3: 'Date',
@@ -702,10 +707,36 @@ const packagesData = packagesTranslations[lang];
         </button>
       </div>
 
+      {/* ÚVODNÁ OBRAZOVKA */}
+      {showLanding && (
+        <div className="flex flex-col h-screen w-full items-center justify-center">
+          <button
+            type="button"
+            onClick={() => setShowLanding(false)}
+            className="w-full h-full flex flex-col items-center justify-center group transition-all duration-500 font-chillax text-white hover:text-[#8EB69B]"
+          >
+            <div
+              className="w-32 h-32 mb-2 bg-[#7a7a7a] group-hover:bg-[#8EB69B] group-hover:scale-110 transition-all duration-300"
+              style={{
+                WebkitMask: 'url(/logo_massage.svg) no-repeat center / contain',
+                mask: 'url(/logo_massage.svg) no-repeat center / contain',
+              }}
+            />
+            <span className="text-[2.5rem] font-light tracking-widest uppercase relative">
+              <span className="group-hover:hidden">{t.massage}</span>
+              <span className="hidden group-hover:inline">{t.massageHoverCta}</span>
+            </span>
+          </button>
+        </div>
+      )}
+
+      {!showLanding && (
+      <>
       <header className="p-6 max-w-4xl mx-auto flex justify-between items-center">
         <button
           type="button"
           onClick={() => {
+            setShowLanding(true);
             setMassageStep(1);
             setSelectedType(null);
             setSelectedDuration(null);
@@ -1188,6 +1219,8 @@ const packagesData = packagesTranslations[lang];
           )}
         </div>
       </main>
+      </>
+      )}
     </div>
   );
 }
