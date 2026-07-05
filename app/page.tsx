@@ -32,10 +32,31 @@ const featureIcons: Record<string, string> = {
   check: '💎',
 };
 
+// ============================================================================
+// TÉMA PRE ZĽAVOVÉ ("AKCIA") ZVÝRAZNENIE
+// ----------------------------------------------------------------------------
+// Skutočná farebná téma sa načítava za behu z Google Sheetu (tab "DiscountColor",
+// endpoint /api/discount-theme) - pozri riadok so state 'discountTheme' nižšie.
+// Táto konštanta je len BEZPEČNÝ FALLBACK pre prípad, že by sheet/endpoint
+// nebol dostupný, aby appka nikdy nezostala bez farieb.
+// ============================================================================
+const DEFAULT_DISCOUNT_THEME = {
+  fill: '#06b6d4',                     // plná farba (aktívny deň/slot, badge -X%)
+  badgeText: '#ffffff',                // farba textu na 'fill' pozadí
+  border: 'rgba(34,211,238,0.6)',      // orámovanie v pokojnom (outline) stave
+  borderHover: '#22d3ee',              // orámovanie pri hover
+  text: '#22d3ee',                     // farba textu v outline stave
+  textAccent: '#67e8f9',               // svetlejší text (cenový súhrn)
+  glow: 'rgba(34,211,238,0.85)',       // glow pri výbere
+  glowSoft: 'rgba(34,211,238,0.45)',   // glow v pokoji
+  glowHover: 'rgba(34,211,238,0.65)',  // glow pri hover
+};
+
 export default function Home() {
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   const [lang, setLang] = useState<LangType>('SK');
   const [showLanding, setShowLanding] = useState<boolean>(true);
+  const [discountTheme, setDiscountTheme] = useState(DEFAULT_DISCOUNT_THEME);
 
   // --- STAVY PRE MASÁŽNY STEPPER ---
   const [massageStep, setMassageStep] = useState<number>(1);
@@ -210,6 +231,25 @@ export default function Home() {
     Klasik: { 30: '30 eur', 45: '40 eur', 60: '45 eur' },
     VIP: { 45: '65 eur', 60: '70 eur', 90: '90 eur' }
   };
+
+  // --- EFEKT: NAČÍTANIE FARIEB ZĽAVOVÉHO ZVÝRAZNENIA Z GOOGLE SHEETU ---
+  useEffect(() => {
+    fetch('/api/discount-theme')
+      .then((res) => {
+        if (!res.ok) throw new Error();
+        return res.json();
+      })
+      .then((data) => {
+        if (data.found && data.theme) {
+          setDiscountTheme(data.theme);
+        }
+        // Ak sheet nemá aktívny riadok alebo je nedostupný, ticho ostávame
+        // na DEFAULT_DISCOUNT_THEME - appka nikdy nezostane bez farieb.
+      })
+      .catch(() => {
+        // Endpoint nedostupný -> ostávame na DEFAULT_DISCOUNT_THEME.
+      });
+  }, []);
 
   // --- EFEKT: NAČÍTANIE Z GOOGLE KALENDÁRA ---
   useEffect(() => {
@@ -671,7 +711,18 @@ export default function Home() {
 };
 const packagesData = packagesTranslations[lang];
   return (
-    <div className="min-h-screen transition-all duration-700 ease-in-out pb-20 bg-[#051F20] text-[#DAF1DE]">
+    <div
+      className="min-h-screen transition-all duration-700 ease-in-out pb-20 bg-[#051F20] text-[#DAF1DE]"
+      style={{
+        '--discount-border': discountTheme.border,
+        '--discount-border-hover': discountTheme.borderHover,
+        '--discount-text': discountTheme.text,
+        '--discount-text-accent': discountTheme.textAccent,
+        '--discount-glow': discountTheme.glow,
+        '--discount-glow-soft': discountTheme.glowSoft,
+        '--discount-glow-hover': discountTheme.glowHover,
+      } as React.CSSProperties}
+    >
 
       {/* ÚSPEŠNÁ REZERVÁCIA - OVERLAY */}
       {showSuccessPopup && (
@@ -943,6 +994,9 @@ const packagesData = packagesTranslations[lang];
                         0
                       );
           
+                      const isSelectedDay = selectedDateKey === dateKey;
+                      const hasDayDiscount = hasValidSlots && dayDiscount > 0;
+
                       return (
                         <button
                           type="button"
@@ -951,19 +1005,23 @@ const packagesData = packagesTranslations[lang];
                           onClick={() => { setSelectedDateKey(dateKey); setSelectedSlot(null); }}
                           className={`relative aspect-square flex items-center justify-center text-xs font-semibold rounded-lg transition-all ${
                             hasValidSlots
-                              ? dayDiscount > 0
-                                ? selectedDateKey === dateKey
-                                  ? 'bg-cyan-500 text-white font-bold ring-2 ring-cyan-300 shadow-[0_0_14px_rgba(34,211,238,0.85)]'
-                                  : 'bg-[#0B2B26] text-cyan-300 font-bold border border-cyan-400/60 shadow-[0_0_10px_rgba(34,211,238,0.45)] hover:border-cyan-300 hover:bg-[#0f3330] hover:shadow-[0_0_14px_rgba(34,211,238,0.65)]'
-                                : selectedDateKey === dateKey
+                              ? hasDayDiscount
+                                ? isSelectedDay
+                                  ? 'text-white font-bold ring-2 ring-[var(--discount-text-accent)] shadow-[0_0_14px_var(--discount-glow)]'
+                                  : 'bg-[#0B2B26] text-[var(--discount-text)] font-bold border border-[var(--discount-border)] shadow-[0_0_10px_var(--discount-glow-soft)] hover:border-[var(--discount-border-hover)] hover:bg-[#0f3330] hover:shadow-[0_0_14px_var(--discount-glow-hover)]'
+                                : isSelectedDay
                                   ? 'bg-[#8EB69B] text-[#051F20] font-bold ring-2 ring-[#8EB69B] shadow'
                                   : 'bg-[#163832] text-[#DAF1DE] font-bold hover:bg-[#235347] border border-[#235347] shadow-sm'
                               : 'text-[#235347] bg-[#0B2B26]/50 border border-[#235347]/40 opacity-60 cursor-not-allowed'
                           }`}
+                          style={hasDayDiscount && isSelectedDay ? { background: discountTheme.fill } : undefined}
                         >
                           {day}
-                          {hasValidSlots && dayDiscount > 0 && (
-                            <span className="absolute -top-2 -right-2 bg-cyan-500 text-white text-[10px] font-extrabold px-1.5 py-0.5 rounded-full shadow-md leading-none min-w-[26px] text-center">
+                          {hasDayDiscount && (
+                            <span
+                              className="absolute -top-2 -right-2 text-[10px] font-extrabold px-1.5 py-0.5 rounded-full shadow-md leading-none min-w-[26px] text-center"
+                              style={{ background: discountTheme.fill, color: discountTheme.badgeText }}
+                            >
                               -{dayDiscount}%
                             </span>
                           )}
@@ -984,25 +1042,30 @@ const packagesData = packagesTranslations[lang];
                       }
           
                       const hasDiscount = slot.discountPercent > 0;
-          
+                      const isSelectedSlot = selectedSlot === slot.startIso;
+
                       return (
                         <button
                           type="button"
                           key={slot.startIso}
                           onClick={() => setSelectedSlot(slot.startIso)}
                           className={`relative p-2.5 text-xs text-center font-bold rounded-lg border transition ${
-                            selectedSlot === slot.startIso
+                            isSelectedSlot
                               ? hasDiscount
-                                ? 'bg-cyan-500 text-white border-cyan-400 shadow-[0_0_12px_rgba(34,211,238,0.85)]'
+                                ? 'text-white border-transparent shadow-[0_0_12px_var(--discount-glow)]'
                                 : 'bg-[#8EB69B] text-[#051F20] border-[#8EB69B] shadow'
                               : hasDiscount
-                                ? 'bg-[#0B2B26] border-cyan-400/60 text-cyan-300 hover:border-cyan-300 hover:bg-[#0f3330] shadow-[0_0_8px_rgba(34,211,238,0.4)] hover:shadow-[0_0_10px_rgba(34,211,238,0.6)]'
+                                ? 'bg-[#0B2B26] border-[var(--discount-border)] text-[var(--discount-text)] hover:border-[var(--discount-border-hover)] hover:bg-[#0f3330] shadow-[0_0_8px_var(--discount-glow-soft)] hover:shadow-[0_0_10px_var(--discount-glow-hover)]'
                                 : 'bg-[#163832] border-[#235347] text-[#DAF1DE] hover:border-[#8EB69B]'
                           }`}
+                          style={isSelectedSlot && hasDiscount ? { background: discountTheme.fill } : undefined}
                         >
                           {slot.formattedTime}
                           {hasDiscount && (
-                            <span className="absolute -top-2 -right-2 bg-cyan-500 text-white text-[10px] font-extrabold px-1.5 py-0.5 rounded-full shadow-md leading-none min-w-[26px] text-center">
+                            <span
+                              className="absolute -top-2 -right-2 text-[10px] font-extrabold px-1.5 py-0.5 rounded-full shadow-md leading-none min-w-[26px] text-center"
+                              style={{ background: discountTheme.fill, color: discountTheme.badgeText }}
+                            >
                               -{slot.discountPercent}%
                             </span>
                           )}
@@ -1017,9 +1080,10 @@ const packagesData = packagesTranslations[lang];
               {selectedSlot && (
                 <form onSubmit={handleBookingSubmit} className="space-y-4 pt-4 border-t border-[#235347] mt-4 animate-fadeIn">
                   <h3 className="font-bold text-xs text-[#8EB69B]">{t.contactTitle}</h3>
-                  <div className={`text-center text-sm font-bold ${
-                    selectedDiscountPercent > 0 ? 'text-cyan-300' : 'text-[#8EB69B]'
-                  }`}>
+                  <div
+                    className="text-center text-sm font-bold"
+                    style={{ color: selectedDiscountPercent > 0 ? discountTheme.textAccent : '#8EB69B' }}
+                  >
                     {t.selectedTerm}: <span className="text-[#DAF1DE]">{new Date(selectedSlot).toLocaleDateString('sk-SK')} o {new Date(selectedSlot).toLocaleTimeString('sk-SK', {hour: '2-digit', minute:'2-digit'})}</span>
                   </div>
           
@@ -1035,9 +1099,12 @@ const packagesData = packagesTranslations[lang];
                         </span>
                       </div>
                       {selectedDiscountPercent > 0 && (
-                        <div className="flex justify-between items-center text-sm text-cyan-400 font-semibold">
+                        <div className="flex justify-between items-center text-sm font-semibold" style={{ color: discountTheme.textAccent }}>
                           <span className="inline-flex items-center gap-1">
-                            <span className="bg-cyan-500 text-white text-[9px] px-1.5 py-0.5 rounded-full uppercase tracking-wide">
+                            <span
+                              className="text-[9px] px-1.5 py-0.5 rounded-full uppercase tracking-wide"
+                              style={{ background: discountTheme.fill, color: discountTheme.badgeText }}
+                            >
                               {t.discountBadgeShort}
                             </span>
                             {t.discountApplied} (-{selectedDiscountPercent}%)
