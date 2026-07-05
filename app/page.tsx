@@ -135,7 +135,8 @@ export default function Home() {
       codeDiscountLabel: 'Zľava z kódu',
       noteCheckboxLabel: 'Chcem pridať poznámku / špeciálnu požiadavku',
       notePlaceholder: 'Napíšte sem vašu poznámku alebo požiadavku...',
-      mostPopularLabel: '★ Najžiadanejší'
+      mostPopularLabel: '★ Najžiadanejší',
+      selectLevelBtn: 'Vybrať túto úroveň'
     },
     EN: {
       photo: 'Photography',
@@ -197,7 +198,8 @@ export default function Home() {
       codeDiscountLabel: 'Code discount',
       noteCheckboxLabel: 'I want to add a note / special request',
       notePlaceholder: 'Write your note or request here...',
-      mostPopularLabel: '★ Most Popular'
+      mostPopularLabel: '★ Most Popular',
+      selectLevelBtn: 'Select this level'
     }
   };
 
@@ -818,21 +820,41 @@ const packagesData = packagesTranslations[lang];
                 </div>
                 {/* KROK 1 */}
                 {massageStep === 1 && (
-                  <div className="bg-[#0B2B26] p-6 rounded-xl border border-[#235347] text-[#DAF1DE] max-w-xl mx-auto">
-                    <h2 className="text-lg font-bold text-center text-[#DAF1DE] mb-4">{t.step1Title}</h2>
-                    <div className="flex flex-col space-y-3">
-                      <button type="button" onClick={() => { setSelectedType('Klasik'); setMassageStep(2); }} className="p-5 rounded-xl border border-[#235347] text-left hover:border-[#8EB69B] transition bg-[#163832]">
-                        <h3 className="font-bold text-base text-[#DAF1DE]">{t.klasikTitle}</h3>
-                        <p className="text-xs text-[#8EB69B] mt-1">{t.klasikDesc}</p>
-                      </button>
-                      
-                      <button type="button" onClick={() => { setSelectedType('VIP'); setMassageStep(2); }} className="p-5 rounded-xl border-2 border-[#8EB69B] text-left transition bg-[#163832] hover:bg-[#235347] shadow-md transform hover:scale-[1.01] duration-200">
-                        <h3 className="font-extrabold text-base text-[#DAF1DE] flex items-center justify-between">
-                          <span>{t.vipTitle}</span>
-                          <span className="bg-[#8EB69B] text-[#051F20] text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider">POPULAR</span>
-                        </h3>
-                        <p className="text-xs text-[#8EB69B] font-medium mt-1">{t.vipDesc}</p>
-                      </button>
+                  <div className="max-w-3xl mx-auto">
+                    <h2 className="text-lg font-bold text-center text-[#DAF1DE] mb-6">{t.step1Title}</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch pt-3">
+                      {/* CLASSIC */}
+                      <div className="relative flex flex-col h-full">
+                        <div className="flex flex-col h-full rounded-2xl border border-[#235347] bg-[#0B2B26]/70 p-6 transition hover:border-[#8EB69B]/50">
+                          <h3 className="font-bold text-lg text-[#DAF1DE] mb-2">{t.klasikTitle}</h3>
+                          <p className="text-xs text-[#8EB69B] flex-grow mb-5">{t.klasikDesc}</p>
+                          <button 
+                            type="button" 
+                            onClick={() => { setSelectedType('Klasik'); setMassageStep(2); }} 
+                            className="w-full py-3 rounded-xl font-bold text-xs uppercase tracking-wider bg-transparent border border-[#8EB69B]/50 text-[#DAF1DE] hover:border-[#8EB69B] hover:bg-[#163832] transition"
+                          >
+                            {t.selectLevelBtn}
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* VIP PREMIUM */}
+                      <div className="relative flex flex-col h-full md:scale-[1.03] z-10">
+                        <span className="absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap bg-[#DAF1DE] text-[#051F20] text-[10px] font-extrabold px-4 py-1.5 rounded-full shadow-lg uppercase tracking-wider z-20">
+                          {t.mostPopularLabel}
+                        </span>
+                        <div className="flex flex-col h-full rounded-2xl border-2 border-[#8EB69B] bg-gradient-to-b from-[#1b453d] to-[#0B2B26] shadow-[0_0_45px_rgba(142,182,155,0.3)] p-6 pt-8 transition">
+                          <h3 className="font-extrabold text-lg text-[#DAF1DE] mb-2">{t.vipTitle}</h3>
+                          <p className="text-xs text-[#8EB69B] font-medium flex-grow mb-5">{t.vipDesc}</p>
+                          <button 
+                            type="button" 
+                            onClick={() => { setSelectedType('VIP'); setMassageStep(2); }} 
+                            className="w-full py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider bg-[#DAF1DE] text-[#051F20] shadow-lg hover:bg-white hover:shadow-xl hover:-translate-y-0.5 transition"
+                          >
+                            {t.selectLevelBtn}
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 )}
@@ -999,7 +1021,7 @@ const packagesData = packagesTranslations[lang];
                               >
                                 {day}
                                 {hasValidSlots && dayDiscount > 0 && (
-                                  <span className="absolute -top-1.5 -right-1.5 bg-cyan-500 text-white text-[8px] font-extrabold px-1 py-0.5 rounded-full shadow-sm leading-none">
+                                  <span className="absolute -top-2 -right-2 bg-cyan-500 text-white text-[10px] font-extrabold px-1.5 py-0.5 rounded-full shadow-md leading-none min-w-[26px] text-center">
                                     -{dayDiscount}%
                                   </span>
                                 )}
@@ -1038,7 +1060,7 @@ const packagesData = packagesTranslations[lang];
                               >
                                 {slot.formattedTime}
                                 {hasDiscount && (
-                                  <span className="absolute -top-1.5 -right-1.5 bg-cyan-500 text-white text-[8px] font-extrabold px-1 py-0.5 rounded-full shadow-sm leading-none">
+                                  <span className="absolute -top-2 -right-2 bg-cyan-500 text-white text-[10px] font-extrabold px-1.5 py-0.5 rounded-full shadow-md leading-none min-w-[26px] text-center">
                                     -{slot.discountPercent}%
                                   </span>
                                 )}
