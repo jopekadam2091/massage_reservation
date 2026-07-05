@@ -732,11 +732,15 @@ const packagesData = packagesTranslations[lang];
       </div>
 
       {/* RÁZCESTIE */}
-      {mode === null && (
+  {mode === null && (
   <div className="flex flex-col h-screen w-full items-center justify-center">
-    <button type="button" onClick={() => setMode('photo')} className="w-full h-1/2 flex flex-col items-center justify-center group hover:bg-neutral-900 transition-all duration-500 border-b border-neutral-800 font-figtree">
+    <button
+      type="button"
+      disabled
+      className="w-full h-1/2 flex flex-col items-center justify-center transition-all duration-500 border-b border-neutral-800 font-figtree opacity-40 cursor-not-allowed"
+    >
       <div
-        className="w-32 h-32 mb-2 group-hover:scale-110 transition-transform duration-300"
+        className="w-32 h-32 mb-2"
         style={{
           backgroundColor: '#7a7a7a',
           WebkitMask: 'url(/logo_cam.svg) no-repeat center / contain',
