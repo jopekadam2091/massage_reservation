@@ -700,20 +700,20 @@ const packagesData = packagesTranslations[lang];
       {/* ÚSPEŠNÁ REZERVÁCIA - OVERLAY */}
       {showSuccessPopup && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm p-6 animate-fadeIn">
-          <div className="bg-white rounded-3xl p-8 max-w-md w-full text-center shadow-2xl border border-emerald-100">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-emerald-100 flex items-center justify-center text-3xl">
+          <div className="bg-[#DAF1DE] rounded-3xl p-8 max-w-md w-full text-center shadow-2xl border border-[#8EB69B]/40">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[#8EB69B]/30 flex items-center justify-center text-3xl">
               ✅
             </div>
             <h2 className="text-xl font-extrabold text-[#051F20] mb-3">
               {t.successTitle}
             </h2>
-            <p className="text-sm text-gray-600 mb-6 leading-relaxed">
+            <p className="text-sm text-[#0B2B26] mb-6 leading-relaxed">
               {t.successText}
             </p>
             <button
               type="button"
               onClick={() => setShowSuccessPopup(false)}
-              className="w-full bg-[#235347] text-white py-3 rounded-xl font-bold text-sm hover:bg-[#163832] transition shadow-sm"
+              className="w-full bg-[#163832] text-[#DAF1DE] py-3 rounded-xl font-bold text-sm hover:bg-[#0B2B26] transition shadow-sm"
             >
               {t.successHomeBtn}
             </button>
@@ -722,11 +722,11 @@ const packagesData = packagesTranslations[lang];
       )}
 
       {/* JAZYKOVÝ PREPÍNAČ */}
-      <div className="absolute top-6 right-6 z-50 flex space-x-2 bg-neutral-800 bg-opacity-60 p-1 rounded-full backdrop-blur-sm border border-neutral-700 font-sans">
-        <button type="button" onClick={() => setLang('SK')} className={`px-3 py-1.5 text-xs font-bold rounded-full transition flex items-center space-x-1 ${lang === 'SK' ? 'bg-white text-black shadow' : 'text-gray-400 hover:text-white'}`}>
+      <div className="absolute top-6 right-6 z-50 flex space-x-2 bg-[#0B2B26]/60 p-1 rounded-full backdrop-blur-sm border border-[#235347] font-sans">
+        <button type="button" onClick={() => setLang('SK')} className={`px-3 py-1.5 text-xs font-bold rounded-full transition flex items-center space-x-1 ${lang === 'SK' ? 'bg-[#DAF1DE] text-[#051F20] shadow' : 'text-[#8EB69B] hover:text-[#DAF1DE]'}`}>
           <span>🇸🇰</span> <span>SK</span>
         </button>
-        <button type="button" onClick={() => setLang('EN')} className={`px-3 py-1.5 text-xs font-bold rounded-full transition flex items-center space-x-1 ${lang === 'EN' ? 'bg-white text-black shadow' : 'text-gray-400 hover:text-white'}`}>
+        <button type="button" onClick={() => setLang('EN')} className={`px-3 py-1.5 text-xs font-bold rounded-full transition flex items-center space-x-1 ${lang === 'EN' ? 'bg-[#DAF1DE] text-[#051F20] shadow' : 'text-[#8EB69B] hover:text-[#DAF1DE]'}`}>
           <span>🇬🇧</span> <span>EN</span>
         </button>
       </div>
@@ -804,33 +804,33 @@ const packagesData = packagesTranslations[lang];
             ) : (
               <div className="space-y-8 animate-fadeIn">
                <div className="max-w-xl mx-auto text-center">
-                <h1 className="text-3xl font-extrabold mb-1 text-[#8EB69B] font-chillax">{t.massageTitle}</h1>
+                <h1 className="text-3xl font-extrabold mb-1 text-[#DAF1DE] font-chillax">{t.massageTitle}</h1>
                 <p className="text-[#8EB69B] text-sm">{t.massageSubtitle}</p>
               </div>
                 <div className="flex justify-between max-w-xs mx-auto mb-8">
                   {[1, 2, 3].map((step) => (
                     <div key={step} className="flex items-center space-x-1">
-                      <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold border transition ${massageStep === step ? 'bg-[#8EB69B] text-[#DAF1DE] border-[#8EB69B]' : 'bg-[#235347] text-[#8EB69B] border-[#235347]'}`}>{step}</div>
-                      <span className={`text-[10px] font-semibold ${massageStep === step ? 'text-[#8EB69B]' : 'text-[#8EB69B]'}`}>{step === 1 ? t.step1 : step === 2 ? t.step2 : t.step3}</span>
+                      <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold border transition ${massageStep === step ? 'bg-[#8EB69B] text-[#051F20] border-[#8EB69B]' : 'bg-[#163832] text-[#8EB69B] border-[#235347]'}`}>{step}</div>
+                      <span className={`text-[10px] font-semibold ${massageStep === step ? 'text-[#DAF1DE]' : 'text-[#8EB69B]'}`}>{step === 1 ? t.step1 : step === 2 ? t.step2 : t.step3}</span>
                     </div>
                   ))}
                 </div>
                 {/* KROK 1 */}
                 {massageStep === 1 && (
-                  <div className="bg-[#235347]/30 p-6 rounded-xl border border-[#235347] text-[#DAF1DE] max-w-xl mx-auto">
-                    <h2 className="text-lg font-bold text-center text-[#8EB69B] mb-4">{t.step1Title}</h2>
+                  <div className="bg-[#0B2B26] p-6 rounded-xl border border-[#235347] text-[#DAF1DE] max-w-xl mx-auto">
+                    <h2 className="text-lg font-bold text-center text-[#DAF1DE] mb-4">{t.step1Title}</h2>
                     <div className="flex flex-col space-y-3">
-                      <button type="button" onClick={() => { setSelectedType('Klasik'); setMassageStep(2); }} className="p-5 rounded-xl border border-[#235347] text-left hover:border-[#8EB69B] transition bg-[#DAF1DE]/40">
+                      <button type="button" onClick={() => { setSelectedType('Klasik'); setMassageStep(2); }} className="p-5 rounded-xl border border-[#235347] text-left hover:border-[#8EB69B] transition bg-[#163832]">
                         <h3 className="font-bold text-base text-[#DAF1DE]">{t.klasikTitle}</h3>
                         <p className="text-xs text-[#8EB69B] mt-1">{t.klasikDesc}</p>
                       </button>
                       
-                      <button type="button" onClick={() => { setSelectedType('VIP'); setMassageStep(2); }} className="p-5 rounded-xl border-2 border-[#8EB69B] text-left transition bg-[#8EB69B]/20 hover:bg-[#8EB69B]/30 shadow-md transform hover:scale-[1.01] duration-200">
-                        <h3 className="font-extrabold text-base text-[#8EB69B] flex items-center justify-between">
+                      <button type="button" onClick={() => { setSelectedType('VIP'); setMassageStep(2); }} className="p-5 rounded-xl border-2 border-[#8EB69B] text-left transition bg-[#163832] hover:bg-[#235347] shadow-md transform hover:scale-[1.01] duration-200">
+                        <h3 className="font-extrabold text-base text-[#DAF1DE] flex items-center justify-between">
                           <span>{t.vipTitle}</span>
-                          <span className="bg-[#8EB69B] text-white text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider">POPULAR</span>
+                          <span className="bg-[#8EB69B] text-[#051F20] text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider">POPULAR</span>
                         </h3>
-                        <p className="text-xs text-[#8EB69B]/90 font-medium mt-1">{t.vipDesc}</p>
+                        <p className="text-xs text-[#8EB69B] font-medium mt-1">{t.vipDesc}</p>
                       </button>
                     </div>
                   </div>
@@ -839,7 +839,7 @@ const packagesData = packagesTranslations[lang];
                 {/* KROK 2 */}
                 {massageStep === 2 && selectedType && (
                   <div className="space-y-6">
-                    <h2 className="text-2xl font-bold text-center text-[#8EB69B]">{t.step2Title} ({selectedType === 'Klasik' ? t.klasikTitle : t.vipTitle})</h2>
+                    <h2 className="text-2xl font-bold text-center text-[#DAF1DE]">{t.step2Title} ({selectedType === 'Klasik' ? t.klasikTitle : t.vipTitle})</h2>
                     
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
                       {packagesData[selectedType].map((pkg) => {
@@ -850,12 +850,12 @@ const packagesData = packagesTranslations[lang];
                         const isMiddle = pkg.badge === 'Supreme' || pkg.badge === 'VIP Pro';
                 
                         return (
-                          <div key={pkg.duration} className={`flex flex-col bg-[#235347]/20 rounded-3xl border shadow-sm transition-all overflow-hidden ${
-                            isMiddle ? 'border-[#8EB69B] ring-2 ring-[#8EB69B]/30 bg-gradient-to-b from-[#8EB69B]/10 to-[#235347]/20' : 'border-[#235347]'
+                          <div key={pkg.duration} className={`flex flex-col bg-[#0B2B26] rounded-3xl border shadow-sm transition-all overflow-hidden ${
+                            isMiddle ? 'border-[#8EB69B] ring-2 ring-[#8EB69B]/30' : 'border-[#235347]'
                           }`}>
                             <div className="p-6 pb-0 flex flex-col items-start">
                               <span className={`px-3 py-1 text-[11px] font-bold tracking-wider uppercase rounded-full mb-4 ${
-                                isMiddle ? 'bg-[#8EB69B] text-[#DAF1DE]' : 'bg-[#235347] text-[#DAF1DE]'
+                                isMiddle ? 'bg-[#8EB69B] text-[#051F20]' : 'bg-[#235347] text-[#DAF1DE]'
                               }`}>
                                 {pkg.badge}
                               </span>
@@ -873,8 +873,8 @@ const packagesData = packagesTranslations[lang];
                                 onClick={() => { setSelectedDuration(pkg.duration); setMassageStep(3); }}
                                 className={`w-full py-3 rounded-xl font-bold text-xs uppercase tracking-wider shadow-sm transition-all duration-300 ${
                                   isMiddle 
-                                    ? 'bg-[#8EB69B] text-[#DAF1DE] hover:bg-[#8EB69B] hover:text-white' 
-                                    : 'bg-[#DAF1DE] text-[#DAF1DE] hover:bg-white'
+                                    ? 'bg-[#8EB69B] text-[#051F20] hover:bg-[#DAF1DE] hover:text-[#051F20]' 
+                                    : 'bg-[#DAF1DE] text-[#051F20] hover:bg-white'
                                 }`}
                               >
                                 {t.selectBtn}
@@ -903,7 +903,7 @@ const packagesData = packagesTranslations[lang];
                     <button 
                       type="button" 
                       onClick={() => setMassageStep(1)} 
-                      className="mx-auto flex items-center justify-center space-x-2 px-6 py-3.5 rounded-xl border-2 border-[#8EB69B] text-[#8EB69B] bg-transparent font-bold text-xs tracking-wider uppercase hover:bg-[#8EB69B] hover:text-[#DAF1DE] transition-all duration-200 shadow-sm"
+                      className="mx-auto flex items-center justify-center space-x-2 px-6 py-3.5 rounded-xl border-2 border-[#8EB69B] text-[#8EB69B] bg-transparent font-bold text-xs tracking-wider uppercase hover:bg-[#8EB69B] hover:text-[#051F20] transition-all duration-200 shadow-sm"
                     >
                       <span>⬅</span> <span>{t.backToLevel}</span>
                     </button>
@@ -912,16 +912,16 @@ const packagesData = packagesTranslations[lang];
 
                 {/* KROK 3: PREPOJENÝ KALENDÁR */}
                 {massageStep === 3 && selectedType && selectedDuration && (
-                  <div className="bg-[#235347]/20 p-6 rounded-3xl border border-[#235347] text-[#DAF1DE] max-w-xl mx-auto">
-                    <h2 className="text-lg font-bold text-center text-[#8EB69B] mb-2">{t.step3Title}</h2>
-                    <div className="p-3 bg-[#051F20]/40 rounded-xl text-xs text-center border border-[#235347] text-[#DAF1DE] mb-6">
+                  <div className="bg-[#0B2B26] p-6 rounded-3xl border border-[#235347] text-[#DAF1DE] max-w-xl mx-auto">
+                    <h2 className="text-lg font-bold text-center text-[#DAF1DE] mb-2">{t.step3Title}</h2>
+                    <div className="p-3 bg-[#163832] rounded-xl text-xs text-center border border-[#235347] text-[#DAF1DE] mb-6">
                       {t.selected}: <strong>{selectedType === 'Klasik' ? 'CLASSIC' : 'VIP PREMIUM'} - {selectedDuration} {t.minutes}</strong>
                     </div>
                 
                     {loadingCalendar ? (
                       <div className="text-center py-8 text-xs font-semibold text-[#8EB69B]">{t.loading}</div>
                     ) : (
-                      <div className="border border-[#235347] rounded-2xl p-4 bg-[#051F20]/30 mb-6">
+                      <div className="border border-[#235347] rounded-2xl p-4 bg-[#051F20]/60 mb-6">
                         <div className="flex justify-between items-center mb-4 px-2">
                           <span className="text-base font-bold tracking-tight text-[#DAF1DE]">
                             {t.months[currentMonth]} {currentYear}
@@ -930,14 +930,14 @@ const packagesData = packagesTranslations[lang];
                             <button 
                               type="button" 
                               onClick={handlePrevMonth}
-                              className="p-1.5 px-3 bg-[#235347] border border-[#235347] rounded-lg text-xs font-bold text-[#DAF1DE] hover:bg-[#8EB69B] transition shadow-sm"
+                              className="p-1.5 px-3 bg-[#235347] border border-[#235347] rounded-lg text-xs font-bold text-[#DAF1DE] hover:bg-[#8EB69B] hover:text-[#051F20] transition shadow-sm"
                             >
                               ←
                             </button>
                             <button 
                               type="button" 
                               onClick={handleNextMonth}
-                              className="p-1.5 px-3 bg-[#235347] border border-[#235347] rounded-lg text-xs font-bold text-[#DAF1DE] hover:bg-[#8EB69B] transition shadow-sm"
+                              className="p-1.5 px-3 bg-[#235347] border border-[#235347] rounded-lg text-xs font-bold text-[#DAF1DE] hover:bg-[#8EB69B] hover:text-[#051F20] transition shadow-sm"
                             >
                               →
                             </button>
@@ -980,9 +980,9 @@ const packagesData = packagesTranslations[lang];
                                         ? 'bg-cyan-500 text-white font-bold ring-2 ring-cyan-300 shadow-[0_0_14px_rgba(34,211,238,0.85)]'
                                         : 'bg-cyan-50 text-cyan-700 font-bold border border-cyan-300 shadow-[0_0_10px_rgba(34,211,238,0.55)] hover:shadow-[0_0_14px_rgba(34,211,238,0.75)]'
                                       : selectedDateKey === dateKey
-                                        ? 'bg-[#8EB69B] text-[#DAF1DE] font-bold ring-2 ring-[#8EB69B] shadow'
-                                        : 'bg-[#235347]/40 text-[#DAF1DE] font-bold hover:bg-[#235347]/60 border border-[#235347] shadow-sm'
-                                    : 'text-[#235347] bg-[#051F20]/20 border border-[#235347]/40 opacity-60 cursor-not-allowed'
+                                        ? 'bg-[#8EB69B] text-[#051F20] font-bold ring-2 ring-[#8EB69B] shadow'
+                                        : 'bg-[#163832] text-[#DAF1DE] font-bold hover:bg-[#235347] border border-[#235347] shadow-sm'
+                                    : 'text-[#235347] bg-[#0B2B26]/50 border border-[#235347]/40 opacity-60 cursor-not-allowed'
                                 }`}
                               >
                                 {day}
@@ -999,7 +999,7 @@ const packagesData = packagesTranslations[lang];
                     )}
                 
                     {selectedDateKey && slotsByDate[selectedDateKey] && (
-                      <div className="animate-fadeIn space-y-2 mb-6 bg-[#051F20]/30 border border-[#235347] p-4 rounded-xl">
+                      <div className="animate-fadeIn space-y-2 mb-6 bg-[#051F20]/60 border border-[#235347] p-4 rounded-xl">
                         <p className="text-xs font-bold text-[#8EB69B]">{t.chooseTime}</p>
                         <div className="grid grid-cols-3 gap-2">
                           {slotsByDate[selectedDateKey].map((slot) => {
@@ -1018,10 +1018,10 @@ const packagesData = packagesTranslations[lang];
                                   selectedSlot === slot.startIso
                                     ? hasDiscount
                                       ? 'bg-cyan-500 text-white border-cyan-400 shadow-[0_0_12px_rgba(34,211,238,0.85)]'
-                                      : 'bg-[#8EB69B] text-[#DAF1DE] border-[#8EB69B] shadow'
+                                      : 'bg-[#8EB69B] text-[#051F20] border-[#8EB69B] shadow'
                                     : hasDiscount
                                       ? 'bg-cyan-50 border-cyan-300 text-cyan-700 shadow-[0_0_8px_rgba(34,211,238,0.45)] hover:shadow-[0_0_10px_rgba(34,211,238,0.65)]'
-                                      : 'bg-[#235347]/30 border-[#235347] text-[#DAF1DE] hover:border-[#8EB69B]'
+                                      : 'bg-[#163832] border-[#235347] text-[#DAF1DE] hover:border-[#8EB69B]'
                                 }`}
                               >
                                 {slot.formattedTime}
@@ -1041,14 +1041,14 @@ const packagesData = packagesTranslations[lang];
                     {selectedSlot && (
                       <form onSubmit={handleBookingSubmit} className="space-y-4 pt-4 border-t border-[#235347] mt-4 animate-fadeIn">
                         <h3 className="font-bold text-xs text-[#8EB69B]">{t.contactTitle}</h3>
-                        <div className={`p-3 font-bold rounded-xl text-xs text-center shadow-sm text-white ${
-                          selectedDiscountPercent > 0 ? 'bg-cyan-500' : 'bg-[#8EB69B]'
+                        <div className={`p-3 font-bold rounded-xl text-xs text-center shadow-sm ${
+                          selectedDiscountPercent > 0 ? 'bg-cyan-500 text-white' : 'bg-[#8EB69B] text-[#051F20]'
                         }`}>
                           {t.selected} termín: {new Date(selectedSlot).toLocaleDateString('sk-SK')} o {new Date(selectedSlot).toLocaleTimeString('sk-SK', {hour: '2-digit', minute:'2-digit'})}
                         </div>
                 
                         {/* CENOVÝ SÚHRN */}
-                        <div className="p-4 rounded-xl border border-[#235347] bg-[#051F20]/30 space-y-3">
+                        <div className="p-4 rounded-xl border border-[#235347] bg-[#051F20]/60 space-y-3">
                           <h3 className="font-bold text-[11px] uppercase tracking-wider text-[#8EB69B]">{t.summaryTitle}</h3>
                 
                           <div className="space-y-2">
@@ -1085,13 +1085,13 @@ const packagesData = packagesTranslations[lang];
                                       if (codeCheckStatus === 'invalid') setCodeCheckStatus('idle');
                                     }}
                                     placeholder={t.discountCodePlaceholder}
-                                    className="flex-grow p-2.5 border border-[#235347] rounded-lg text-xs bg-[#051F20]/40 focus:outline-none text-[#DAF1DE] uppercase placeholder:text-[#8EB69B]"
+                                    className="flex-grow p-2.5 border border-[#235347] rounded-lg text-xs bg-[#0B2B26] focus:outline-none focus:border-[#8EB69B] text-[#DAF1DE] uppercase placeholder:text-[#8EB69B]/70"
                                   />
                                   <button
                                     type="button"
                                     onClick={handleApplyDiscountCode}
                                     disabled={!discountCodeInput.trim() || codeCheckStatus === 'checking'}
-                                    className="px-4 py-2 rounded-lg text-xs font-bold bg-[#8EB69B] text-[#DAF1DE] hover:bg-[#8EB69B] hover:text-white transition disabled:bg-[#235347] disabled:text-[#8EB69B] disabled:cursor-not-allowed"
+                                    className="px-4 py-2 rounded-lg text-xs font-bold bg-[#8EB69B] text-[#051F20] hover:bg-[#DAF1DE] transition disabled:bg-[#235347] disabled:text-[#8EB69B] disabled:cursor-not-allowed"
                                   >
                                     {t.applyCodeBtn}
                                   </button>
@@ -1126,7 +1126,7 @@ const packagesData = packagesTranslations[lang];
                           </div>
                 
                           {(selectedDiscountPercent > 0 || appliedCodePercent > 0) && (
-                            <div className="flex justify-between items-center text-base font-extrabold text-[#8EB69B] pt-2 border-t border-[#235347]">
+                            <div className="flex justify-between items-center text-base font-extrabold text-[#DAF1DE] pt-2 border-t border-[#235347]">
                               <span>{t.finalPriceLabel}</span>
                               <span>{finalPrice} €</span>
                             </div>
@@ -1134,14 +1134,14 @@ const packagesData = packagesTranslations[lang];
                         </div>
                 
                         {/* KONTAKTNÁ KARTA — meno + spôsoby kontaktu zlúčené do jedného boxu */}
-                        <div className="space-y-3 bg-[#051F20]/30 p-3 rounded-xl border border-[#235347]">
+                        <div className="space-y-3 bg-[#051F20]/60 p-3 rounded-xl border border-[#235347]">
                           <input 
                             type="text" 
                             placeholder={t.name} 
                             required 
                             value={clientName}
                             onChange={(e) => setClientName(e.target.value)}
-                            className="w-full p-3 border border-[#235347] rounded-xl text-sm bg-[#051F20]/40 focus:bg-[#051F20]/60 focus:outline-none text-[#DAF1DE] placeholder:text-[#8EB69B]" 
+                            className="w-full p-3 border border-[#235347] rounded-xl text-sm bg-[#0B2B26] focus:bg-[#163832] focus:outline-none focus:border-[#8EB69B] text-[#DAF1DE] placeholder:text-[#8EB69B]/70" 
                           />
                 
                           <p className="text-[11px] text-[#8EB69B] font-medium">{t.contactNotice}</p>
@@ -1156,7 +1156,7 @@ const packagesData = packagesTranslations[lang];
                                 <select 
                                   value={phonePrefix} 
                                   onChange={(e) => setPhonePrefix(e.target.value)}
-                                  className="p-2 border border-[#235347] rounded-lg text-xs bg-[#051F20]/40 focus:outline-none text-[#DAF1DE] font-sans"
+                                  className="p-2 border border-[#235347] rounded-lg text-xs bg-[#0B2B26] focus:outline-none text-[#DAF1DE] font-sans"
                                 >
                                   <option value="+421">🇸🇰 +421</option>
                                   <option value="+420">🇨🇿 +420</option>
@@ -1167,7 +1167,7 @@ const packagesData = packagesTranslations[lang];
                                   placeholder="905 123 456" 
                                   value={contactValues.phone} 
                                   onChange={(e) => handlePhoneChange(e.target.value)} 
-                                  className="flex-grow p-2 border border-[#235347] rounded-lg text-xs bg-[#051F20]/40 focus:outline-none text-[#DAF1DE] tracking-wider placeholder:text-[#8EB69B]" 
+                                  className="flex-grow p-2 border border-[#235347] rounded-lg text-xs bg-[#0B2B26] focus:outline-none text-[#DAF1DE] tracking-wider placeholder:text-[#8EB69B]/70" 
                                 />
                               </div>
                             )}
@@ -1184,7 +1184,7 @@ const packagesData = packagesTranslations[lang];
                               <span>{t.instagram}</span>
                             </label>
                             {activeContacts.instagram && (
-                              <input type="text" required placeholder="@uzivatel" value={contactValues.instagram} onChange={(e) => handleContactValueChange('instagram', e.target.value)} className="w-full p-2 border border-[#235347] rounded-lg text-xs bg-[#051F20]/40 focus:outline-none text-[#DAF1DE] placeholder:text-[#8EB69B]" />
+                              <input type="text" required placeholder="@uzivatel" value={contactValues.instagram} onChange={(e) => handleContactValueChange('instagram', e.target.value)} className="w-full p-2 border border-[#235347] rounded-lg text-xs bg-[#0B2B26] focus:outline-none text-[#DAF1DE] placeholder:text-[#8EB69B]/70" />
                             )}
                           </div>
                 
@@ -1194,12 +1194,12 @@ const packagesData = packagesTranslations[lang];
                               <span>{t.email}</span>
                             </label>
                             {activeContacts.email && (
-                              <input type="email" required placeholder="meno@domena.com" value={contactValues.email} onChange={(e) => handleContactValueChange('email', e.target.value)} className="w-full p-2 border border-[#235347] rounded-lg text-xs bg-[#051F20]/40 focus:outline-none text-[#DAF1DE] placeholder:text-[#8EB69B]" />
+                              <input type="email" required placeholder="meno@domena.com" value={contactValues.email} onChange={(e) => handleContactValueChange('email', e.target.value)} className="w-full p-2 border border-[#235347] rounded-lg text-xs bg-[#0B2B26] focus:outline-none text-[#DAF1DE] placeholder:text-[#8EB69B]/70" />
                             )}
                           </div>
                         </div>
                 
-                        <div className="space-y-1.5 bg-[#051F20]/30 p-3 rounded-xl border border-[#235347]">
+                        <div className="space-y-1.5 bg-[#051F20]/60 p-3 rounded-xl border border-[#235347]">
                           <label className="flex items-center space-x-2 text-xs font-semibold cursor-pointer text-[#DAF1DE]">
                             <input
                               type="checkbox"
@@ -1215,7 +1215,7 @@ const packagesData = packagesTranslations[lang];
                               value={customerNote}
                               onChange={(e) => setCustomerNote(e.target.value)}
                               placeholder={t.notePlaceholder}
-                              className="w-full p-2.5 border border-[#235347] rounded-lg text-xs bg-[#051F20]/40 focus:outline-none text-[#DAF1DE] placeholder:text-[#8EB69B]"
+                              className="w-full p-2.5 border border-[#235347] rounded-lg text-xs bg-[#0B2B26] focus:outline-none text-[#DAF1DE] placeholder:text-[#8EB69B]/70"
                             />
                           )}
                         </div>
@@ -1224,7 +1224,7 @@ const packagesData = packagesTranslations[lang];
                           type="submit" 
                           disabled={!isContactValid()}
                           className={`w-full py-3 rounded-xl font-bold transition text-sm shadow-sm ${
-                            isContactValid() ? 'bg-[#8EB69B] text-[#DAF1DE] hover:bg-[#8EB69B] hover:text-white' : 'bg-[#235347]/40 text-[#8EB69B] cursor-not-allowed'
+                            isContactValid() ? 'bg-[#8EB69B] text-[#051F20] hover:bg-[#DAF1DE] hover:text-[#051F20]' : 'bg-[#235347]/40 text-[#8EB69B] cursor-not-allowed'
                           }`}
                         >
                           {t.bookBtn}
@@ -1235,7 +1235,7 @@ const packagesData = packagesTranslations[lang];
                     <button 
                       type="button" 
                       onClick={() => setMassageStep(2)} 
-                      className="mx-auto mt-6 flex items-center justify-center space-x-2 px-6 py-3.5 rounded-xl border-2 border-[#8EB69B] text-[#8EB69B] bg-transparent font-bold text-xs tracking-wider uppercase hover:bg-[#8EB69B] hover:text-[#DAF1DE] transition-all duration-200 shadow-sm"
+                      className="mx-auto mt-6 flex items-center justify-center space-x-2 px-6 py-3.5 rounded-xl border-2 border-[#8EB69B] text-[#8EB69B] bg-transparent font-bold text-xs tracking-wider uppercase hover:bg-[#8EB69B] hover:text-[#051F20] transition-all duration-200 shadow-sm"
                     >
                       <span>⬅</span> <span>{t.backToPackages}</span>
                     </button>
