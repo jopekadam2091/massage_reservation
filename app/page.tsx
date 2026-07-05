@@ -92,7 +92,7 @@ export default function Home() {
       descLabel: 'Vaša predstava a popis',
       name: 'Vaše meno',
       send: 'Poslať správu a dohodnúť termín',
-      massageTitle: 'Osobný Reset & Uvoľnenie',
+      massageTitle: 'Rezervácia masáže',
       massageSubtitle: 'Exkluzívne privátne masáže. Rezervácia možná len cez voľné sloty.',
       step1: 'Úroveň', step2: 'Balíček', step3: 'Termín',
       step1Title: '1. Krok: Vyberte si úroveň starostlivosti',
@@ -153,7 +153,7 @@ export default function Home() {
       descLabel: 'Your vision and description',
       name: 'Your name',
       send: 'Send message and arrange date',
-      massageTitle: 'Personal Reset & Relaxation',
+      massageTitle: 'Massage reservation',
       massageSubtitle: 'Exclusive private massages. Booking only via available slots.',
       step1: 'Level', step2: 'Package', step3: 'Date',
       step1Title: '1. Step: Choose your level of care',
@@ -806,11 +806,10 @@ const packagesData = packagesTranslations[lang];
               </div>
             ) : (
               <div className="space-y-8 animate-fadeIn">
-                <div className="max-w-xl mx-auto">
+                                <div className="max-w-xl mx-auto text-center">
                   <h1 className="text-3xl font-extrabold mb-2 text-[#2F5D50]">{t.massageTitle}</h1>
                   <p className="text-[#1E293B] bg-[#A4B69A]/30 p-3 rounded border border-[#A4B69A]/50 block text-sm">{t.massageSubtitle}</p>
                 </div>
-
                 <div className="flex justify-between max-w-xs mx-auto mb-8">
                   {[1, 2, 3].map((step) => (
                     <div key={step} className="flex items-center space-x-1">
