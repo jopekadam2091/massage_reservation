@@ -581,7 +581,7 @@ export default function Home() {
       { text: 'Hĺbková masáž chrbta a šije' },
       { text: 'Masáž rúk a dlaní' },
       { text: 'Relaxačná masáž nôh' },
-      { text: 'SK-TEST1', icon: 'chili' },
+      { text: 'Aplikovanie intímnych olejov', icon: 'chili' },
       { text: 'Aromaterapia' }
     ]
   },
@@ -592,9 +592,9 @@ export default function Home() {
     features: [
       { text: 'Hĺbková masáž celého tela' },
       { text: 'Masáž rúk a dlaní' },
-      { text: 'SK-TEST1', icon: 'chili' },
-      { text: 'SK-TEST2', icon: 'chili' },
-      { text: 'SK-TEST3', icon: 'chili' },
+      { text: 'Aplikovanie intímnych olejov', icon: 'chili' },
+      { text: 'Terapeutická masáž prostaty', icon: 'chili' },
+      { text: 'Senzuálna masáž slabín', icon: 'chili' },
       { text: 'Aromaterapia' },
       { text: 'Dynamická perkusívna terapia (vibračná pištoľ)' }
     ]
@@ -607,9 +607,9 @@ export default function Home() {
       { text: 'Maximálne uvoľnenie' },
       { text: 'Hĺbková masáž celého tela' },
       { text: 'Masáž rúk a dlaní' },
-      { text: 'SK-TEST1', icon: 'chili' },
-      { text: 'SK-TEST2', icon: 'chili' },
-      { text: 'SK-TEST3', icon: 'chili' },
+      { text: 'Aplikovanie intímnych olejov', icon: 'chili' },
+      { text: 'Terapeutická masáž prostaty', icon: 'chili' },
+      { text: 'Senzuálna masáž slabín', icon: 'chili' },
       { text: 'Aromaterapia' },
       { text: 'Dynamická perkusívna terapia' },
       { text: 'Nealko drink v cene' },
@@ -659,7 +659,7 @@ export default function Home() {
         { text: 'Deep back and neck massage' },
         { text: 'Hand massage' },
         { text: 'Relaxing foot massage' },
-        { text: 'EN-TEST1', icon: 'chili' },
+        { text: 'Intime oil application', icon: 'chili' },
         { text: 'Aromatherapy' }
       ]
     },
@@ -670,9 +670,9 @@ export default function Home() {
       features: [
         { text: 'Deep full body massage' },
         { text: 'Hand massage' },
-        { text: 'EN-TEST1', icon: 'chili' },
-        { text: 'EN-TEST2', icon: 'chili' },
-        { text: 'EN-TEST3', icon: 'chili' },
+        { text: 'Intime oil application', icon: 'chili' },
+        { text: 'Therapeutic prostate massage', icon: 'chili' },
+        { text: 'Intense frontal senzual massage', icon: 'chili' },
         { text: 'Aromatherapy' },
         { text: 'Dynamic percussive therapy (massage gun)' }
       ]
@@ -685,9 +685,9 @@ export default function Home() {
         { text: 'Maximum relaxation' },
         { text: 'Deep full body massage' },
         { text: 'Hand massage' },
-        { text: 'EN-TEST1', icon: 'chili' },
-        { text: 'EN-TEST2', icon: 'chili' },
-        { text: 'EN-TEST3', icon: 'chili' },
+        { text: 'Intime oil application', icon: 'chili' },
+        { text: 'Therapeutic prostate massage', icon: 'chili' },
+        { text: 'Intense frontal senzual massage', icon: 'chili' },
         { text: 'Aromatherapy' },
         { text: 'Dynamic percussive therapy' },
         { text: 'Complimentary soft drink' },
