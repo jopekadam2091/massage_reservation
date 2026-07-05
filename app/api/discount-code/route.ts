@@ -1,87 +1,75 @@
-// app/api/discount-theme/route.ts
+// app/api/discount-code/route.ts
 //
-// Sheet: rovnaký spreadsheet ako pre zľavové kódy (DISCOUNT_SHEET_ID),
-// tab "DiscountColor" (uprav SHEET_NAME nižšie, ak sa tvoj tab volá inak).
+// Sheet "MassageCodes", tab "Hárok1" (uprav SHEET_NAME nižšie, ak sa tvoj tab volá inak).
+// Stĺpce: A = Codename, B = Discount (napr. "50%"), C = Usage (-1 = neobmedzené), D = Status (Active/Inactive)
 //
-// Stĺpce (v tomto poradí):
-//   A = fill         (plná farba badge/aktívneho stavu; môže byť aj CSS gradient)
-//   B = badgeText    (farba textu na 'fill' pozadí)
-//   C = border       (orámovanie v pokojnom stave)
-//   D = borderHover  (orámovanie pri hover)
-//   E = text         (farba textu v outline stave)
-//   F = textAccent   (svetlejší text, napr. cenový súhrn)
-//   G = glow         (glow pri výbere)
-//   H = glowSoft     (glow v pokoji)
-//   I = glowHover    (glow pri hover)
-//   J = status       (Active/Inactive - použije sa prvý riadok so statusom "active")
+// Potrebné premenné prostredia (.env.local):
+//   GOOGLE_CLIENT_EMAIL=...                 (rovnaké ako pre Kalendár)
+//   GOOGLE_PRIVATE_KEY=...                  (rovnaké ako pre Kalendár)
+//   DISCOUNT_SHEET_ID=11Ypa5Wnq-JwblPW44gZM8y9mUsftnbqF_wdKsNsg414
 //
-// Prvý riadok = hlavičky stĺpcov, dáta od riadku 2.
-//
-// Potrebné premenné prostredia (.env.local) - rovnaké ako pre discount-code:
-//   GOOGLE_CLIENT_EMAIL=...
-//   GOOGLE_PRIVATE_KEY=...
-//   DISCOUNT_SHEET_ID=...
-//
-// Tento endpoint je len na čítanie, nič sa doň nezapisuje, takže stačí,
-// aby mal service account k Sheetu aspoň právo "Viewer".
-
+// Service account (rovnaký, aký používaš pre Google Calendar) musí mať na tomto
+// Sheete práva "Editor" (Zdieľať -> pridať jeho email), lebo pri použití kódu sa
+// do Sheetu aj zapisuje (odpočítanie počtu použití).
 import { google } from 'googleapis';
-import { NextResponse } from 'next/server';
-
+import { NextRequest, NextResponse } from 'next/server';
 const SHEET_ID = process.env.DISCOUNT_SHEET_ID as string;
-const SHEET_NAME = 'DiscountColor'; // uprav, ak sa tvoj tab volá inak
-const RANGE = `${SHEET_NAME}!A2:J`; // dáta od riadku 2 (riadok 1 = hlavička)
-
+const SHEET_NAME = 'Mcodes'; // uprav, ak sa tvoj tab volá inak
+const RANGE = `${SHEET_NAME}!A2:D`; // dáta od riadku 2 (riadok 1 = hlavička)
 const auth = new google.auth.JWT(
   process.env.GOOGLE_CLIENT_EMAIL,
   undefined,
   process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-  ['https://www.googleapis.com/auth/spreadsheets.readonly']
+  ['https://www.googleapis.com/auth/spreadsheets']
 );
-
 const sheets = google.sheets({ version: 'v4', auth });
-
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const code = (req.nextUrl.searchParams.get('code') || '').trim().toUpperCase();
+  if (!code) {
+    return NextResponse.json({ valid: false, reason: 'missing_code' }, { status: 400 });
+  }
   try {
     const result = await sheets.spreadsheets.values.get({
       spreadsheetId: SHEET_ID,
       range: RANGE
     });
-
     const rows = result.data.values || [];
-
-    const activeRow = rows.find(
-      (row) => (row[9] || '').toString().trim().toLowerCase() === 'active'
+    const rowIndex = rows.findIndex(
+      (row) => (row[0] || '').toString().trim().toUpperCase() === code
     );
-
-    if (!activeRow) {
-      return NextResponse.json({ found: false });
+    if (rowIndex === -1) {
+      return NextResponse.json({ valid: false, reason: 'not_found' });
     }
-
-    const clean = (v: unknown) => (v ?? '').toString().trim();
-
-    const theme = {
-      fill: clean(activeRow[0]),
-      badgeText: clean(activeRow[1]),
-      border: clean(activeRow[2]),
-      borderHover: clean(activeRow[3]),
-      text: clean(activeRow[4]),
-      textAccent: clean(activeRow[5]),
-      glow: clean(activeRow[6]),
-      glowSoft: clean(activeRow[7]),
-      glowHover: clean(activeRow[8])
-    };
-
-    // Ak je niektorá bunka prázdna, radšej to nahlásime ako nenájdené,
-    // nech frontend použije bezpečný lokálny fallback namiesto polámanej témy.
-    const hasEmptyValue = Object.values(theme).some((v) => v === '');
-    if (hasEmptyValue) {
-      return NextResponse.json({ found: false });
+    const row = rows[rowIndex];
+    // Discount je vo formáte "50%" -> odstránime % a spravíme číslo
+    const percent = parseInt((row[1] || '0').toString().replace('%', '').trim(), 10) || 0;
+    // Usage: -1 = neobmedzené, inak počet zostávajúcich použití
+    const usageRaw = parseInt((row[2] ?? '0').toString().trim(), 10);
+    const isUnlimited = usageRaw === -1;
+    const status = (row[3] || '').toString().trim().toLowerCase();
+    if (status !== 'active') {
+      return NextResponse.json({ valid: false, reason: 'inactive' });
     }
-
-    return NextResponse.json({ found: true, theme });
+    if (!isUnlimited && (isNaN(usageRaw) || usageRaw <= 0)) {
+      return NextResponse.json({ valid: false, reason: 'exhausted' });
+    }
+    if (percent <= 0) {
+      return NextResponse.json({ valid: false, reason: 'invalid_percent' });
+    }
+    // Ak nie je neobmedzený, odpočítame jedno použitie späť do Sheetu
+    if (!isUnlimited) {
+      const newUsage = usageRaw - 1;
+      const sheetRowNumber = rowIndex + 2; // +2 lebo dáta začínajú na riadku 2
+      await sheets.spreadsheets.values.update({
+        spreadsheetId: SHEET_ID,
+        range: `${SHEET_NAME}!C${sheetRowNumber}`,
+        valueInputOption: 'RAW',
+        requestBody: { values: [[newUsage]] }
+      });
+    }
+    return NextResponse.json({ valid: true, percent });
   } catch (err) {
-    console.error('Chyba pri načítaní DiscountColor témy:', err);
-    return NextResponse.json({ found: false, reason: 'server_error' }, { status: 500 });
+    console.error('Chyba pri overovaní zľavového kódu:', err);
+    return NextResponse.json({ valid: false, reason: 'server_error' }, { status: 500 });
   }
 }
