@@ -693,9 +693,10 @@ export default function Home() {
 };
 const packagesData = packagesTranslations[lang];
   return (
-    <div className={`min-h-screen transition-all duration-700 ease-in-out pb-20 ${
-      mode === 'photo' ? 'bg-[#1a1a1a] text-white font-figtree' : mode === 'massage' ? 'bg-[#1a1a1a] text-[#1E293B] font-chillax' : 'bg-[#121212] text-white'
-    }`}>
+    <div className="max-w-xl mx-auto text-center">
+        <h1 className="text-3xl font-extrabold mb-2 text-[#E3C39D]">{t.massageTitle}</h1>
+        <p className="text-[#CDD5DB] bg-[#4B6382]/40 p-3 rounded border border-[#4B6382] block text-sm">{t.massageSubtitle}</p>
+      </div>
 
       {/* ÚSPEŠNÁ REZERVÁCIA - OVERLAY */}
       {showSuccessPopup && (
@@ -813,28 +814,27 @@ const packagesData = packagesTranslations[lang];
                 <div className="flex justify-between max-w-xs mx-auto mb-8">
                   {[1, 2, 3].map((step) => (
                     <div key={step} className="flex items-center space-x-1">
-                      <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold border transition ${massageStep === step ? 'bg-[#2F5D50] text-white border-[#2F5D50]' : 'bg-white text-gray-400 border-gray-200'}`}>{step}</div>
-                      <span className={`text-[10px] font-semibold ${massageStep === step ? 'text-[#2F5D50]' : 'text-gray-400'}`}>{step === 1 ? t.step1 : step === 2 ? t.step2 : t.step3}</span>
+                      <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold border transition ${massageStep === step ? 'bg-[#E3C39D] text-[#071739] border-[#E3C39D]' : 'bg-[#4B6382] text-[#A4B5C4] border-[#4B6382]'}`}>{step}</div>
+                      <span className={`text-[10px] font-semibold ${massageStep === step ? 'text-[#E3C39D]' : 'text-[#A4B5C4]'}`}>{step === 1 ? t.step1 : step === 2 ? t.step2 : t.step3}</span>
                     </div>
                   ))}
                 </div>
-
                 {/* KROK 1 */}
                 {massageStep === 1 && (
-                  <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm text-[#1E293B] max-w-xl mx-auto">
-                    <h2 className="text-lg font-bold text-center text-[#2F5D50] mb-4">{t.step1Title}</h2>
+                  <div className="bg-[#4B6382]/30 p-6 rounded-xl border border-[#4B6382] text-[#CDD5DB] max-w-xl mx-auto">
+                    <h2 className="text-lg font-bold text-center text-[#E3C39D] mb-4">{t.step1Title}</h2>
                     <div className="flex flex-col space-y-3">
-                      <button type="button" onClick={() => { setSelectedType('Klasik'); setMassageStep(2); }} className="p-5 rounded-xl border border-gray-200 text-left hover:border-[#A4B69A] transition bg-gray-50/50">
-                        <h3 className="font-bold text-base text-[#2F5D50]">{t.klasikTitle}</h3>
-                        <p className="text-xs text-gray-500 mt-1">{t.klasikDesc}</p>
+                      <button type="button" onClick={() => { setSelectedType('Klasik'); setMassageStep(2); }} className="p-5 rounded-xl border border-[#4B6382] text-left hover:border-[#A68868] transition bg-[#071739]/40">
+                        <h3 className="font-bold text-base text-[#CDD5DB]">{t.klasikTitle}</h3>
+                        <p className="text-xs text-[#A4B5C4] mt-1">{t.klasikDesc}</p>
                       </button>
                       
-                      <button type="button" onClick={() => { setSelectedType('VIP'); setMassageStep(2); }} className="p-5 rounded-xl border-2 border-[#D4A373] text-left transition bg-[#D4A373]/20 hover:bg-[#D4A373]/30 shadow-md transform hover:scale-[1.01] duration-200">
-                        <h3 className="font-extrabold text-base text-[#5c4228] flex items-center justify-between">
+                      <button type="button" onClick={() => { setSelectedType('VIP'); setMassageStep(2); }} className="p-5 rounded-xl border-2 border-[#A68868] text-left transition bg-[#A68868]/20 hover:bg-[#A68868]/30 shadow-md transform hover:scale-[1.01] duration-200">
+                        <h3 className="font-extrabold text-base text-[#E3C39D] flex items-center justify-between">
                           <span>{t.vipTitle}</span>
-                          <span className="bg-[#D4A373] text-white text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider">POPULAR</span>
+                          <span className="bg-[#A68868] text-white text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider">POPULAR</span>
                         </h3>
-                        <p className="text-xs text-[#5c4228] font-medium mt-1">{t.vipDesc}</p>
+                        <p className="text-xs text-[#E3C39D]/90 font-medium mt-1">{t.vipDesc}</p>
                       </button>
                     </div>
                   </div>
