@@ -736,25 +736,25 @@ const packagesData = packagesTranslations[lang];
   <div className="flex flex-col h-screen w-full items-center justify-center">
     <button type="button" onClick={() => setMode('photo')} className="w-full h-1/2 flex flex-col items-center justify-center group hover:bg-neutral-900 transition-all duration-500 border-b border-neutral-800 font-figtree">
       <div
-        className="w-16 h-16 mb-2 group-hover:scale-110 transition-transform duration-300"
+        className="w-32 h-32 mb-2 group-hover:scale-110 transition-transform duration-300"
         style={{
           backgroundColor: '#7a7a7a',
           WebkitMask: 'url(/logo_cam.svg) no-repeat center / contain',
           mask: 'url(/logo_cam.svg) no-repeat center / contain',
         }}
       />
-      <span className="text-xl font-light tracking-widest uppercase">{t.photo}</span>
+      <span className="text-[2.5rem] font-light tracking-widest uppercase">{t.photo}</span>
     </button>
     <button type="button" onClick={() => setMode('massage')} className="w-full h-1/2 flex flex-col items-center justify-center group hover:bg-[#F2EFE7] hover:text-[#1E293B] transition-all duration-500 font-chillax text-white">
       <div
-        className="w-16 h-16 mb-2 group-hover:scale-110 transition-transform duration-300"
+        className="w-32 h-32 mb-2 group-hover:scale-110 transition-transform duration-300"
         style={{
           backgroundColor: '#7a7a7a',
           WebkitMask: 'url(/logo_massage.svg) no-repeat center / contain',
           mask: 'url(/logo_massage.svg) no-repeat center / contain',
         }}
       />
-      <span className="text-xl font-light tracking-widest uppercase">{t.massage}</span>
+      <span className="text-[2.5rem] font-light tracking-widest uppercase">{t.massage}</span>
     </button>
   </div>
 )}
