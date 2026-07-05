@@ -134,7 +134,8 @@ export default function Home() {
       removeCodeBtn: 'Odstrániť',
       codeDiscountLabel: 'Zľava z kódu',
       noteCheckboxLabel: 'Chcem pridať poznámku / špeciálnu požiadavku',
-      notePlaceholder: 'Napíšte sem vašu poznámku alebo požiadavku...'
+      notePlaceholder: 'Napíšte sem vašu poznámku alebo požiadavku...',
+      mostPopularLabel: '★ Najžiadanejší'
     },
     EN: {
       photo: 'Photography',
@@ -195,7 +196,8 @@ export default function Home() {
       removeCodeBtn: 'Remove',
       codeDiscountLabel: 'Code discount',
       noteCheckboxLabel: 'I want to add a note / special request',
-      notePlaceholder: 'Write your note or request here...'
+      notePlaceholder: 'Write your note or request here...',
+      mostPopularLabel: '★ Most Popular'
     }
   };
 
@@ -841,7 +843,7 @@ const packagesData = packagesTranslations[lang];
                   <div className="space-y-6">
                     <h2 className="text-2xl font-bold text-center text-[#DAF1DE]">{t.step2Title} ({selectedType === 'Klasik' ? t.klasikTitle : t.vipTitle})</h2>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-4 items-start pt-3">
                       {packagesData[selectedType].map((pkg) => {
                         const priceStr = selectedType === 'Klasik' 
                           ? prices.Klasik[pkg.duration as 30 | 45 | 60] 
@@ -850,50 +852,61 @@ const packagesData = packagesTranslations[lang];
                         const isMiddle = pkg.badge === 'Supreme' || pkg.badge === 'VIP Pro';
                 
                         return (
-                          <div key={pkg.duration} className={`flex flex-col bg-[#0B2B26] rounded-3xl border shadow-sm transition-all overflow-hidden ${
-                            isMiddle ? 'border-[#8EB69B] ring-2 ring-[#8EB69B]/30' : 'border-[#235347]'
+                          <div key={pkg.duration} className={`relative flex flex-col transition-all ${
+                            isMiddle ? 'md:-translate-y-3 md:scale-[1.04] z-10' : 'md:mt-3 opacity-90'
                           }`}>
-                            <div className="p-6 pb-0 flex flex-col items-start">
-                              <span className={`px-3 py-1 text-[11px] font-bold tracking-wider uppercase rounded-full mb-4 ${
-                                isMiddle ? 'bg-[#8EB69B] text-[#051F20]' : 'bg-[#235347] text-[#DAF1DE]'
-                              }`}>
-                                {pkg.badge}
+                            {isMiddle && (
+                              <span className="absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap bg-[#DAF1DE] text-[#051F20] text-[10px] font-extrabold px-4 py-1.5 rounded-full shadow-lg uppercase tracking-wider z-20">
+                                {t.mostPopularLabel}
                               </span>
-                              <div className="flex items-baseline text-[#DAF1DE] mb-1">
-                                <span className="text-4xl font-black tracking-tight">{priceStr.split(' ')[0]}</span>
-                                <span className="text-lg font-bold ml-1 text-[#8EB69B]">eur</span>
-                                <span className="text-xs font-semibold text-[#8EB69B] ml-2">/ {pkg.duration} {t.minutes}</span>
+                            )}
+                            <div className={`flex flex-col h-full rounded-3xl border transition-all overflow-hidden ${
+                              isMiddle
+                                ? 'bg-gradient-to-b from-[#1b453d] to-[#0B2B26] border-2 border-[#8EB69B] shadow-[0_0_45px_rgba(142,182,155,0.3)]'
+                                : 'bg-[#0B2B26]/70 border-[#235347]'
+                            }`}>
+                              <div className={`p-6 pb-0 flex flex-col items-start ${isMiddle ? 'pt-8' : ''}`}>
+                                <span className={`px-3 py-1 text-[11px] font-bold tracking-wider uppercase rounded-full mb-4 ${
+                                  isMiddle ? 'bg-[#8EB69B] text-[#051F20]' : 'bg-[#235347] text-[#8EB69B]'
+                                }`}>
+                                  {pkg.badge}
+                                </span>
+                                <div className={`flex items-baseline mb-1 ${isMiddle ? 'text-[#DAF1DE]' : 'text-[#DAF1DE]/90'}`}>
+                                  <span className={`font-black tracking-tight ${isMiddle ? 'text-5xl' : 'text-3xl'}`}>{priceStr.split(' ')[0]}</span>
+                                  <span className="text-lg font-bold ml-1 text-[#8EB69B]">eur</span>
+                                  <span className="text-xs font-semibold text-[#8EB69B] ml-2">/ {pkg.duration} {t.minutes}</span>
+                                </div>
+                                <p className="text-xs text-[#8EB69B] min-h-[32px] mt-1">{pkg.desc}</p>
                               </div>
-                              <p className="text-xs text-[#8EB69B] min-h-[32px] mt-1">{pkg.desc}</p>
-                            </div>
-                
-                            <div className="p-6 pt-4">
-                              <button 
-                                type="button" 
-                                onClick={() => { setSelectedDuration(pkg.duration); setMassageStep(3); }}
-                                className={`w-full py-3 rounded-xl font-bold text-xs uppercase tracking-wider shadow-sm transition-all duration-300 ${
-                                  isMiddle 
-                                    ? 'bg-[#8EB69B] text-[#051F20] hover:bg-[#DAF1DE] hover:text-[#051F20]' 
-                                    : 'bg-[#DAF1DE] text-[#051F20] hover:bg-white'
-                                }`}
-                              >
-                                {t.selectBtn}
-                              </button>
-                            </div>
-                
-                            <div className="border-t border-[#235347] my-2 mx-6"></div>
-                
-                            <div className="p-6 pt-2 flex-grow">
-                              <ul className="space-y-2.5 text-xs text-[#8EB69B]">
-                                {pkg.features.map((feat, idx) => (
-                                  <li key={idx} className="flex items-start space-x-2">
-                                    <span className="w-4 flex-shrink-0 text-center text-[#8EB69B] font-bold">
-                                      {featureIcons[feat.icon ?? 'check']}
-                                    </span>
-                                    <span className="text-[#DAF1DE]">{feat.text}</span>
-                                  </li>
-                                ))}
-                              </ul>
+                  
+                              <div className="p-6 pt-4">
+                                <button 
+                                  type="button" 
+                                  onClick={() => { setSelectedDuration(pkg.duration); setMassageStep(3); }}
+                                  className={`w-full rounded-xl font-bold text-xs uppercase tracking-wider transition-all duration-300 ${
+                                    isMiddle 
+                                      ? 'py-4 bg-[#DAF1DE] text-[#051F20] shadow-lg hover:bg-white hover:shadow-xl hover:-translate-y-0.5' 
+                                      : 'py-3 bg-transparent border border-[#8EB69B]/50 text-[#DAF1DE] hover:border-[#8EB69B] hover:bg-[#163832]'
+                                  }`}
+                                >
+                                  {t.selectBtn}
+                                </button>
+                              </div>
+                  
+                              <div className="border-t border-[#235347] my-2 mx-6"></div>
+                  
+                              <div className="p-6 pt-2 flex-grow">
+                                <ul className="space-y-2.5 text-xs text-[#8EB69B]">
+                                  {pkg.features.map((feat, idx) => (
+                                    <li key={idx} className="flex items-start space-x-2">
+                                      <span className="w-4 flex-shrink-0 text-center text-[#8EB69B] font-bold">
+                                        {featureIcons[feat.icon ?? 'check']}
+                                      </span>
+                                      <span className={isMiddle ? 'text-[#DAF1DE]' : 'text-[#DAF1DE]/80'}>{feat.text}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
                             </div>
                           </div>
                         );
