@@ -531,7 +531,7 @@ export default function Home() {
         duration: 60,
         badge: 'Full Experience',
         desc: 'Dokonalý zážitok s extra časom.',
-        features: ['Masáž celého tela', 'Možnosť vybrať extra čas na vybranú partiu', 'Aromaterapia']
+        features: ['Pomalá masáž celého tela', 'Možnosť vybrať extra čas na vybranú partiu', 'Aromaterapia']
       }
     ],
     VIP: [
@@ -548,8 +548,9 @@ export default function Home() {
         features: [
           'Hĺbková masáž celého tela',
           'Masáž rúk a dlaní',
-          'Masáž tváre a hlavy',
-          'Hĺbková masáž chrbta',
+          'Masáž panvového dna',
+          'Hĺbková masáž gluteálnej oblasti',
+          'Aplikácia intímnych olejov',
           'Aromaterapia',
           'Dynamická perkusívna terapia (vibračná pištoľ)'
         ]
@@ -562,9 +563,9 @@ export default function Home() {
           'Maximálne uvoľnenie',
           'Hĺbková masáž celého tela',
           'Masáž rúk a dlaní',
-          'Masáž tváre a hlavy',
-          'Hĺbková masáž chrbta a nôh',
-          'Aromaterapia',
+          'Masáž panvového dna',
+          'Hĺbková masáž gluteálnej oblasti',
+          'Aplikácia intímnych olejov',
           'Dynamická perkusívna terapia',
           'Nealko drink v cene',
           '+ Darček'
