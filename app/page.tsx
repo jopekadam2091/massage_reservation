@@ -513,7 +513,8 @@ export default function Home() {
     return true;
   };
 
-  const packagesData = {
+ const packagesTranslations = {
+  SK: {
     Klasik: [
       {
         duration: 30,
@@ -531,7 +532,7 @@ export default function Home() {
         duration: 60,
         badge: 'Full Experience',
         desc: 'Dokonalý zážitok s extra časom.',
-        features: ['Pomalá masáž celého tela', 'Možnosť vybrať extra čas na vybranú partiu', 'Aromaterapia']
+        features: ['Stimulujúca masáž celého tela', 'Možnosť vybrať extra čas na vybranú partiu', 'Aromaterapia']
       }
     ],
     VIP: [
@@ -539,7 +540,7 @@ export default function Home() {
         duration: 45,
         badge: 'VIP Supreme',
         desc: 'Rýchla ochutnávka VIP procedúr.',
-        features: ['Hĺbková masáž chrbta a šije', 'Masáž rúk a dlaní', 'Relaxačná masáž nôh', 'Aromaterapia']
+        features: ['Hĺbková masáž chrbta a šije', 'Masáž rúk a dlaní', 'Relaxačná masáž nôh', 'SK-TEST1', 'Aromaterapia']
       },
       {
         duration: 60,
@@ -548,9 +549,9 @@ export default function Home() {
         features: [
           'Hĺbková masáž celého tela',
           'Masáž rúk a dlaní',
-          'Masáž panvového dna',
-          'Hĺbková masáž gluteálnej oblasti',
-          'Aplikácia intímnych olejov',
+          'SK-TEST1',
+          'SK-TEST2',
+          'SK-TEST3',
           'Aromaterapia',
           'Dynamická perkusívna terapia (vibračná pištoľ)'
         ]
@@ -563,17 +564,81 @@ export default function Home() {
           'Maximálne uvoľnenie',
           'Hĺbková masáž celého tela',
           'Masáž rúk a dlaní',
-          'Masáž panvového dna',
-          'Hĺbková masáž gluteálnej oblasti',
-          'Aplikácia intímnych olejov',
+          'SK-TEST1',
+          'SK-TEST2',
+          'SK-TEST3',
+          'Aromaterapia',
           'Dynamická perkusívna terapia',
           'Nealko drink v cene',
           '+ Darček'
         ]
       }
     ]
-  };
+  },
+  EN: {
+    Klasik: [
+      {
+        duration: 30,
+        badge: 'Lite',
+        desc: 'Great for a quick massage of a specific body area.',
+        features: ['Massage of a selected body part', 'Aromatherapy']
+      },
+      {
+        duration: 45,
+        badge: 'Supreme',
+        desc: 'Great for a quick full-body relax.',
+        features: ['Full body massage', 'Option to add extra time on a chosen area', 'Aromatherapy']
+      },
+      {
+        duration: 60,
+        badge: 'Full Experience',
+        desc: 'A perfect experience with extra time.',
+        features: ['Stimulated full body massage', 'Option to add extra time on a chosen area', 'Aromatherapy']
+      }
+    ],
+    VIP: [
+      {
+        duration: 45,
+        badge: 'VIP Supreme',
+        desc: 'A quick taste of the VIP treatments.',
+        features: ['Deep back and neck massage', 'Hand massage', 'Relaxing foot massage', 'EN-TEST1', 'Aromatherapy']
+      },
+      {
+        duration: 60,
+        badge: 'VIP Pro',
+        desc: 'A complete premium relaxation ritual in full scope.',
+        features: [
+          'Deep full body massage',
+          'Hand massage',
+          'EN-TEST1',
+          'EN-TEST2',
+          'EN-TEST3',
+          'Aromatherapy',
+          'Dynamic percussive therapy (massage gun)'
+        ]
+      },
+      {
+        duration: 90,
+        badge: 'VIP Max',
+        desc: 'The pro experience taken to the max, for relaxation lovers.',
+        features: [
+          'Maximum relaxation',
+          'Deep full body massage',
+          'Hand massage',
+          'EN-TEST1',
+          'EN-TEST2',
+          'EN-TEST3',
+          'Aromatherapy',
+          'Dynamic percussive therapy',
+          'Complimentary soft drink',
+          '+ Gift'
+        ]
+      }
+    ]
+  }
+};
 
+const packagesData = packagesTranslations[lang];
   return (
     <div className={`min-h-screen transition-all duration-700 ease-in-out pb-20 ${
       mode === 'photo' ? 'bg-[#1a1a1a] text-white font-figtree' : mode === 'massage' ? 'bg-[#F2EFE7] text-[#1E293B] font-chillax' : 'bg-[#121212] text-white'
