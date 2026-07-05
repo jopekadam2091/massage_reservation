@@ -109,7 +109,7 @@ export default function Home() {
       contactTitle: 'Kontaktné údaje pre overenie a zaslanie adresy',
       contactNotice: 'Zvoľte aspoň jeden spôsob kontaktu, kde vás zastihnem:',
       bookBtn: 'Záväzne rezervovať exkluzívny termín',
-      homeBtn: '⬅ Domov',
+      homeBtn: 'Domov',
       phone: 'Telefón',
       email: 'Email',
       instagram: 'Instagram',
@@ -171,7 +171,7 @@ export default function Home() {
       contactTitle: 'Contact details for verification and address delivery',
       contactNotice: 'Choose at least one contact method to reach you:',
       bookBtn: 'Book exclusive appointment',
-      homeBtn: '⬅ Home',
+      homeBtn: 'Home',
       phone: 'Phone',
       email: 'Email',
       instagram: 'Instagram',
@@ -751,11 +751,10 @@ const packagesData = packagesTranslations[lang];
       />
       <span className="text-[2.5rem] font-light tracking-widest uppercase">{t.photo}</span>
     </button>
-    <button type="button" onClick={() => setMode('massage')} className="w-full h-1/2 flex flex-col items-center justify-center group hover:bg-[#DAF1DE] hover:text-[#051F20] transition-all duration-500 font-chillax text-white">
+    <button type="button" onClick={() => setMode('massage')} className="w-full h-1/2 flex flex-col items-center justify-center group transition-all duration-500 font-chillax text-white hover:text-[#8EB69B]">
       <div
-        className="w-32 h-32 mb-2 group-hover:scale-110 transition-transform duration-300"
+        className="w-32 h-32 mb-2 bg-[#7a7a7a] group-hover:bg-[#8EB69B] group-hover:scale-110 transition-all duration-300"
         style={{
-          backgroundColor: '#7a7a7a',
           WebkitMask: 'url(/logo_massage.svg) no-repeat center / contain',
           mask: 'url(/logo_massage.svg) no-repeat center / contain',
         }}
@@ -768,7 +767,7 @@ const packagesData = packagesTranslations[lang];
       {mode !== null && (
         <>
           <header className="p-6 max-w-4xl mx-auto flex justify-between items-center">
-            <button type="button" onClick={() => { setMode(null); setMassageStep(1); setSelectedType(null); setSelectedDuration(null); setSelectedDateKey(null); setSelectedSlot(null); }} className="text-xs uppercase tracking-widest font-bold px-4 py-2 rounded-full border transition border-current opacity-80 hover:opacity-100">
+            <button type="button" onClick={() => { setMode(null); setMassageStep(1); setSelectedType(null); setSelectedDuration(null); setSelectedDateKey(null); setSelectedSlot(null); }} className="text-xs uppercase tracking-widest font-chillax font-bold px-4 py-2 rounded-full border border-current bg-white/5 transition hover:bg-white/10 opacity-80 hover:opacity-100">
               {t.homeBtn}
             </button>
           </header>
@@ -843,7 +842,7 @@ const packagesData = packagesTranslations[lang];
                   <div className="space-y-6">
                     <h2 className="text-2xl font-bold text-center text-[#DAF1DE]">{t.step2Title} ({selectedType === 'Klasik' ? t.klasikTitle : t.vipTitle})</h2>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-4 items-start pt-3">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-4 items-stretch pt-3">
                       {packagesData[selectedType].map((pkg) => {
                         const priceStr = selectedType === 'Klasik' 
                           ? prices.Klasik[pkg.duration as 30 | 45 | 60] 
@@ -852,8 +851,8 @@ const packagesData = packagesTranslations[lang];
                         const isMiddle = pkg.badge === 'Supreme' || pkg.badge === 'VIP Pro';
                 
                         return (
-                          <div key={pkg.duration} className={`relative flex flex-col transition-all ${
-                            isMiddle ? 'md:-translate-y-3 md:scale-[1.04] z-10' : 'md:mt-3 opacity-90'
+                          <div key={pkg.duration} className={`relative flex flex-col h-full transition-all ${
+                            isMiddle ? 'md:scale-[1.04] z-10' : ''
                           }`}>
                             {isMiddle && (
                               <span className="absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap bg-[#DAF1DE] text-[#051F20] text-[10px] font-extrabold px-4 py-1.5 rounded-full shadow-lg uppercase tracking-wider z-20">
@@ -865,7 +864,7 @@ const packagesData = packagesTranslations[lang];
                                 ? 'bg-gradient-to-b from-[#1b453d] to-[#0B2B26] border-2 border-[#8EB69B] shadow-[0_0_45px_rgba(142,182,155,0.3)]'
                                 : 'bg-[#0B2B26]/70 border-[#235347]'
                             }`}>
-                              <div className={`p-6 pb-0 flex flex-col items-start ${isMiddle ? 'pt-8' : ''}`}>
+                              <div className={`p-6 pb-0 flex flex-col items-start ${isMiddle ? 'pt-8 min-h-[216px]' : 'min-h-[190px]'}`}>
                                 <span className={`px-3 py-1 text-[11px] font-bold tracking-wider uppercase rounded-full mb-4 ${
                                   isMiddle ? 'bg-[#8EB69B] text-[#051F20]' : 'bg-[#235347] text-[#8EB69B]'
                                 }`}>
@@ -876,7 +875,7 @@ const packagesData = packagesTranslations[lang];
                                   <span className="text-lg font-bold ml-1 text-[#8EB69B]">eur</span>
                                   <span className="text-xs font-semibold text-[#8EB69B] ml-2">/ {pkg.duration} {t.minutes}</span>
                                 </div>
-                                <p className="text-xs text-[#8EB69B] min-h-[32px] mt-1">{pkg.desc}</p>
+                                <p className="text-xs text-[#8EB69B] mt-1">{pkg.desc}</p>
                               </div>
                   
                               <div className="p-6 pt-4">
@@ -916,9 +915,9 @@ const packagesData = packagesTranslations[lang];
                     <button 
                       type="button" 
                       onClick={() => setMassageStep(1)} 
-                      className="mx-auto flex items-center justify-center space-x-2 px-6 py-3.5 rounded-xl border-2 border-[#8EB69B] text-[#8EB69B] bg-transparent font-bold text-xs tracking-wider uppercase hover:bg-[#8EB69B] hover:text-[#051F20] transition-all duration-200 shadow-sm"
+                      className="mx-auto flex items-center justify-center px-6 py-3.5 rounded-xl border-2 border-[#8EB69B] text-[#8EB69B] bg-[#8EB69B]/10 font-chillax font-bold text-xs tracking-wider uppercase hover:bg-[#8EB69B] hover:text-[#051F20] transition-all duration-200 shadow-sm"
                     >
-                      <span>⬅</span> <span>{t.backToLevel}</span>
+                      {t.backToLevel}
                     </button>
                   </div>
                 )}
@@ -1248,9 +1247,9 @@ const packagesData = packagesTranslations[lang];
                     <button 
                       type="button" 
                       onClick={() => setMassageStep(2)} 
-                      className="mx-auto mt-6 flex items-center justify-center space-x-2 px-6 py-3.5 rounded-xl border-2 border-[#8EB69B] text-[#8EB69B] bg-transparent font-bold text-xs tracking-wider uppercase hover:bg-[#8EB69B] hover:text-[#051F20] transition-all duration-200 shadow-sm"
+                      className="mx-auto mt-6 flex items-center justify-center px-6 py-3.5 rounded-xl border-2 border-[#8EB69B] text-[#8EB69B] bg-[#8EB69B]/10 font-chillax font-bold text-xs tracking-wider uppercase hover:bg-[#8EB69B] hover:text-[#051F20] transition-all duration-200 shadow-sm"
                     >
-                      <span>⬅</span> <span>{t.backToPackages}</span>
+                      {t.backToPackages}
                     </button>
                   </div>
                 )}
