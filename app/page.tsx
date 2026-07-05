@@ -990,7 +990,7 @@ const packagesData = packagesTranslations[lang];
                                     ? dayDiscount > 0
                                       ? selectedDateKey === dateKey
                                         ? 'bg-cyan-500 text-white font-bold ring-2 ring-cyan-300 shadow-[0_0_14px_rgba(34,211,238,0.85)]'
-                                        : 'bg-cyan-50 text-cyan-700 font-bold border border-cyan-300 shadow-[0_0_10px_rgba(34,211,238,0.55)] hover:shadow-[0_0_14px_rgba(34,211,238,0.75)]'
+                                        : 'bg-[#0B2B26] text-cyan-300 font-bold border border-cyan-400/60 shadow-[0_0_10px_rgba(34,211,238,0.45)] hover:border-cyan-300 hover:bg-[#0f3330] hover:shadow-[0_0_14px_rgba(34,211,238,0.65)]'
                                       : selectedDateKey === dateKey
                                         ? 'bg-[#8EB69B] text-[#051F20] font-bold ring-2 ring-[#8EB69B] shadow'
                                         : 'bg-[#163832] text-[#DAF1DE] font-bold hover:bg-[#235347] border border-[#235347] shadow-sm'
@@ -1032,7 +1032,7 @@ const packagesData = packagesTranslations[lang];
                                       ? 'bg-cyan-500 text-white border-cyan-400 shadow-[0_0_12px_rgba(34,211,238,0.85)]'
                                       : 'bg-[#8EB69B] text-[#051F20] border-[#8EB69B] shadow'
                                     : hasDiscount
-                                      ? 'bg-cyan-50 border-cyan-300 text-cyan-700 shadow-[0_0_8px_rgba(34,211,238,0.45)] hover:shadow-[0_0_10px_rgba(34,211,238,0.65)]'
+                                      ? 'bg-[#0B2B26] border-cyan-400/60 text-cyan-300 hover:border-cyan-300 hover:bg-[#0f3330] shadow-[0_0_8px_rgba(34,211,238,0.4)] hover:shadow-[0_0_10px_rgba(34,211,238,0.6)]'
                                       : 'bg-[#163832] border-[#235347] text-[#DAF1DE] hover:border-[#8EB69B]'
                                 }`}
                               >
