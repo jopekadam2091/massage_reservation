@@ -30,7 +30,7 @@ type TimeSlot = {
 
 const featureIcons: Record<string, string> = {
   chili: '🌶️',
-  check: '✅',
+  check: '💎',
 };
 
 export default function Home() {
