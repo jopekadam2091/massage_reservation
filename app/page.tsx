@@ -43,6 +43,8 @@ export default function Home() {
   });
   const [phonePrefix, setPhonePrefix] = useState<string>('+421'); 
   const [clientName, setClientName] = useState('');
+  const [wantsNote, setWantsNote] = useState(false);
+  const [customerNote, setCustomerNote] = useState('');
 
   // --- STAVY PRE ZĽAVOVÝ KÓD ---
   const [discountCodeInput, setDiscountCodeInput] = useState('');
@@ -109,7 +111,9 @@ export default function Home() {
       codeValidMsg: 'Kód platný',
       codeInvalidMsg: 'Neplatný alebo expirovaný kód',
       removeCodeBtn: 'Odstrániť',
-      codeDiscountLabel: 'Zľava z kódu'
+      codeDiscountLabel: 'Zľava z kódu',
+      noteCheckboxLabel: 'Chcem pridať poznámku / špeciálnu požiadavku',
+      notePlaceholder: 'Napíšte sem vašu poznámku alebo požiadavku...'
     },
     EN: {
       photo: 'Photography',
@@ -168,7 +172,9 @@ export default function Home() {
       codeValidMsg: 'Code valid',
       codeInvalidMsg: 'Invalid or expired code',
       removeCodeBtn: 'Remove',
-      codeDiscountLabel: 'Code discount'
+      codeDiscountLabel: 'Code discount',
+      noteCheckboxLabel: 'I want to add a note / special request',
+      notePlaceholder: 'Write your note or request here...'
     }
   };
 
@@ -432,6 +438,7 @@ export default function Home() {
       discountCode: appliedCode,
       codeDiscountPercent: appliedCodePercent,
       finalPrice,
+      customerNote: wantsNote ? customerNote.trim() : '',
       notes: (() => {
         const parts: string[] = [];
         if (selectedDiscountPercent > 0) parts.push(`Zľava z termínu: ${selectedDiscountPercent}%`);
@@ -462,6 +469,8 @@ export default function Home() {
         setAppliedCode(null);
         setAppliedCodePercent(0);
         setCodeCheckStatus('idle');
+        setWantsNote(false);
+        setCustomerNote('');
       } else {
         alert(lang === 'SK' ? 'Chyba pri ukladaní rezervácie.' : 'Error saving appointment.');
       }
@@ -1035,6 +1044,27 @@ export default function Home() {
                               <input type="email" required placeholder="meno@domena.com" value={contactValues.email} onChange={(e) => handleContactValueChange('email', e.target.value)} className="w-full p-2 border rounded-lg text-xs bg-white focus:outline-none text-[#1E293B]" />
                             )}
                           </div>
+                        </div>
+
+                        <div className="space-y-1.5 bg-gray-50 p-3 rounded-xl border border-gray-100">
+                          <label className="flex items-center space-x-2 text-xs font-semibold cursor-pointer text-[#1E293B]">
+                            <input
+                              type="checkbox"
+                              checked={wantsNote}
+                              onChange={() => setWantsNote((prev) => !prev)}
+                              className="rounded border-gray-300 text-[#2F5D50] focus:ring-[#2F5D50]"
+                            />
+                            <span>{t.noteCheckboxLabel}</span>
+                          </label>
+                          {wantsNote && (
+                            <textarea
+                              rows={3}
+                              value={customerNote}
+                              onChange={(e) => setCustomerNote(e.target.value)}
+                              placeholder={t.notePlaceholder}
+                              className="w-full p-2.5 border rounded-lg text-xs bg-white focus:outline-none text-[#1E293B]"
+                            />
+                          )}
                         </div>
 
                         <button 
