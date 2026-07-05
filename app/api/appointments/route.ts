@@ -9,12 +9,15 @@ const auth = new google.auth.JWT(
 );
 
 const calendar = google.calendar({ version: 'v3', auth });
+const CALENDAR_ID = process.env.GOOGLE_CALENDAR_ID as string;
 
-// 1. ČÍTANIE VOĽNÝCH TERMÍNOV (GET)
+const FSM_REGEX = /fsm/i;
+
+// 1. ČÍTANIE VOĽNÝCH TERMÍNOV (GET) - bez zmeny
 export async function GET() {
   try {
     const response = await calendar.events.list({
-      calendarId: process.env.GOOGLE_CALENDAR_ID,
+      calendarId: CALENDAR_ID,
       timeMin: new Date().toISOString(),
       singleEvents: true,
       orderBy: 'startTime',
@@ -25,83 +28,187 @@ export async function GET() {
   }
 }
 
-// 2. ZÁPIS REZERVÁCIE DO KALENDÁRA + ZELENÁ FARBA + VYMAZANIE SLOTU (POST)
+type FsmEvent = {
+  id?: string | null;
+  summary?: string | null;
+  start: Date;
+  end: Date;
+};
+
+// Podľa toho, ako rezervácia zasahuje do existujúceho "fsm" bloku, ho buď úplne
+// vymaže, skráti z jednej strany, alebo rozdelí na dve samostatné časti (pred a po).
+async function adjustAvailabilityEvent(ev: FsmEvent, bookingStart: Date, bookingEnd: Date) {
+  const evStart = ev.start.getTime();
+  const evEnd = ev.end.getTime();
+  const bStart = bookingStart.getTime();
+  const bEnd = bookingEnd.getTime();
+
+  // Žiadny časový prekryv -> nič sa nemení
+  if (bEnd <= evStart || bStart >= evEnd) return;
+
+  // Rezervácia pokrýva celý blok -> vymazať
+  if (bStart <= evStart && bEnd >= evEnd) {
+    if (ev.id) {
+      await calendar.events.delete({ calendarId: CALENDAR_ID, eventId: ev.id }).catch(() => {});
+    }
+    return;
+  }
+
+  const summary = ev.summary || 'FSM';
+
+  // Rezervácia je celá vnútri bloku -> rozdeliť na dve časti (pred a po rezervácii)
+  if (bStart > evStart && bEnd < evEnd) {
+    if (ev.id) {
+      await calendar.events.delete({ calendarId: CALENDAR_ID, eventId: ev.id }).catch(() => {});
+    }
+    await calendar.events.insert({
+      calendarId: CALENDAR_ID,
+      requestBody: {
+        summary,
+        start: { dateTime: ev.start.toISOString() },
+        end: { dateTime: bookingStart.toISOString() }
+      }
+    });
+    await calendar.events.insert({
+      calendarId: CALENDAR_ID,
+      requestBody: {
+        summary,
+        start: { dateTime: bookingEnd.toISOString() },
+        end: { dateTime: ev.end.toISOString() }
+      }
+    });
+    return;
+  }
+
+  // Prekryv na začiatku bloku -> posunúť začiatok bloku na koniec rezervácie
+  if (bStart <= evStart && bEnd < evEnd && bEnd > evStart) {
+    if (ev.id) {
+      await calendar.events.patch({
+        calendarId: CALENDAR_ID,
+        eventId: ev.id,
+        requestBody: { start: { dateTime: bookingEnd.toISOString() } }
+      }).catch(() => {});
+    }
+    return;
+  }
+
+  // Prekryv na konci bloku -> skrátiť koniec bloku na začiatok rezervácie
+  if (bStart > evStart && bStart < evEnd && bEnd >= evEnd) {
+    if (ev.id) {
+      await calendar.events.patch({
+        calendarId: CALENDAR_ID,
+        eventId: ev.id,
+        requestBody: { end: { dateTime: bookingStart.toISOString() } }
+      }).catch(() => {});
+    }
+    return;
+  }
+}
+
+// 2. ZÁPIS REZERVÁCIE + INTELIGENTNÁ ÚPRAVA VOĽNÝCH BLOKOV (POST)
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { name, email, phone, instagram, slot, duration, type } = body;
+    const {
+      name,
+      email,
+      phone,
+      instagram,
+      slot,
+      duration,
+      type,
+      basePrice,
+      discountPercent,
+      discountCode,
+      codeDiscountPercent,
+      finalPrice,
+      customerNote
+    } = body;
 
     if (!slot) {
       return NextResponse.json({ error: 'Chýba vybraný termín' }, { status: 400 });
     }
 
-    // Vytiahneme čistý lokálny čas bez ohľadu na posuny servera (napr. "2026-07-03T16:00:00")
-    const localDateTimeString = slot.slice(0, 19);
-    
-    // Bezpečne vypočítame koniec masáže v čistom lokálnom formáte
-    const dummyDate = new Date(localDateTimeString + 'Z');
-    const dummyEndDate = new Date(dummyDate.getTime() + (duration || 60) * 60000);
-    const endLocalDateTimeString = dummyEndDate.toISOString().slice(0, 19);
+    // "slot" je presný ISO string (UTC), ktorý frontend vytvoril priamo z reálneho
+    // Date objektu (žiadna manuálna manipulácia s časovým pásmom netreba).
+    const bookingStart = new Date(slot);
+    const bookingEnd = new Date(bookingStart.getTime() + (duration || 60) * 60000);
 
     // ==========================================
-    // 🔥 KROK A: NEPRIESTRELNÉ VYMAZANIE STARÉHO SLOTU
+    // 🔥 KROK A: NÁJDENIE A ÚPRAVA VŠETKÝCH "FSM" BLOKOV ZASIAHNUTÝCH REZERVÁCIOU
+    // (bežné aj zľavové - každý sa posudzuje samostatne podľa vlastného prekryvu)
     // ==========================================
     try {
-      // Vyhľadáme udalosti v okne +/- 12 hodín okolo zvoleného času pre 100% istotu zachytenia
-      const timeMinFetch = new Date(dummyDate.getTime() - 12 * 60 * 60 * 1000).toISOString();
-      const timeMaxFetch = new Date(dummyDate.getTime() + 12 * 60 * 60 * 1000).toISOString();
+      const timeMinFetch = new Date(bookingStart.getTime() - 24 * 60 * 60 * 1000).toISOString();
+      const timeMaxFetch = new Date(bookingStart.getTime() + 24 * 60 * 60 * 1000).toISOString();
 
       const existingEvents = await calendar.events.list({
-        calendarId: process.env.GOOGLE_CALENDAR_ID,
+        calendarId: CALENDAR_ID,
         timeMin: timeMinFetch,
         timeMax: timeMaxFetch,
         singleEvents: true,
       });
-      
-      // Nájdeme správny slot pomocou striktného prevodu na bratislavský časový text
-      const slotToDelete = existingEvents.data.items?.find((item) => {
-        if (!item.start?.dateTime) return false;
-        
-        const isTargetSlot = item.summary?.toLowerCase().includes('fsm');
-        
-        // Prevedieme akýkoľvek čas z kalendára na čistý formát "YYYY-MM-DDTHH:mm:ss" v bratislavskom pásme
-        const itemDate = new Date(item.start.dateTime);
-        const itemBratislavaStr = itemDate.toLocaleString('sv-SE', { timeZone: 'Europe/Bratislava' }).replace(' ', 'T');
-        
-        // Porovnáme textové reťazce (napr. "2026-07-03T16:00:00" === "2026-07-03T16:00:00")
-        return isTargetSlot && itemBratislavaStr.startsWith(localDateTimeString);
-      });
 
-      if (slotToDelete?.id) {
-        console.log(`Úspešne mažem starý slot s ID: ${slotToDelete.id}`);
-        await calendar.events.delete({
-          calendarId: process.env.GOOGLE_CALENDAR_ID,
-          eventId: slotToDelete.id,
-        });
+      const fsmRelated: FsmEvent[] = (existingEvents.data.items || [])
+        .filter(
+          (item) =>
+            item.summary &&
+            FSM_REGEX.test(item.summary) &&
+            item.start?.dateTime &&
+            item.end?.dateTime
+        )
+        .map((item) => ({
+          id: item.id,
+          summary: item.summary,
+          start: new Date(item.start!.dateTime as string),
+          end: new Date(item.end!.dateTime as string)
+        }));
+
+      // Spracované postupne (nie paralelne), aby sa predišlo konfliktom pri viacerých zásahoch naraz
+      for (const ev of fsmRelated) {
+        await adjustAvailabilityEvent(ev, bookingStart, bookingEnd);
       }
-    } catch (deleteError) {
-      console.error('Chyba pri mazaní starého slotu:', deleteError);
+    } catch (adjustError) {
+      console.error('Chyba pri úprave voľných blokov:', adjustError);
     }
 
     // ==========================================
-    // 📝 KROK B: ZÁPIS NOVEJ REZERVÁCIE V BRATISLAVSKOM ČASE A NA ZELENO
+    // 📝 KROK B: ZÁPIS NOVEJ REZERVÁCIE (ZELENÁ FARBA) S KOMPLETNÝMI CENOVÝMI ÚDAJMI
     // ==========================================
+    const priceLines: string[] = [];
+    priceLines.push(`Pôvodná cena: ${basePrice ?? '-'}€`);
+    if (discountPercent && discountPercent > 0) {
+      priceLines.push(`Zľava z termínu: -${discountPercent}%`);
+    }
+    if (discountCode && codeDiscountPercent && codeDiscountPercent > 0) {
+      priceLines.push(`Zľavový kód: ${discountCode} (-${codeDiscountPercent}%)`);
+    }
+    priceLines.push(`Finálna cena: ${finalPrice ?? basePrice ?? '-'}€`);
+
+    const descriptionParts = [
+      `Meno: ${name}`,
+      `Email: ${email || '-'}`,
+      `Tel: ${phone || '-'}`,
+      `IG: ${instagram || '-'}`,
+      `Balíček: ${type} (${duration} min)`,
+      '',
+      ...priceLines
+    ];
+
+    if (customerNote && String(customerNote).trim()) {
+      descriptionParts.push('', `Poznámka klienta: ${String(customerNote).trim()}`);
+    }
+
     const event = {
       summary: `REZERVÁCIA: ${type} - ${name}`,
-      description: `Meno: ${name}\nEmail: ${email}\nTel: ${phone}\nIG: ${instagram}\nBalíček: ${type} (${duration} min)`,
-      start: { 
-        dateTime: localDateTimeString,
-        timeZone: 'Europe/Bratislava'
-      },
-      end: { 
-        dateTime: endLocalDateTimeString,
-        timeZone: 'Europe/Bratislava'
-      },
-      colorId: '10', // 🔥 Nastaví krásnu sýtozelenú farbu v Google Kalendári
+      description: descriptionParts.join('\n'),
+      start: { dateTime: bookingStart.toISOString() },
+      end: { dateTime: bookingEnd.toISOString() },
+      colorId: '10', // sýtozelená farba v Google Kalendári
     };
 
     const response = await calendar.events.insert({
-      calendarId: process.env.GOOGLE_CALENDAR_ID,
+      calendarId: CALENDAR_ID,
       requestBody: event,
     });
 
