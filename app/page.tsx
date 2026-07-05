@@ -103,6 +103,7 @@ export default function Home() {
       step2Title: '2. Krok: Vyberte si optimálny balíček',
       step3Title: '3. Krok: Vyberte si exkluzívny voľný termín z kalendára',
       selected: 'Vybrané',
+      selectedTerm: 'Vybraný termín',
       minutes: 'minút',
       backToLevel: 'Späť na výber úrovne',
       backToPackages: 'Späť na výber balíčka',
@@ -166,6 +167,7 @@ export default function Home() {
       step2Title: '2. Step: Choose your package',
       step3Title: '3. Step: Choose an exclusive available slot from the calendar',
       selected: 'Selected',
+      selectedTerm: 'Selected time slot',
       minutes: 'minutes',
       backToLevel: 'Back to level selection',
       backToPackages: 'Back to package selection',
@@ -1075,7 +1077,7 @@ const packagesData = packagesTranslations[lang];
                         <div className={`text-center text-sm font-bold ${
                           selectedDiscountPercent > 0 ? 'text-cyan-300' : 'text-[#8EB69B]'
                         }`}>
-                          {t.selected} termín: <span className="text-[#DAF1DE]">{new Date(selectedSlot).toLocaleDateString('sk-SK')} o {new Date(selectedSlot).toLocaleTimeString('sk-SK', {hour: '2-digit', minute:'2-digit'})}</span>
+                          {t.selectedTerm}: <span className="text-[#DAF1DE]">{new Date(selectedSlot).toLocaleDateString('sk-SK')} o {new Date(selectedSlot).toLocaleTimeString('sk-SK', {hour: '2-digit', minute:'2-digit'})}</span>
                         </div>
                 
                         {/* CENOVÝ SÚHRN */}
