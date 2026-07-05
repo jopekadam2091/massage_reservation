@@ -1253,20 +1253,10 @@ const packagesData = packagesTranslations[lang];
                     </button>
                   </div>
                 )}
-                    <button 
-                      type="button" 
-                      onClick={() => setMassageStep(2)} 
-                      className="mx-auto mt-6 flex items-center justify-center space-x-2 px-6 py-3.5 rounded-xl border-2 border-[#1E293B] text-[#1E293B] bg-transparent font-bold text-xs tracking-wider uppercase hover:bg-[#1E293B] hover:text-white transition-all duration-200 shadow-sm"
-                    >
-                      <span>⬅</span> <span>{t.backToPackages}</span>
-                    </button>
-                  </div>
-                )}
               </div>
-              
             )}
           </main>
-        </>/*  */
+        </>
       )}
     </div>
   );
