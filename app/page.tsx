@@ -5,6 +5,19 @@ type LangType = 'SK' | 'EN';
 type ModeType = 'photo' | 'massage' | null;
 type MassageType = 'Klasik' | 'VIP';
 type ContactMethod = 'phone' | 'instagram' | 'email';
+type Feature = { text: string; icon?: 'chili' };
+
+type PackageItem = {
+  duration: number;
+  badge: string;
+  desc: string;
+  features: Feature[];
+};
+
+type PackagesData = {
+  Klasik: PackageItem[];
+  VIP: PackageItem[];
+};
 
 type TimeSlot = {
   formattedTime: string;    // napr. "21:45"
@@ -513,7 +526,7 @@ export default function Home() {
     return true;
   };
 
- const packagesTranslations = {
+ const packagesTranslations: Record<'SK' | 'EN', PackagesData> = {
   SK: {
     Klasik: [
   {
