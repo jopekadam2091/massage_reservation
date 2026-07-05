@@ -2,7 +2,6 @@
 import { useState, useEffect } from 'react';
 
 type LangType = 'SK' | 'EN';
-type ModeType = 'photo' | 'massage' | null;
 type MassageType = 'Klasik' | 'VIP';
 type ContactMethod = 'phone' | 'instagram' | 'email';
 type Feature = { text: string; icon?: 'chili' | 'check' };
@@ -36,7 +35,6 @@ const featureIcons: Record<string, string> = {
 export default function Home() {
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   const [lang, setLang] = useState<LangType>('SK');
-  const [mode, setMode] = useState<ModeType>(null);
 
   // --- STAVY PRE MASÁŽNY STEPPER ---
   const [massageStep, setMassageStep] = useState<number>(1);
@@ -76,22 +74,6 @@ export default function Home() {
   // --- PREKLADY ---
   const translations = {
     SK: {
-      photo: 'Fotografia',
-      massage: 'Masáže',
-      photoSubtitle: 'Ateliér na byte v Bratislava alebo fotenie v exteriéri podľa dohody.',
-      photoTitle: 'Zachytenie Vášho Momentu',
-      photoFormTitle: 'Dohodnúť umelecké fotenie',
-      photoType: 'Typ fotenia',
-      portrait: 'Portrét',
-      boudoir: 'Budoár',
-      artPhoto: 'Umelecká fotografia',
-      environment: 'Prostredie',
-      interior: 'Interiér (u mňa na byte)',
-      exterior: 'Exteriér (podľa dohody)',
-      descPlaceholder: 'Popíšte, akú náladu, svetlo alebo príbeh chcete fotografiou zachytiť...',
-      descLabel: 'Vaša predstava a popis',
-      name: 'Vaše meno',
-      send: 'Poslať správu a dohodnúť termín',
       massageTitle: 'Rezervácia masáže',
       massageSubtitle: 'Exkluzívne privátne masáže. Rezervácia možná len cez voľné sloty.',
       step1: 'Úroveň', step2: 'Balíček', step3: 'Termín',
@@ -114,6 +96,7 @@ export default function Home() {
       phone: 'Telefón',
       email: 'Email',
       instagram: 'Instagram',
+      name: 'Vaše meno',
       selectBtn: 'Vybrať tento balíček',
       months: ['Január', 'Február', 'Marec', 'Apríl', 'Máj', 'Jún', 'Júl', 'August', 'September', 'Október', 'November', 'December'],
       mon: 'PO', tue: 'UT', wed: 'ST', thu: 'ŠT', fri: 'PI', sat: 'SO', sun: 'NE',
@@ -140,22 +123,6 @@ export default function Home() {
       selectLevelBtn: 'Vybrať túto úroveň'
     },
     EN: {
-      photo: 'Photography',
-      massage: 'Massage',
-      photoTitle: 'Capturing Your Moment',
-      photoSubtitle: 'Studio in an apartment in Bratislava or outdoor shooting by agreement.',
-      photoFormTitle: 'Arrange an artistic photoshoot',
-      photoType: 'Photoshoot type',
-      portrait: 'Portrait',
-      boudoir: 'Boudoir',
-      artPhoto: 'Artistic photography',
-      environment: 'Environment',
-      interior: 'Interior (at my apartment)',
-      exterior: 'Exterior (by agreement)',
-      descPlaceholder: 'Describe what mood, light or story you want to capture...',
-      descLabel: 'Your vision and description',
-      name: 'Your name',
-      send: 'Send message and arrange date',
       massageTitle: 'Massage reservation',
       massageSubtitle: 'Exclusive private massages. Booking only via available slots.',
       step1: 'Level', step2: 'Package', step3: 'Date',
@@ -178,6 +145,7 @@ export default function Home() {
       phone: 'Phone',
       email: 'Email',
       instagram: 'Instagram',
+      name: 'Your name',
       selectBtn: 'Select this package',
       months: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
       mon: 'MO', tue: 'TU', wed: 'WE', thu: 'TH', fri: 'FR', sat: 'SA', sun: 'SU',
@@ -507,7 +475,6 @@ export default function Home() {
 
       if (response.ok) {
         setShowSuccessPopup(true);
-        setMode(null);
         setMassageStep(1);
         setSelectedType(null);
         setSelectedDuration(null);
@@ -699,9 +666,7 @@ export default function Home() {
 };
 const packagesData = packagesTranslations[lang];
   return (
-    <div className={`min-h-screen transition-all duration-700 ease-in-out pb-20 ${
-      mode === 'photo' ? 'bg-[#1a1a1a] text-white font-figtree' : mode === 'massage' ? 'bg-[#051F20] text-[#DAF1DE]' : 'bg-[#121212] text-white'
-    }`}>
+    <div className="min-h-screen transition-all duration-700 ease-in-out pb-20 bg-[#051F20] text-[#DAF1DE]">
 
       {/* ÚSPEŠNÁ REZERVÁCIA - OVERLAY */}
       {showSuccessPopup && (
@@ -737,548 +702,492 @@ const packagesData = packagesTranslations[lang];
         </button>
       </div>
 
-      {/* RÁZCESTIE */}
-  {mode === null && (
-  <div className="flex flex-col h-screen w-full items-center justify-center">
-    <button
-      type="button"
-      disabled
-      className="w-full h-1/2 flex flex-col items-center justify-center transition-all duration-500 border-b border-neutral-800 font-figtree opacity-40 cursor-not-allowed"
-    >
-      <div
-        className="w-32 h-32 mb-2"
-        style={{
-          backgroundColor: '#7a7a7a',
-          WebkitMask: 'url(/logo_cam.svg) no-repeat center / contain',
-          mask: 'url(/logo_cam.svg) no-repeat center / contain',
-        }}
-      />
-      <span className="text-[2.5rem] font-light tracking-widest uppercase">{t.photo}</span>
-    </button>
-    <button type="button" onClick={() => setMode('massage')} className="w-full h-1/2 flex flex-col items-center justify-center group transition-all duration-500 font-chillax text-white hover:text-[#8EB69B]">
-      <div
-        className="w-32 h-32 mb-2 bg-[#7a7a7a] group-hover:bg-[#8EB69B] group-hover:scale-110 transition-all duration-300"
-        style={{
-          WebkitMask: 'url(/logo_massage.svg) no-repeat center / contain',
-          mask: 'url(/logo_massage.svg) no-repeat center / contain',
-        }}
-      />
-      <span className="text-[2.5rem] font-light tracking-widest uppercase">{t.massage}</span>
-    </button>
-  </div>
-)}
-      {/* OBSAH A KROKY */}
-      {mode !== null && (
-        <>
-          <header className="p-6 max-w-4xl mx-auto flex justify-between items-center">
-            <button type="button" onClick={() => { setMode(null); setMassageStep(1); setSelectedType(null); setSelectedDuration(null); setSelectedDateKey(null); setSelectedSlot(null); }} className="text-xs uppercase tracking-widest font-chillax font-bold px-4 py-2 rounded-full border border-current bg-white/5 transition hover:bg-white/10 opacity-80 hover:opacity-100">
-              {t.homeBtn}
-            </button>
-          </header>
+      <header className="p-6 max-w-4xl mx-auto flex justify-between items-center">
+        <button
+          type="button"
+          onClick={() => {
+            setMassageStep(1);
+            setSelectedType(null);
+            setSelectedDuration(null);
+            setSelectedDateKey(null);
+            setSelectedSlot(null);
+          }}
+          className="text-xs uppercase tracking-widest font-chillax font-bold px-4 py-2 rounded-full border border-current bg-white/5 transition hover:bg-white/10 opacity-80 hover:opacity-100"
+        >
+          {t.homeBtn}
+        </button>
+      </header>
 
-          <main className="max-w-4xl mx-auto p-6 mt-4">
-            {mode === 'photo' ? (
-              <div className="max-w-xl mx-auto space-y-8 animate-fadeIn">
-                <div>
-                  <h1 className="text-3xl font-extrabold mb-2">{t.photoTitle}</h1>
-                  <p className="text-gray-400 text-sm">{t.photoSubtitle}</p>
-                </div>
-                <form onSubmit={(e) => { e.preventDefault(); alert('Brief sent!'); }} className="bg-neutral-900 p-6 rounded-xl border border-neutral-800 space-y-6">
-                  <h2 className="text-lg font-bold border-b border-neutral-800 pb-2">{t.photoFormTitle}</h2>
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-xs font-semibold text-gray-400 uppercase mb-2">{t.photoType}</label>
-                      <select className="w-full p-3 bg-neutral-800 border border-neutral-700 rounded text-white focus:outline-none"><option>{t.portrait}</option><option>{t.boudoir}</option><option>{t.artPhoto}</option></select>
-                    </div>
-                    <div>
-                      <label className="block text-xs font-semibold text-gray-400 uppercase mb-2">{t.environment}</label>
-                      <select className="w-full p-3 bg-neutral-800 border border-neutral-700 rounded text-white focus:outline-none"><option>{t.interior}</option><option>{t.exterior}</option></select>
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-400 uppercase mb-2">{t.descLabel}</label>
-                    <textarea rows={4} placeholder={t.descPlaceholder} className="w-full p-3 bg-neutral-800 border border-neutral-700 rounded text-white focus:outline-none" required />
-                  </div>
-                  <div className="space-y-4 pt-4 border-t border-neutral-800">
-                    <input type="text" placeholder={t.name} required className="w-full p-3 bg-neutral-800 border border-neutral-700 rounded text-white focus:outline-none" />
-                    <input type="email" placeholder={t.email} required className="w-full p-3 bg-neutral-800 border border-neutral-700 rounded text-white focus:outline-none" />
-                  </div>
-                  <button type="submit" className="w-full bg-white text-black py-3 rounded font-bold hover:bg-gray-200 transition">{t.send}</button>
-                </form>
+      <main className="max-w-4xl mx-auto p-6 mt-4">
+        <div className="space-y-8 animate-fadeIn">
+          <div className="max-w-xl mx-auto text-center">
+            <h1 className="text-3xl font-extrabold mb-1 text-[#DAF1DE] font-chillax">{t.massageTitle}</h1>
+            <p className="text-[#8EB69B] text-sm">{t.massageSubtitle}</p>
+          </div>
+          <div className="flex justify-between max-w-xs mx-auto mb-8">
+            {[1, 2, 3].map((step) => (
+              <div key={step} className="flex items-center space-x-1">
+                <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold border transition ${massageStep === step ? 'bg-[#8EB69B] text-[#051F20] border-[#8EB69B]' : 'bg-[#163832] text-[#8EB69B] border-[#235347]'}`}>{step}</div>
+                <span className={`text-[10px] font-semibold ${massageStep === step ? 'text-[#DAF1DE]' : 'text-[#8EB69B]'}`}>{step === 1 ? t.step1 : step === 2 ? t.step2 : t.step3}</span>
               </div>
-            ) : (
-              <div className="space-y-8 animate-fadeIn">
-               <div className="max-w-xl mx-auto text-center">
-                <h1 className="text-3xl font-extrabold mb-1 text-[#DAF1DE] font-chillax">{t.massageTitle}</h1>
-                <p className="text-[#8EB69B] text-sm">{t.massageSubtitle}</p>
-              </div>
-                <div className="flex justify-between max-w-xs mx-auto mb-8">
-                  {[1, 2, 3].map((step) => (
-                    <div key={step} className="flex items-center space-x-1">
-                      <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold border transition ${massageStep === step ? 'bg-[#8EB69B] text-[#051F20] border-[#8EB69B]' : 'bg-[#163832] text-[#8EB69B] border-[#235347]'}`}>{step}</div>
-                      <span className={`text-[10px] font-semibold ${massageStep === step ? 'text-[#DAF1DE]' : 'text-[#8EB69B]'}`}>{step === 1 ? t.step1 : step === 2 ? t.step2 : t.step3}</span>
-                    </div>
-                  ))}
-                </div>
-                {/* KROK 1 */}
-                {massageStep === 1 && (
-                  <div className="max-w-3xl mx-auto">
-                    <h2 className="text-lg font-bold text-center text-[#DAF1DE] mb-6">{t.step1Title}</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch pt-3">
-                      {/* CLASSIC */}
-                      <div className="relative flex flex-col h-full">
-                        <div className="flex flex-col h-full rounded-2xl border border-[#235347] bg-[#0B2B26]/70 p-6 transition hover:border-[#8EB69B]/50">
-                          <h3 className="font-bold text-lg text-[#DAF1DE] mb-2">{t.klasikTitle}</h3>
-                          <p className="text-xs text-[#8EB69B] flex-grow mb-5">{t.klasikDesc}</p>
-                          <button 
-                            type="button" 
-                            onClick={() => { setSelectedType('Klasik'); setMassageStep(2); }} 
-                            className="w-full py-3 rounded-xl font-bold text-xs uppercase tracking-wider bg-transparent border border-[#8EB69B]/50 text-[#DAF1DE] hover:border-[#8EB69B] hover:bg-[#163832] transition"
-                          >
-                            {t.selectLevelBtn}
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* VIP PREMIUM */}
-                      <div className="relative flex flex-col h-full md:scale-[1.03] z-10">
-                        <div className="flex flex-col h-full rounded-2xl border-2 border-[#8EB69B] bg-gradient-to-b from-[#1b453d] to-[#0B2B26] shadow-[0_0_45px_rgba(142,182,155,0.3)] p-6 transition">
-                          <h3 className="font-extrabold text-lg text-[#DAF1DE] mb-2">{t.vipTitle}</h3>
-                          <p className="text-xs text-[#8EB69B] font-medium flex-grow mb-5">{t.vipDesc}</p>
-                          <button 
-                            type="button" 
-                            onClick={() => { setSelectedType('VIP'); setMassageStep(2); }} 
-                            className="w-full py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider bg-[#DAF1DE] text-[#051F20] shadow-lg hover:bg-white hover:shadow-xl hover:-translate-y-0.5 transition"
-                          >
-                            {t.selectLevelBtn}
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* KROK 2 */}
-                {massageStep === 2 && selectedType && (
-                  <div className="space-y-6">
-                    <h2 className="text-2xl font-bold text-center text-[#DAF1DE]">{t.step2Title} ({selectedType === 'Klasik' ? t.klasikTitle : t.vipTitle})</h2>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-4 items-stretch pt-3">
-                      {packagesData[selectedType].map((pkg) => {
-                        const priceStr = selectedType === 'Klasik' 
-                          ? prices.Klasik[pkg.duration as 30 | 45 | 60] 
-                          : prices.VIP[pkg.duration as 45 | 60 | 90];
-                        
-                        const isMiddle = pkg.badge === 'Supreme' || pkg.badge === 'VIP Pro';
-                
-                        return (
-                          <div key={pkg.duration} className={`relative flex flex-col h-full transition-all ${
-                            isMiddle ? 'md:scale-[1.04] z-10' : ''
-                          }`}>
-                            {isMiddle && (
-                              <span className="absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap bg-[#DAF1DE] text-[#051F20] text-[10px] font-extrabold px-4 py-1.5 rounded-full shadow-lg uppercase tracking-wider z-20">
-                                {t.mostPopularLabel}
-                              </span>
-                            )}
-                            <div className={`flex flex-col h-full rounded-3xl border transition-all overflow-hidden ${
-                              isMiddle
-                                ? 'bg-gradient-to-b from-[#1b453d] to-[#0B2B26] border-2 border-[#8EB69B] shadow-[0_0_45px_rgba(142,182,155,0.3)]'
-                                : 'bg-[#0B2B26]/70 border-[#235347]'
-                            }`}>
-                              <div className={`p-6 pb-0 flex flex-col items-start ${isMiddle ? 'pt-8 min-h-[216px]' : 'min-h-[190px]'}`}>
-                                <span className={`px-3 py-1 text-[11px] font-bold tracking-wider uppercase rounded-full mb-4 ${
-                                  isMiddle ? 'bg-[#8EB69B] text-[#051F20]' : 'bg-[#235347] text-[#8EB69B]'
-                                }`}>
-                                  {pkg.badge}
-                                </span>
-                                <div className={`flex items-baseline mb-1 ${isMiddle ? 'text-[#DAF1DE]' : 'text-[#DAF1DE]/90'}`}>
-                                  <span className={`font-black tracking-tight ${isMiddle ? 'text-5xl' : 'text-3xl'}`}>{priceStr.split(' ')[0]}</span>
-                                  <span className="text-lg font-bold ml-1 text-[#8EB69B]">eur</span>
-                                  <span className="text-xs font-semibold text-[#8EB69B] ml-2">/ {pkg.duration} {t.minutes}</span>
-                                </div>
-                                <p className="text-xs text-[#8EB69B] mt-1">{pkg.desc}</p>
-                              </div>
-                  
-                              <div className="p-6 pt-4">
-                                <button 
-                                  type="button" 
-                                  onClick={() => { setSelectedDuration(pkg.duration); setMassageStep(3); }}
-                                  className={`w-full rounded-xl font-bold text-xs uppercase tracking-wider transition-all duration-300 ${
-                                    isMiddle 
-                                      ? 'py-4 bg-[#DAF1DE] text-[#051F20] shadow-lg hover:bg-white hover:shadow-xl hover:-translate-y-0.5' 
-                                      : 'py-3 bg-transparent border border-[#8EB69B]/50 text-[#DAF1DE] hover:border-[#8EB69B] hover:bg-[#163832]'
-                                  }`}
-                                >
-                                  {t.selectBtn}
-                                </button>
-                              </div>
-                  
-                              <div className="border-t border-[#235347] my-2 mx-6"></div>
-                  
-                              <div className="p-6 pt-2 flex-grow">
-                                <ul className="space-y-2.5 text-xs text-[#8EB69B]">
-                                  {pkg.features.map((feat, idx) => (
-                                    <li key={idx} className="flex items-start space-x-2">
-                                      <span className="w-4 flex-shrink-0 text-center text-[#8EB69B] font-bold">
-                                        {featureIcons[feat.icon ?? 'check']}
-                                      </span>
-                                      <span className={isMiddle ? 'text-[#DAF1DE]' : 'text-[#DAF1DE]/80'}>{feat.text}</span>
-                                    </li>
-                                  ))}
-                                </ul>
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                    
+            ))}
+          </div>
+          {/* KROK 1 */}
+          {massageStep === 1 && (
+            <div className="max-w-3xl mx-auto">
+              <h2 className="text-lg font-bold text-center text-[#DAF1DE] mb-6">{t.step1Title}</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch pt-3">
+                {/* CLASSIC */}
+                <div className="relative flex flex-col h-full">
+                  <div className="flex flex-col h-full rounded-2xl border border-[#235347] bg-[#0B2B26]/70 p-6 transition hover:border-[#8EB69B]/50">
+                    <h3 className="font-bold text-lg text-[#DAF1DE] mb-2">{t.klasikTitle}</h3>
+                    <p className="text-xs text-[#8EB69B] flex-grow mb-5">{t.klasikDesc}</p>
                     <button 
                       type="button" 
-                      onClick={() => setMassageStep(1)} 
-                      className="mx-auto flex items-center justify-center px-6 py-3.5 rounded-xl border-2 border-[#8EB69B] text-[#8EB69B] bg-[#8EB69B]/10 font-chillax font-bold text-xs tracking-wider uppercase hover:bg-[#8EB69B] hover:text-[#051F20] transition-all duration-200 shadow-sm"
+                      onClick={() => { setSelectedType('Klasik'); setMassageStep(2); }} 
+                      className="w-full py-3 rounded-xl font-bold text-xs uppercase tracking-wider bg-transparent border border-[#8EB69B]/50 text-[#DAF1DE] hover:border-[#8EB69B] hover:bg-[#163832] transition"
                     >
-                      {t.backToLevel}
+                      {t.selectLevelBtn}
                     </button>
                   </div>
-                )}
+                </div>
 
-                {/* KROK 3: PREPOJENÝ KALENDÁR */}
-                {massageStep === 3 && selectedType && selectedDuration && (
-                  <div className="bg-[#0B2B26] p-6 rounded-3xl border border-[#235347] text-[#DAF1DE] max-w-xl mx-auto">
-                    <h2 className="text-lg font-bold text-center text-[#DAF1DE] mb-2">{t.step3Title}</h2>
-                    <div className="p-3 bg-[#163832] rounded-xl text-xs text-center border border-[#235347] text-[#DAF1DE] mb-6">
-                      {t.selected}: <strong>{selectedType === 'Klasik' ? 'CLASSIC' : 'VIP PREMIUM'} - {selectedDuration} {t.minutes}</strong>
-                    </div>
-                
-                    {loadingCalendar ? (
-                      <div className="text-center py-8 text-xs font-semibold text-[#8EB69B]">{t.loading}</div>
-                    ) : (
-                      <div className="border border-[#235347] rounded-2xl p-4 bg-[#051F20]/60 mb-6">
-                        <div className="flex justify-between items-center mb-4 px-2">
-                          <span className="text-base font-bold tracking-tight text-[#DAF1DE]">
-                            {t.months[currentMonth]} {currentYear}
+                {/* VIP PREMIUM */}
+                <div className="relative flex flex-col h-full md:scale-[1.03] z-10">
+                  <div className="flex flex-col h-full rounded-2xl border-2 border-[#8EB69B] bg-gradient-to-b from-[#1b453d] to-[#0B2B26] shadow-[0_0_45px_rgba(142,182,155,0.3)] p-6 transition">
+                    <h3 className="font-extrabold text-lg text-[#DAF1DE] mb-2">{t.vipTitle}</h3>
+                    <p className="text-xs text-[#8EB69B] font-medium flex-grow mb-5">{t.vipDesc}</p>
+                    <button 
+                      type="button" 
+                      onClick={() => { setSelectedType('VIP'); setMassageStep(2); }} 
+                      className="w-full py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider bg-[#DAF1DE] text-[#051F20] shadow-lg hover:bg-white hover:shadow-xl hover:-translate-y-0.5 transition"
+                    >
+                      {t.selectLevelBtn}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* KROK 2 */}
+          {massageStep === 2 && selectedType && (
+            <div className="space-y-6">
+              <h2 className="text-2xl font-bold text-center text-[#DAF1DE]">{t.step2Title} ({selectedType === 'Klasik' ? t.klasikTitle : t.vipTitle})</h2>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-4 items-stretch pt-3">
+                {packagesData[selectedType].map((pkg) => {
+                  const priceStr = selectedType === 'Klasik' 
+                    ? prices.Klasik[pkg.duration as 30 | 45 | 60] 
+                    : prices.VIP[pkg.duration as 45 | 60 | 90];
+                  
+                  const isMiddle = pkg.badge === 'Supreme' || pkg.badge === 'VIP Pro';
+          
+                  return (
+                    <div key={pkg.duration} className={`relative flex flex-col h-full transition-all ${
+                      isMiddle ? 'md:scale-[1.04] z-10' : ''
+                    }`}>
+                      {isMiddle && (
+                        <span className="absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap bg-[#DAF1DE] text-[#051F20] text-[10px] font-extrabold px-4 py-1.5 rounded-full shadow-lg uppercase tracking-wider z-20">
+                          {t.mostPopularLabel}
+                        </span>
+                      )}
+                      <div className={`flex flex-col h-full rounded-3xl border transition-all overflow-hidden ${
+                        isMiddle
+                          ? 'bg-gradient-to-b from-[#1b453d] to-[#0B2B26] border-2 border-[#8EB69B] shadow-[0_0_45px_rgba(142,182,155,0.3)]'
+                          : 'bg-[#0B2B26]/70 border-[#235347]'
+                      }`}>
+                        <div className={`p-6 pb-0 flex flex-col items-start ${isMiddle ? 'pt-8 min-h-[216px]' : 'min-h-[190px]'}`}>
+                          <span className={`px-3 py-1 text-[11px] font-bold tracking-wider uppercase rounded-full mb-4 ${
+                            isMiddle ? 'bg-[#8EB69B] text-[#051F20]' : 'bg-[#235347] text-[#8EB69B]'
+                          }`}>
+                            {pkg.badge}
                           </span>
-                          <div className="flex space-x-2">
-                            <button 
-                              type="button" 
-                              onClick={handlePrevMonth}
-                              className="p-1.5 px-3 bg-[#235347] border border-[#235347] rounded-lg text-xs font-bold text-[#DAF1DE] hover:bg-[#8EB69B] hover:text-[#051F20] transition shadow-sm"
-                            >
-                              ←
-                            </button>
-                            <button 
-                              type="button" 
-                              onClick={handleNextMonth}
-                              className="p-1.5 px-3 bg-[#235347] border border-[#235347] rounded-lg text-xs font-bold text-[#DAF1DE] hover:bg-[#8EB69B] hover:text-[#051F20] transition shadow-sm"
-                            >
-                              →
-                            </button>
+                          <div className={`flex items-baseline mb-1 ${isMiddle ? 'text-[#DAF1DE]' : 'text-[#DAF1DE]/90'}`}>
+                            <span className={`font-black tracking-tight ${isMiddle ? 'text-5xl' : 'text-3xl'}`}>{priceStr.split(' ')[0]}</span>
+                            <span className="text-lg font-bold ml-1 text-[#8EB69B]">eur</span>
+                            <span className="text-xs font-semibold text-[#8EB69B] ml-2">/ {pkg.duration} {t.minutes}</span>
                           </div>
+                          <p className="text-xs text-[#8EB69B] mt-1">{pkg.desc}</p>
                         </div>
-                
-                        <div className="grid grid-cols-7 text-center text-[10px] font-bold text-[#8EB69B] mb-2 tracking-wider">
-                          <div>{t.mon}</div><div>{t.tue}</div><div>{t.wed}</div><div>{t.thu}</div><div>{t.fri}</div><div>{t.sat}</div><div>{t.sun}</div>
+            
+                        <div className="p-6 pt-4">
+                          <button 
+                            type="button" 
+                            onClick={() => { setSelectedDuration(pkg.duration); setMassageStep(3); }}
+                            className={`w-full rounded-xl font-bold text-xs uppercase tracking-wider transition-all duration-300 ${
+                              isMiddle 
+                                ? 'py-4 bg-[#DAF1DE] text-[#051F20] shadow-lg hover:bg-white hover:shadow-xl hover:-translate-y-0.5' 
+                                : 'py-3 bg-transparent border border-[#8EB69B]/50 text-[#DAF1DE] hover:border-[#8EB69B] hover:bg-[#163832]'
+                            }`}
+                          >
+                            {t.selectBtn}
+                          </button>
                         </div>
-                
-                        <div className="grid grid-cols-7 gap-1.5">
-                          {emptyCells.map((_, idx) => (
-                            <div key={`empty-${idx}`} className="p-2"></div>
-                          ))}
-                
-                          {daysArray.map((day) => {
-                            const dateKey = getDateKey(currentYear, currentMonth, day);
-                            const daySlots = slotsByDate[dateKey] || [];
-                
-                            const validSlots = daySlots.filter((slot) =>
-                              isValidSlotDuration(slot.availableMinutes, selectedDuration)
-                            );
-                            const hasValidSlots = validSlots.length > 0;
-                
-                            const dayDiscount = validSlots.reduce(
-                              (max, s) => Math.max(max, s.discountPercent || 0),
-                              0
-                            );
-                
-                            return (
-                              <button
-                                type="button"
-                                key={dateKey}
-                                disabled={!hasValidSlots}
-                                onClick={() => { setSelectedDateKey(dateKey); setSelectedSlot(null); }}
-                                className={`relative aspect-square flex items-center justify-center text-xs font-semibold rounded-lg transition-all ${
-                                  hasValidSlots
-                                    ? dayDiscount > 0
-                                      ? selectedDateKey === dateKey
-                                        ? 'bg-cyan-500 text-white font-bold ring-2 ring-cyan-300 shadow-[0_0_14px_rgba(34,211,238,0.85)]'
-                                        : 'bg-[#0B2B26] text-cyan-300 font-bold border border-cyan-400/60 shadow-[0_0_10px_rgba(34,211,238,0.45)] hover:border-cyan-300 hover:bg-[#0f3330] hover:shadow-[0_0_14px_rgba(34,211,238,0.65)]'
-                                      : selectedDateKey === dateKey
-                                        ? 'bg-[#8EB69B] text-[#051F20] font-bold ring-2 ring-[#8EB69B] shadow'
-                                        : 'bg-[#163832] text-[#DAF1DE] font-bold hover:bg-[#235347] border border-[#235347] shadow-sm'
-                                    : 'text-[#235347] bg-[#0B2B26]/50 border border-[#235347]/40 opacity-60 cursor-not-allowed'
-                                }`}
-                              >
-                                {day}
-                                {hasValidSlots && dayDiscount > 0 && (
-                                  <span className="absolute -top-2 -right-2 bg-cyan-500 text-white text-[10px] font-extrabold px-1.5 py-0.5 rounded-full shadow-md leading-none min-w-[26px] text-center">
-                                    -{dayDiscount}%
-                                  </span>
-                                )}
-                              </button>
-                            );
-                          })}
+            
+                        <div className="border-t border-[#235347] my-2 mx-6"></div>
+            
+                        <div className="p-6 pt-2 flex-grow">
+                          <ul className="space-y-2.5 text-xs text-[#8EB69B]">
+                            {pkg.features.map((feat, idx) => (
+                              <li key={idx} className="flex items-start space-x-2">
+                                <span className="w-4 flex-shrink-0 text-center text-[#8EB69B] font-bold">
+                                  {featureIcons[feat.icon ?? 'check']}
+                                </span>
+                                <span className={isMiddle ? 'text-[#DAF1DE]' : 'text-[#DAF1DE]/80'}>{feat.text}</span>
+                              </li>
+                            ))}
+                          </ul>
                         </div>
                       </div>
-                    )}
-                
-                    {selectedDateKey && slotsByDate[selectedDateKey] && (
-                      <div className="animate-fadeIn space-y-2 mb-6 bg-[#051F20]/60 border border-[#235347] p-4 rounded-xl">
-                        <p className="text-xs font-bold text-[#8EB69B]">{t.chooseTime}</p>
-                        <div className="grid grid-cols-3 gap-2">
-                          {slotsByDate[selectedDateKey].map((slot) => {
-                            if (!isValidSlotDuration(slot.availableMinutes, selectedDuration)) {
-                              return null;
-                            }
-                
-                            const hasDiscount = slot.discountPercent > 0;
-                
-                            return (
-                              <button
-                                type="button"
-                                key={slot.startIso}
-                                onClick={() => setSelectedSlot(slot.startIso)}
-                                className={`relative p-2.5 text-xs text-center font-bold rounded-lg border transition ${
-                                  selectedSlot === slot.startIso
-                                    ? hasDiscount
-                                      ? 'bg-cyan-500 text-white border-cyan-400 shadow-[0_0_12px_rgba(34,211,238,0.85)]'
-                                      : 'bg-[#8EB69B] text-[#051F20] border-[#8EB69B] shadow'
-                                    : hasDiscount
-                                      ? 'bg-[#0B2B26] border-cyan-400/60 text-cyan-300 hover:border-cyan-300 hover:bg-[#0f3330] shadow-[0_0_8px_rgba(34,211,238,0.4)] hover:shadow-[0_0_10px_rgba(34,211,238,0.6)]'
-                                      : 'bg-[#163832] border-[#235347] text-[#DAF1DE] hover:border-[#8EB69B]'
-                                }`}
-                              >
-                                {slot.formattedTime}
-                                {hasDiscount && (
-                                  <span className="absolute -top-2 -right-2 bg-cyan-500 text-white text-[10px] font-extrabold px-1.5 py-0.5 rounded-full shadow-md leading-none min-w-[26px] text-center">
-                                    -{slot.discountPercent}%
-                                  </span>
-                                )}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    )}
-                
-                    {/* FINÁLNY REZERVAČNÝ FORMULÁR */}
-                    {selectedSlot && (
-                      <form onSubmit={handleBookingSubmit} className="space-y-4 pt-4 border-t border-[#235347] mt-4 animate-fadeIn">
-                        <h3 className="font-bold text-xs text-[#8EB69B]">{t.contactTitle}</h3>
-                        <div className={`text-center text-sm font-bold ${
-                          selectedDiscountPercent > 0 ? 'text-cyan-300' : 'text-[#8EB69B]'
-                        }`}>
-                          {t.selectedTerm}: <span className="text-[#DAF1DE]">{new Date(selectedSlot).toLocaleDateString('sk-SK')} o {new Date(selectedSlot).toLocaleTimeString('sk-SK', {hour: '2-digit', minute:'2-digit'})}</span>
-                        </div>
-                
-                        {/* CENOVÝ SÚHRN */}
-                        <div className="p-4 rounded-xl border border-[#235347] bg-[#051F20]/60 space-y-3">
-                          <h3 className="font-bold text-[11px] uppercase tracking-wider text-[#8EB69B]">{t.summaryTitle}</h3>
-                
-                          <div className="space-y-2">
-                            <div className="flex justify-between items-center text-sm text-[#DAF1DE]">
-                              <span>{selectedType === 'Klasik' ? t.klasikTitle : t.vipTitle} · {selectedDuration} {t.minutes}</span>
-                              <span className={selectedDiscountPercent > 0 || appliedCodePercent > 0 ? 'line-through text-[#8EB69B]' : 'font-bold'}>
-                                {basePrice} €
-                              </span>
-                            </div>
-                            {selectedDiscountPercent > 0 && (
-                              <div className="flex justify-between items-center text-sm text-cyan-400 font-semibold">
-                                <span className="inline-flex items-center gap-1">
-                                  <span className="bg-cyan-500 text-white text-[9px] px-1.5 py-0.5 rounded-full uppercase tracking-wide">
-                                    {t.discountBadgeShort}
-                                  </span>
-                                  {t.discountApplied} (-{selectedDiscountPercent}%)
-                                </span>
-                                <span>-{Math.round(basePrice - priceAfterSlotDiscount)} €</span>
-                              </div>
-                            )}
-                          </div>
-                
-                          {/* ZĽAVOVÝ KÓD */}
-                          <div className="pt-2 border-t border-[#235347]">
-                            {!appliedCode ? (
-                              <div className="space-y-1.5">
-                                <label className="text-[11px] font-semibold text-[#8EB69B]">{t.discountCodeLabel}</label>
-                                <div className="flex gap-2">
-                                  <input
-                                    type="text"
-                                    value={discountCodeInput}
-                                    onChange={(e) => {
-                                      setDiscountCodeInput(e.target.value);
-                                      if (codeCheckStatus === 'invalid') setCodeCheckStatus('idle');
-                                    }}
-                                    placeholder={t.discountCodePlaceholder}
-                                    className="flex-grow p-2.5 border border-[#235347] rounded-lg text-xs bg-[#0B2B26] focus:outline-none focus:border-[#8EB69B] text-[#DAF1DE] uppercase placeholder:text-[#8EB69B]/70"
-                                  />
-                                  <button
-                                    type="button"
-                                    onClick={handleApplyDiscountCode}
-                                    disabled={!discountCodeInput.trim() || codeCheckStatus === 'checking'}
-                                    className="px-4 py-2 rounded-lg text-xs font-bold bg-[#8EB69B] text-[#051F20] hover:bg-[#DAF1DE] transition disabled:bg-[#235347] disabled:text-[#8EB69B] disabled:cursor-not-allowed"
-                                  >
-                                    {t.applyCodeBtn}
-                                  </button>
-                                </div>
-                                {codeCheckStatus === 'checking' && (
-                                  <p className="text-[10px] text-[#8EB69B]">{t.codeCheckingMsg}</p>
-                                )}
-                                {codeCheckStatus === 'invalid' && (
-                                  <p className="text-[10px] text-red-400 font-medium">{t.codeInvalidMsg}</p>
-                                )}
-                              </div>
-                            ) : (
-                              <div className="flex justify-between items-center text-sm text-emerald-400 font-semibold">
-                                <span className="inline-flex items-center gap-1.5">
-                                  <span className="bg-emerald-600 text-white text-[9px] px-1.5 py-0.5 rounded-full uppercase tracking-wide">
-                                    {appliedCode}
-                                  </span>
-                                  {t.codeDiscountLabel} (-{appliedCodePercent}%)
-                                </span>
-                                <span className="flex items-center gap-2">
-                                  -{Math.round(priceAfterSlotDiscount - finalPrice)} €
-                                  <button
-                                    type="button"
-                                    onClick={handleRemoveDiscountCode}
-                                    className="text-[10px] underline text-[#8EB69B] hover:text-[#DAF1DE]"
-                                  >
-                                    {t.removeCodeBtn}
-                                  </button>
-                                </span>
-                              </div>
-                            )}
-                          </div>
-                
-                          {(selectedDiscountPercent > 0 || appliedCodePercent > 0) && (
-                            <div className="flex justify-between items-center text-base font-extrabold text-[#DAF1DE] pt-2 border-t border-[#235347]">
-                              <span>{t.finalPriceLabel}</span>
-                              <span>{finalPrice} €</span>
-                            </div>
-                          )}
-                        </div>
-                
-                        {/* KONTAKTNÁ KARTA — meno + spôsoby kontaktu zlúčené do jedného boxu */}
-                        <div className="space-y-3 bg-[#051F20]/60 p-3 rounded-xl border border-[#235347]">
-                          <input 
-                            type="text" 
-                            placeholder={t.name} 
-                            required 
-                            value={clientName}
-                            onChange={(e) => setClientName(e.target.value)}
-                            className="w-full p-3 border border-[#235347] rounded-xl text-sm bg-[#0B2B26] focus:bg-[#163832] focus:outline-none focus:border-[#8EB69B] text-[#DAF1DE] placeholder:text-[#8EB69B]/70" 
-                          />
-                
-                          <p className="text-[11px] text-[#8EB69B] font-medium">{t.contactNotice}</p>
-                          
-                          <div className="space-y-1">
-                            <label className="flex items-center space-x-2 text-xs font-semibold cursor-pointer text-[#DAF1DE]">
-                              <input type="checkbox" checked={activeContacts.phone} onChange={() => handleContactCheckboxChange('phone')} className="rounded border-[#235347] text-[#8EB69B] focus:ring-[#8EB69B]" />
-                              <span>{t.phone}</span>
-                            </label>
-                            {activeContacts.phone && (
-                              <div className="flex space-x-2">
-                                <select 
-                                  value={phonePrefix} 
-                                  onChange={(e) => setPhonePrefix(e.target.value)}
-                                  className="p-2 border border-[#235347] rounded-lg text-xs bg-[#0B2B26] focus:outline-none text-[#DAF1DE] font-sans"
-                                >
-                                  <option value="+421">🇸🇰 +421</option>
-                                  <option value="+420">🇨🇿 +420</option>
-                                </select>
-                                <input 
-                                  type="tel" 
-                                  required 
-                                  placeholder="905 123 456" 
-                                  value={contactValues.phone} 
-                                  onChange={(e) => handlePhoneChange(e.target.value)} 
-                                  className="flex-grow p-2 border border-[#235347] rounded-lg text-xs bg-[#0B2B26] focus:outline-none text-[#DAF1DE] tracking-wider placeholder:text-[#8EB69B]/70" 
-                                />
-                              </div>
-                            )}
-                            {activeContacts.phone && contactValues.phone.length > 0 && contactValues.phone.length < 9 && (
-                              <p className="text-[10px] text-amber-400 font-medium pl-1">
-                                {lang === 'SK' ? 'Zadajte presne 9 číslic' : 'Enter exactly 9 digits'} ({contactValues.phone.length}/9)
-                              </p>
-                            )}
-                          </div>
-                
-                          <div className="space-y-1 pt-1">
-                            <label className="flex items-center space-x-2 text-xs font-semibold cursor-pointer text-[#DAF1DE]">
-                              <input type="checkbox" checked={activeContacts.instagram} onChange={() => handleContactCheckboxChange('instagram')} className="rounded border-[#235347] text-[#8EB69B] focus:ring-[#8EB69B]" />
-                              <span>{t.instagram}</span>
-                            </label>
-                            {activeContacts.instagram && (
-                              <input type="text" required placeholder="@uzivatel" value={contactValues.instagram} onChange={(e) => handleContactValueChange('instagram', e.target.value)} className="w-full p-2 border border-[#235347] rounded-lg text-xs bg-[#0B2B26] focus:outline-none text-[#DAF1DE] placeholder:text-[#8EB69B]/70" />
-                            )}
-                          </div>
-                
-                          <div className="space-y-1 pt-1">
-                            <label className="flex items-center space-x-2 text-xs font-semibold cursor-pointer text-[#DAF1DE]">
-                              <input type="checkbox" checked={activeContacts.email} onChange={() => handleContactCheckboxChange('email')} className="rounded border-[#235347] text-[#8EB69B] focus:ring-[#8EB69B]" />
-                              <span>{t.email}</span>
-                            </label>
-                            {activeContacts.email && (
-                              <input type="email" required placeholder="meno@domena.com" value={contactValues.email} onChange={(e) => handleContactValueChange('email', e.target.value)} className="w-full p-2 border border-[#235347] rounded-lg text-xs bg-[#0B2B26] focus:outline-none text-[#DAF1DE] placeholder:text-[#8EB69B]/70" />
-                            )}
-                          </div>
-                        </div>
-                
-                        <div className="space-y-1.5 bg-[#051F20]/60 p-3 rounded-xl border border-[#235347]">
-                          <label className="flex items-center space-x-2 text-xs font-semibold cursor-pointer text-[#DAF1DE]">
-                            <input
-                              type="checkbox"
-                              checked={wantsNote}
-                              onChange={() => setWantsNote((prev) => !prev)}
-                              className="rounded border-[#235347] text-[#8EB69B] focus:ring-[#8EB69B]"
-                            />
-                            <span>{t.noteCheckboxLabel}</span>
-                          </label>
-                          {wantsNote && (
-                            <textarea
-                              rows={3}
-                              value={customerNote}
-                              onChange={(e) => setCustomerNote(e.target.value)}
-                              placeholder={t.notePlaceholder}
-                              className="w-full p-2.5 border border-[#235347] rounded-lg text-xs bg-[#0B2B26] focus:outline-none text-[#DAF1DE] placeholder:text-[#8EB69B]/70"
-                            />
-                          )}
-                        </div>
-                
-                        <button 
-                          type="submit" 
-                          disabled={!isContactValid()}
-                          className={`w-full py-3 rounded-xl font-bold transition text-sm shadow-sm ${
-                            isContactValid() ? 'bg-[#8EB69B] text-[#051F20] hover:bg-[#DAF1DE] hover:text-[#051F20]' : 'bg-[#235347]/40 text-[#8EB69B] cursor-not-allowed'
+                    </div>
+                  );
+                })}
+              </div>
+              
+              <button 
+                type="button" 
+                onClick={() => setMassageStep(1)} 
+                className="mx-auto flex items-center justify-center px-6 py-3.5 rounded-xl border-2 border-[#8EB69B] text-[#8EB69B] bg-[#8EB69B]/10 font-chillax font-bold text-xs tracking-wider uppercase hover:bg-[#8EB69B] hover:text-[#051F20] transition-all duration-200 shadow-sm"
+              >
+                {t.backToLevel}
+              </button>
+            </div>
+          )}
+
+          {/* KROK 3: PREPOJENÝ KALENDÁR */}
+          {massageStep === 3 && selectedType && selectedDuration && (
+            <div className="bg-[#0B2B26] p-6 rounded-3xl border border-[#235347] text-[#DAF1DE] max-w-xl mx-auto">
+              <h2 className="text-lg font-bold text-center text-[#DAF1DE] mb-2">{t.step3Title}</h2>
+              <div className="p-3 bg-[#163832] rounded-xl text-xs text-center border border-[#235347] text-[#DAF1DE] mb-6">
+                {t.selected}: <strong>{selectedType === 'Klasik' ? 'CLASSIC' : 'VIP PREMIUM'} - {selectedDuration} {t.minutes}</strong>
+              </div>
+          
+              {loadingCalendar ? (
+                <div className="text-center py-8 text-xs font-semibold text-[#8EB69B]">{t.loading}</div>
+              ) : (
+                <div className="border border-[#235347] rounded-2xl p-4 bg-[#051F20]/60 mb-6">
+                  <div className="flex justify-between items-center mb-4 px-2">
+                    <span className="text-base font-bold tracking-tight text-[#DAF1DE]">
+                      {t.months[currentMonth]} {currentYear}
+                    </span>
+                    <div className="flex space-x-2">
+                      <button 
+                        type="button" 
+                        onClick={handlePrevMonth}
+                        className="p-1.5 px-3 bg-[#235347] border border-[#235347] rounded-lg text-xs font-bold text-[#DAF1DE] hover:bg-[#8EB69B] hover:text-[#051F20] transition shadow-sm"
+                      >
+                        ←
+                      </button>
+                      <button 
+                        type="button" 
+                        onClick={handleNextMonth}
+                        className="p-1.5 px-3 bg-[#235347] border border-[#235347] rounded-lg text-xs font-bold text-[#DAF1DE] hover:bg-[#8EB69B] hover:text-[#051F20] transition shadow-sm"
+                      >
+                        →
+                      </button>
+                    </div>
+                  </div>
+          
+                  <div className="grid grid-cols-7 text-center text-[10px] font-bold text-[#8EB69B] mb-2 tracking-wider">
+                    <div>{t.mon}</div><div>{t.tue}</div><div>{t.wed}</div><div>{t.thu}</div><div>{t.fri}</div><div>{t.sat}</div><div>{t.sun}</div>
+                  </div>
+          
+                  <div className="grid grid-cols-7 gap-1.5">
+                    {emptyCells.map((_, idx) => (
+                      <div key={`empty-${idx}`} className="p-2"></div>
+                    ))}
+          
+                    {daysArray.map((day) => {
+                      const dateKey = getDateKey(currentYear, currentMonth, day);
+                      const daySlots = slotsByDate[dateKey] || [];
+          
+                      const validSlots = daySlots.filter((slot) =>
+                        isValidSlotDuration(slot.availableMinutes, selectedDuration)
+                      );
+                      const hasValidSlots = validSlots.length > 0;
+          
+                      const dayDiscount = validSlots.reduce(
+                        (max, s) => Math.max(max, s.discountPercent || 0),
+                        0
+                      );
+          
+                      return (
+                        <button
+                          type="button"
+                          key={dateKey}
+                          disabled={!hasValidSlots}
+                          onClick={() => { setSelectedDateKey(dateKey); setSelectedSlot(null); }}
+                          className={`relative aspect-square flex items-center justify-center text-xs font-semibold rounded-lg transition-all ${
+                            hasValidSlots
+                              ? dayDiscount > 0
+                                ? selectedDateKey === dateKey
+                                  ? 'bg-cyan-500 text-white font-bold ring-2 ring-cyan-300 shadow-[0_0_14px_rgba(34,211,238,0.85)]'
+                                  : 'bg-[#0B2B26] text-cyan-300 font-bold border border-cyan-400/60 shadow-[0_0_10px_rgba(34,211,238,0.45)] hover:border-cyan-300 hover:bg-[#0f3330] hover:shadow-[0_0_14px_rgba(34,211,238,0.65)]'
+                                : selectedDateKey === dateKey
+                                  ? 'bg-[#8EB69B] text-[#051F20] font-bold ring-2 ring-[#8EB69B] shadow'
+                                  : 'bg-[#163832] text-[#DAF1DE] font-bold hover:bg-[#235347] border border-[#235347] shadow-sm'
+                              : 'text-[#235347] bg-[#0B2B26]/50 border border-[#235347]/40 opacity-60 cursor-not-allowed'
                           }`}
                         >
-                          {t.bookBtn}
+                          {day}
+                          {hasValidSlots && dayDiscount > 0 && (
+                            <span className="absolute -top-2 -right-2 bg-cyan-500 text-white text-[10px] font-extrabold px-1.5 py-0.5 rounded-full shadow-md leading-none min-w-[26px] text-center">
+                              -{dayDiscount}%
+                            </span>
+                          )}
                         </button>
-                      </form>
-                    )}
-                
-                    <button 
-                      type="button" 
-                      onClick={() => setMassageStep(2)} 
-                      className="mx-auto mt-6 flex items-center justify-center px-6 py-3.5 rounded-xl border-2 border-[#8EB69B] text-[#8EB69B] bg-[#8EB69B]/10 font-chillax font-bold text-xs tracking-wider uppercase hover:bg-[#8EB69B] hover:text-[#051F20] transition-all duration-200 shadow-sm"
-                    >
-                      {t.backToPackages}
-                    </button>
+                      );
+                    })}
                   </div>
-                )}
-              </div>
-            )}
-          </main>
-        </>
-      )}
+                </div>
+              )}
+          
+              {selectedDateKey && slotsByDate[selectedDateKey] && (
+                <div className="animate-fadeIn space-y-2 mb-6 bg-[#051F20]/60 border border-[#235347] p-4 rounded-xl">
+                  <p className="text-xs font-bold text-[#8EB69B]">{t.chooseTime}</p>
+                  <div className="grid grid-cols-3 gap-2">
+                    {slotsByDate[selectedDateKey].map((slot) => {
+                      if (!isValidSlotDuration(slot.availableMinutes, selectedDuration)) {
+                        return null;
+                      }
+          
+                      const hasDiscount = slot.discountPercent > 0;
+          
+                      return (
+                        <button
+                          type="button"
+                          key={slot.startIso}
+                          onClick={() => setSelectedSlot(slot.startIso)}
+                          className={`relative p-2.5 text-xs text-center font-bold rounded-lg border transition ${
+                            selectedSlot === slot.startIso
+                              ? hasDiscount
+                                ? 'bg-cyan-500 text-white border-cyan-400 shadow-[0_0_12px_rgba(34,211,238,0.85)]'
+                                : 'bg-[#8EB69B] text-[#051F20] border-[#8EB69B] shadow'
+                              : hasDiscount
+                                ? 'bg-[#0B2B26] border-cyan-400/60 text-cyan-300 hover:border-cyan-300 hover:bg-[#0f3330] shadow-[0_0_8px_rgba(34,211,238,0.4)] hover:shadow-[0_0_10px_rgba(34,211,238,0.6)]'
+                                : 'bg-[#163832] border-[#235347] text-[#DAF1DE] hover:border-[#8EB69B]'
+                          }`}
+                        >
+                          {slot.formattedTime}
+                          {hasDiscount && (
+                            <span className="absolute -top-2 -right-2 bg-cyan-500 text-white text-[10px] font-extrabold px-1.5 py-0.5 rounded-full shadow-md leading-none min-w-[26px] text-center">
+                              -{slot.discountPercent}%
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+          
+              {/* FINÁLNY REZERVAČNÝ FORMULÁR */}
+              {selectedSlot && (
+                <form onSubmit={handleBookingSubmit} className="space-y-4 pt-4 border-t border-[#235347] mt-4 animate-fadeIn">
+                  <h3 className="font-bold text-xs text-[#8EB69B]">{t.contactTitle}</h3>
+                  <div className={`text-center text-sm font-bold ${
+                    selectedDiscountPercent > 0 ? 'text-cyan-300' : 'text-[#8EB69B]'
+                  }`}>
+                    {t.selectedTerm}: <span className="text-[#DAF1DE]">{new Date(selectedSlot).toLocaleDateString('sk-SK')} o {new Date(selectedSlot).toLocaleTimeString('sk-SK', {hour: '2-digit', minute:'2-digit'})}</span>
+                  </div>
+          
+                  {/* CENOVÝ SÚHRN */}
+                  <div className="p-4 rounded-xl border border-[#235347] bg-[#051F20]/60 space-y-3">
+                    <h3 className="font-bold text-[11px] uppercase tracking-wider text-[#8EB69B]">{t.summaryTitle}</h3>
+          
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center text-sm text-[#DAF1DE]">
+                        <span>{selectedType === 'Klasik' ? t.klasikTitle : t.vipTitle} · {selectedDuration} {t.minutes}</span>
+                        <span className={selectedDiscountPercent > 0 || appliedCodePercent > 0 ? 'line-through text-[#8EB69B]' : 'font-bold'}>
+                          {basePrice} €
+                        </span>
+                      </div>
+                      {selectedDiscountPercent > 0 && (
+                        <div className="flex justify-between items-center text-sm text-cyan-400 font-semibold">
+                          <span className="inline-flex items-center gap-1">
+                            <span className="bg-cyan-500 text-white text-[9px] px-1.5 py-0.5 rounded-full uppercase tracking-wide">
+                              {t.discountBadgeShort}
+                            </span>
+                            {t.discountApplied} (-{selectedDiscountPercent}%)
+                          </span>
+                          <span>-{Math.round(basePrice - priceAfterSlotDiscount)} €</span>
+                        </div>
+                      )}
+                    </div>
+          
+                    {/* ZĽAVOVÝ KÓD */}
+                    <div className="pt-2 border-t border-[#235347]">
+                      {!appliedCode ? (
+                        <div className="space-y-1.5">
+                          <label className="text-[11px] font-semibold text-[#8EB69B]">{t.discountCodeLabel}</label>
+                          <div className="flex gap-2">
+                            <input
+                              type="text"
+                              value={discountCodeInput}
+                              onChange={(e) => {
+                                setDiscountCodeInput(e.target.value);
+                                if (codeCheckStatus === 'invalid') setCodeCheckStatus('idle');
+                              }}
+                              placeholder={t.discountCodePlaceholder}
+                              className="flex-grow p-2.5 border border-[#235347] rounded-lg text-xs bg-[#0B2B26] focus:outline-none focus:border-[#8EB69B] text-[#DAF1DE] uppercase placeholder:text-[#8EB69B]/70"
+                            />
+                            <button
+                              type="button"
+                              onClick={handleApplyDiscountCode}
+                              disabled={!discountCodeInput.trim() || codeCheckStatus === 'checking'}
+                              className="px-4 py-2 rounded-lg text-xs font-bold bg-[#8EB69B] text-[#051F20] hover:bg-[#DAF1DE] transition disabled:bg-[#235347] disabled:text-[#8EB69B] disabled:cursor-not-allowed"
+                            >
+                              {t.applyCodeBtn}
+                            </button>
+                          </div>
+                          {codeCheckStatus === 'checking' && (
+                            <p className="text-[10px] text-[#8EB69B]">{t.codeCheckingMsg}</p>
+                          )}
+                          {codeCheckStatus === 'invalid' && (
+                            <p className="text-[10px] text-red-400 font-medium">{t.codeInvalidMsg}</p>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="flex justify-between items-center text-sm text-emerald-400 font-semibold">
+                          <span className="inline-flex items-center gap-1.5">
+                            <span className="bg-emerald-600 text-white text-[9px] px-1.5 py-0.5 rounded-full uppercase tracking-wide">
+                              {appliedCode}
+                            </span>
+                            {t.codeDiscountLabel} (-{appliedCodePercent}%)
+                          </span>
+                          <span className="flex items-center gap-2">
+                            -{Math.round(priceAfterSlotDiscount - finalPrice)} €
+                            <button
+                              type="button"
+                              onClick={handleRemoveDiscountCode}
+                              className="text-[10px] underline text-[#8EB69B] hover:text-[#DAF1DE]"
+                            >
+                              {t.removeCodeBtn}
+                            </button>
+                          </span>
+                        </div>
+                      )}
+                    </div>
+          
+                    {(selectedDiscountPercent > 0 || appliedCodePercent > 0) && (
+                      <div className="flex justify-between items-center text-base font-extrabold text-[#DAF1DE] pt-2 border-t border-[#235347]">
+                        <span>{t.finalPriceLabel}</span>
+                        <span>{finalPrice} €</span>
+                      </div>
+                    )}
+                  </div>
+          
+                  {/* KONTAKTNÁ KARTA — meno + spôsoby kontaktu zlúčené do jedného boxu */}
+                  <div className="space-y-3 bg-[#051F20]/60 p-3 rounded-xl border border-[#235347]">
+                    <input 
+                      type="text" 
+                      placeholder={t.name} 
+                      required 
+                      value={clientName}
+                      onChange={(e) => setClientName(e.target.value)}
+                      className="w-full p-3 border border-[#235347] rounded-xl text-sm bg-[#0B2B26] focus:bg-[#163832] focus:outline-none focus:border-[#8EB69B] text-[#DAF1DE] placeholder:text-[#8EB69B]/70" 
+                    />
+          
+                    <p className="text-[11px] text-[#8EB69B] font-medium">{t.contactNotice}</p>
+                    
+                    <div className="space-y-1">
+                      <label className="flex items-center space-x-2 text-xs font-semibold cursor-pointer text-[#DAF1DE]">
+                        <input type="checkbox" checked={activeContacts.phone} onChange={() => handleContactCheckboxChange('phone')} className="rounded border-[#235347] text-[#8EB69B] focus:ring-[#8EB69B]" />
+                        <span>{t.phone}</span>
+                      </label>
+                      {activeContacts.phone && (
+                        <div className="flex space-x-2">
+                          <select 
+                            value={phonePrefix} 
+                            onChange={(e) => setPhonePrefix(e.target.value)}
+                            className="p-2 border border-[#235347] rounded-lg text-xs bg-[#0B2B26] focus:outline-none text-[#DAF1DE] font-sans"
+                          >
+                            <option value="+421">🇸🇰 +421</option>
+                            <option value="+420">🇨🇿 +420</option>
+                          </select>
+                          <input 
+                            type="tel" 
+                            required 
+                            placeholder="905 123 456" 
+                            value={contactValues.phone} 
+                            onChange={(e) => handlePhoneChange(e.target.value)} 
+                            className="flex-grow p-2 border border-[#235347] rounded-lg text-xs bg-[#0B2B26] focus:outline-none text-[#DAF1DE] tracking-wider placeholder:text-[#8EB69B]/70" 
+                          />
+                        </div>
+                      )}
+                      {activeContacts.phone && contactValues.phone.length > 0 && contactValues.phone.length < 9 && (
+                        <p className="text-[10px] text-amber-400 font-medium pl-1">
+                          {lang === 'SK' ? 'Zadajte presne 9 číslic' : 'Enter exactly 9 digits'} ({contactValues.phone.length}/9)
+                        </p>
+                      )}
+                    </div>
+          
+                    <div className="space-y-1 pt-1">
+                      <label className="flex items-center space-x-2 text-xs font-semibold cursor-pointer text-[#DAF1DE]">
+                        <input type="checkbox" checked={activeContacts.instagram} onChange={() => handleContactCheckboxChange('instagram')} className="rounded border-[#235347] text-[#8EB69B] focus:ring-[#8EB69B]" />
+                        <span>{t.instagram}</span>
+                      </label>
+                      {activeContacts.instagram && (
+                        <input type="text" required placeholder="@uzivatel" value={contactValues.instagram} onChange={(e) => handleContactValueChange('instagram', e.target.value)} className="w-full p-2 border border-[#235347] rounded-lg text-xs bg-[#0B2B26] focus:outline-none text-[#DAF1DE] placeholder:text-[#8EB69B]/70" />
+                      )}
+                    </div>
+          
+                    <div className="space-y-1 pt-1">
+                      <label className="flex items-center space-x-2 text-xs font-semibold cursor-pointer text-[#DAF1DE]">
+                        <input type="checkbox" checked={activeContacts.email} onChange={() => handleContactCheckboxChange('email')} className="rounded border-[#235347] text-[#8EB69B] focus:ring-[#8EB69B]" />
+                        <span>{t.email}</span>
+                      </label>
+                      {activeContacts.email && (
+                        <input type="email" required placeholder="meno@domena.com" value={contactValues.email} onChange={(e) => handleContactValueChange('email', e.target.value)} className="w-full p-2 border border-[#235347] rounded-lg text-xs bg-[#0B2B26] focus:outline-none text-[#DAF1DE] placeholder:text-[#8EB69B]/70" />
+                      )}
+                    </div>
+                  </div>
+          
+                  <div className="space-y-1.5 bg-[#051F20]/60 p-3 rounded-xl border border-[#235347]">
+                    <label className="flex items-center space-x-2 text-xs font-semibold cursor-pointer text-[#DAF1DE]">
+                      <input
+                        type="checkbox"
+                        checked={wantsNote}
+                        onChange={() => setWantsNote((prev) => !prev)}
+                        className="rounded border-[#235347] text-[#8EB69B] focus:ring-[#8EB69B]"
+                      />
+                      <span>{t.noteCheckboxLabel}</span>
+                    </label>
+                    {wantsNote && (
+                      <textarea
+                        rows={3}
+                        value={customerNote}
+                        onChange={(e) => setCustomerNote(e.target.value)}
+                        placeholder={t.notePlaceholder}
+                        className="w-full p-2.5 border border-[#235347] rounded-lg text-xs bg-[#0B2B26] focus:outline-none text-[#DAF1DE] placeholder:text-[#8EB69B]/70"
+                      />
+                    )}
+                  </div>
+          
+                  <button 
+                    type="submit" 
+                    disabled={!isContactValid()}
+                    className={`w-full py-3 rounded-xl font-bold transition text-sm shadow-sm ${
+                      isContactValid() ? 'bg-[#8EB69B] text-[#051F20] hover:bg-[#DAF1DE] hover:text-[#051F20]' : 'bg-[#235347]/40 text-[#8EB69B] cursor-not-allowed'
+                    }`}
+                  >
+                    {t.bookBtn}
+                  </button>
+                </form>
+              )}
+          
+              <button 
+                type="button" 
+                onClick={() => setMassageStep(2)} 
+                className="mx-auto mt-6 flex items-center justify-center px-6 py-3.5 rounded-xl border-2 border-[#8EB69B] text-[#8EB69B] bg-[#8EB69B]/10 font-chillax font-bold text-xs tracking-wider uppercase hover:bg-[#8EB69B] hover:text-[#051F20] transition-all duration-200 shadow-sm"
+              >
+                {t.backToPackages}
+              </button>
+            </div>
+          )}
+        </div>
+      </main>
     </div>
   );
 }
