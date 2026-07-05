@@ -5,7 +5,9 @@ type LangType = 'SK' | 'EN';
 type ModeType = 'photo' | 'massage' | null;
 type MassageType = 'Klasik' | 'VIP';
 type ContactMethod = 'phone' | 'instagram' | 'email';
-type Feature = { text: string; icon?: 'chili' };
+type Feature = { text: string; icon?: 'chili' | 'check' };
+
+
 
 type PackageItem = {
   duration: number;
@@ -24,6 +26,11 @@ type TimeSlot = {
   startIso: string;         // kompletný ISO string pre API
   availableMinutes: number; // koľko minút voľna v bloku ešte zostáva od tohto momentu
   discountPercent: number;  // 0 = bez zľavy, inak percento zľavy platné pre celý blok
+};
+
+const featureIcons: Record<string, string> = {
+  chili: '🌶️',
+  check: '✅',
 };
 
 export default function Home() {
@@ -867,12 +874,12 @@ const packagesData = packagesTranslations[lang];
                             <div className="p-6 pt-2 flex-grow">
                               <ul className="space-y-2.5 text-xs text-gray-600">
                                 {pkg.features.map((feat, idx) => (
-                                  <li key={idx} className="flex items-start space-x-2">
-                                    <span className="text-[#2F5D50] font-bold flex-shrink-0">
-                                      {feat.icon === 'chili' ? '🌶️' : '✓'}
-                                    </span>
-                                    <span className="text-[#1E293B]">{feat.text}</span>
-                                  </li>
+                                 <li key={idx} className="flex items-start space-x-2">
+                                  <span className="w-4 flex-shrink-0 text-center text-[#2F5D50] font-bold">
+                                    {featureIcons[feat.icon ?? 'check']}
+                                  </span>
+                                  <span className="text-[#1E293B]">{feat.text}</span>
+                                    </li>
                                   ))}
                               </ul>
                             </div>
