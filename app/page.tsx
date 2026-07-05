@@ -840,10 +840,7 @@ const packagesData = packagesTranslations[lang];
 
                       {/* VIP PREMIUM */}
                       <div className="relative flex flex-col h-full md:scale-[1.03] z-10">
-                        <span className="absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap bg-[#DAF1DE] text-[#051F20] text-[10px] font-extrabold px-4 py-1.5 rounded-full shadow-lg uppercase tracking-wider z-20">
-                          {t.mostPopularLabel}
-                        </span>
-                        <div className="flex flex-col h-full rounded-2xl border-2 border-[#8EB69B] bg-gradient-to-b from-[#1b453d] to-[#0B2B26] shadow-[0_0_45px_rgba(142,182,155,0.3)] p-6 pt-8 transition">
+                        <div className="flex flex-col h-full rounded-2xl border-2 border-[#8EB69B] bg-gradient-to-b from-[#1b453d] to-[#0B2B26] shadow-[0_0_45px_rgba(142,182,155,0.3)] p-6 transition">
                           <h3 className="font-extrabold text-lg text-[#DAF1DE] mb-2">{t.vipTitle}</h3>
                           <p className="text-xs text-[#8EB69B] font-medium flex-grow mb-5">{t.vipDesc}</p>
                           <button 
@@ -1075,10 +1072,10 @@ const packagesData = packagesTranslations[lang];
                     {selectedSlot && (
                       <form onSubmit={handleBookingSubmit} className="space-y-4 pt-4 border-t border-[#235347] mt-4 animate-fadeIn">
                         <h3 className="font-bold text-xs text-[#8EB69B]">{t.contactTitle}</h3>
-                        <div className={`p-3 font-bold rounded-xl text-xs text-center shadow-sm ${
-                          selectedDiscountPercent > 0 ? 'bg-cyan-500 text-white' : 'bg-[#8EB69B] text-[#051F20]'
+                        <div className={`text-center text-sm font-bold ${
+                          selectedDiscountPercent > 0 ? 'text-cyan-300' : 'text-[#8EB69B]'
                         }`}>
-                          {t.selected} termín: {new Date(selectedSlot).toLocaleDateString('sk-SK')} o {new Date(selectedSlot).toLocaleTimeString('sk-SK', {hour: '2-digit', minute:'2-digit'})}
+                          {t.selected} termín: <span className="text-[#DAF1DE]">{new Date(selectedSlot).toLocaleDateString('sk-SK')} o {new Date(selectedSlot).toLocaleTimeString('sk-SK', {hour: '2-digit', minute:'2-digit'})}</span>
                         </div>
                 
                         {/* CENOVÝ SÚHRN */}
