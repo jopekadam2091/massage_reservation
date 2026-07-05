@@ -806,10 +806,10 @@ const packagesData = packagesTranslations[lang];
               </div>
             ) : (
               <div className="space-y-8 animate-fadeIn">
-                <div className="max-w-xl mx-auto text-center">
-                      <h1 className="text-3xl font-extrabold mb-2 text-[#E3C39D]">{t.massageTitle}</h1>
-                      <p className="text-[#CDD5DB] bg-[#4B6382]/40 p-3 rounded border border-[#4B6382] block text-sm">{t.massageSubtitle}</p>
-                </div>
+               <div className="max-w-xl mx-auto text-center">
+                <h1 className="text-3xl font-extrabold mb-1 text-[#E3C39D]">{t.massageTitle}</h1>
+                <p className="text-[#A4B5C4] text-sm">{t.massageSubtitle}</p>
+              </div>
                 <div className="flex justify-between max-w-xs mx-auto mb-8">
                   {[1, 2, 3].map((step) => (
                     <div key={step} className="flex items-center space-x-1">
