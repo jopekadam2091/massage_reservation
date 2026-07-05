@@ -16,7 +16,7 @@ import { google } from 'googleapis';
 import { NextRequest, NextResponse } from 'next/server';
 
 const SHEET_ID = process.env.DISCOUNT_SHEET_ID as string;
-const SHEET_NAME = 'Hárok1'; // uprav, ak sa tvoj tab volá inak
+const SHEET_NAME = 'Mcodes'; // uprav, ak sa tvoj tab volá inak
 const RANGE = `${SHEET_NAME}!A2:D`; // dáta od riadku 2 (riadok 1 = hlavička)
 
 const auth = new google.auth.JWT(
