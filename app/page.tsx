@@ -694,7 +694,7 @@ export default function Home() {
 const packagesData = packagesTranslations[lang];
   return (
     <div className={`min-h-screen transition-all duration-700 ease-in-out pb-20 ${
-      mode === 'photo' ? 'bg-[#1a1a1a] text-white font-figtree' : mode === 'massage' ? 'bg-[#F2EFE7] text-[#1E293B] font-chillax' : 'bg-[#121212] text-white'
+      mode === 'photo' ? 'bg-[#1a1a1a] text-white font-figtree' : mode === 'massage' ? 'bg-[#1a1a1a] text-[#1E293B] font-chillax' : 'bg-[#121212] text-white'
     }`}>
 
       {/* ÚSPEŠNÁ REZERVÁCIA - OVERLAY */}
