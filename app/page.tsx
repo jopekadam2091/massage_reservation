@@ -516,128 +516,161 @@ export default function Home() {
  const packagesTranslations = {
   SK: {
     Klasik: [
-      {
-        duration: 30,
-        badge: 'Lite',
-        desc: 'Vhodný pre rýchlu masáž konkrétnejšej oblasti tela.',
-        features: ['Masáž vybranej časti tela', 'Aromaterapia']
-      },
-      {
-        duration: 45,
-        badge: 'Supreme',
-        desc: 'Vhodný pre rýchly relax celého tela.',
-        features: ['Masáž celého tela', 'Možnosť vybrať extra čas na vybranú partiu', 'Aromaterapia']
-      },
-      {
-        duration: 60,
-        badge: 'Full Experience',
-        desc: 'Dokonalý zážitok s extra časom.',
-        features: ['Stimulujúca masáž celého tela', 'Možnosť vybrať extra čas na vybranú partiu', 'Aromaterapia']
-      }
-    ],
-    VIP: [
-      {
-        duration: 45,
-        badge: 'VIP Supreme',
-        desc: 'Rýchla ochutnávka VIP procedúr.',
-        features: ['Hĺbková masáž chrbta a šije', 'Masáž rúk a dlaní', 'Relaxačná masáž nôh', 'SK-TEST1', 'Aromaterapia']
-      },
-      {
-        duration: 60,
-        badge: 'VIP Pro',
-        desc: 'Kompletný prémium relaxačný rituál v plnom rozsahu.',
-        features: [
-          'Hĺbková masáž celého tela',
-          'Masáž rúk a dlaní',
-          'SK-TEST1',
-          'SK-TEST2',
-          'SK-TEST3',
-          'Aromaterapia',
-          'Dynamická perkusívna terapia (vibračná pištoľ)'
-        ]
-      },
-      {
-        duration: 90,
-        badge: 'VIP Max',
-        desc: 'Pro zážitok vytiahnutý na maximum, pre milovníkov relaxu.',
-        features: [
-          'Maximálne uvoľnenie',
-          'Hĺbková masáž celého tela',
-          'Masáž rúk a dlaní',
-          'SK-TEST1',
-          'SK-TEST2',
-          'SK-TEST3',
-          'Aromaterapia',
-          'Dynamická perkusívna terapia',
-          'Nealko drink v cene',
-          '+ Darček'
-        ]
-      }
+  {
+    duration: 30,
+    badge: 'Lite',
+    desc: 'Vhodný pre rýchlu masáž konkrétnejšej oblasti tela.',
+    features: [
+      { text: 'Masáž vybranej časti tela' },
+      { text: 'Aromaterapia' }
     ]
   },
-  EN: {
-    Klasik: [
-      {
-        duration: 30,
-        badge: 'Lite',
-        desc: 'Great for a quick massage of a specific body area.',
-        features: ['Massage of a selected body part', 'Aromatherapy']
-      },
-      {
-        duration: 45,
-        badge: 'Supreme',
-        desc: 'Great for a quick full-body relax.',
-        features: ['Full body massage', 'Option to add extra time on a chosen area', 'Aromatherapy']
-      },
-      {
-        duration: 60,
-        badge: 'Full Experience',
-        desc: 'A perfect experience with extra time.',
-        features: ['Stimulated full body massage', 'Option to add extra time on a chosen area', 'Aromatherapy']
-      }
-    ],
-    VIP: [
-      {
-        duration: 45,
-        badge: 'VIP Supreme',
-        desc: 'A quick taste of the VIP treatments.',
-        features: ['Deep back and neck massage', 'Hand massage', 'Relaxing foot massage', 'EN-TEST1', 'Aromatherapy']
-      },
-      {
-        duration: 60,
-        badge: 'VIP Pro',
-        desc: 'A complete premium relaxation ritual in full scope.',
-        features: [
-          'Deep full body massage',
-          'Hand massage',
-          'EN-TEST1',
-          'EN-TEST2',
-          'EN-TEST3',
-          'Aromatherapy',
-          'Dynamic percussive therapy (massage gun)'
-        ]
-      },
-      {
-        duration: 90,
-        badge: 'VIP Max',
-        desc: 'The pro experience taken to the max, for relaxation lovers.',
-        features: [
-          'Maximum relaxation',
-          'Deep full body massage',
-          'Hand massage',
-          'EN-TEST1',
-          'EN-TEST2',
-          'EN-TEST3',
-          'Aromatherapy',
-          'Dynamic percussive therapy',
-          'Complimentary soft drink',
-          '+ Gift'
-        ]
-      }
+  {
+    duration: 45,
+    badge: 'Supreme',
+    desc: 'Vhodný pre rýchly relax celého tela.',
+    features: [
+      { text: 'Masáž celého tela' },
+      { text: 'Možnosť vybrať extra čas na vybranú partiu' },
+      { text: 'Aromaterapia' }
+    ]
+  },
+  {
+    duration: 60,
+    badge: 'Full Experience',
+    desc: 'Dokonalý zážitok s extra časom.',
+    features: [
+      { text: 'Stimulujúca masáž celého tela' },
+      { text: 'Možnosť vybrať extra čas na vybranú partiu' },
+      { text: 'Aromaterapia' }
     ]
   }
+],
+    VIP: [
+  {
+    duration: 45,
+    badge: 'VIP Supreme',
+    desc: 'Rýchla ochutnávka VIP procedúr.',
+    features: [
+      { text: 'Hĺbková masáž chrbta a šije' },
+      { text: 'Masáž rúk a dlaní' },
+      { text: 'Relaxačná masáž nôh' },
+      { text: 'SK-TEST1', icon: 'chili' },
+      { text: 'Aromaterapia' }
+    ]
+  },
+  {
+    duration: 60,
+    badge: 'VIP Pro',
+    desc: 'Kompletný prémium relaxačný rituál v plnom rozsahu.',
+    features: [
+      { text: 'Hĺbková masáž celého tela' },
+      { text: 'Masáž rúk a dlaní' },
+      { text: 'SK-TEST1', icon: 'chili' },
+      { text: 'SK-TEST2', icon: 'chili' },
+      { text: 'SK-TEST3', icon: 'chili' },
+      { text: 'Aromaterapia' },
+      { text: 'Dynamická perkusívna terapia (vibračná pištoľ)' }
+    ]
+  },
+  {
+    duration: 90,
+    badge: 'VIP Max',
+    desc: 'Pro zážitok vytiahnutý na maximum, pre milovníkov relaxu.',
+    features: [
+      { text: 'Maximálne uvoľnenie' },
+      { text: 'Hĺbková masáž celého tela' },
+      { text: 'Masáž rúk a dlaní' },
+      { text: 'SK-TEST1', icon: 'chili' },
+      { text: 'SK-TEST2', icon: 'chili' },
+      { text: 'SK-TEST3', icon: 'chili' },
+      { text: 'Aromaterapia' },
+      { text: 'Dynamická perkusívna terapia' },
+      { text: 'Nealko drink v cene' },
+      { text: '+ Darček' }
+    ]
+  }
+]
+  },
+ EN: {
+  Klasik: [
+    {
+      duration: 30,
+      badge: 'Lite',
+      desc: 'Great for a quick massage of a specific body area.',
+      features: [
+        { text: 'Massage of a selected body part' },
+        { text: 'Aromatherapy' }
+      ]
+    },
+    {
+      duration: 45,
+      badge: 'Supreme',
+      desc: 'Great for a quick full-body relax.',
+      features: [
+        { text: 'Full body massage' },
+        { text: 'Option to add extra time on a chosen area' },
+        { text: 'Aromatherapy' }
+      ]
+    },
+    {
+      duration: 60,
+      badge: 'Full Experience',
+      desc: 'A perfect experience with extra time.',
+      features: [
+        { text: 'Stimulated full body massage' },
+        { text: 'Option to add extra time on a chosen area' },
+        { text: 'Aromatherapy' }
+      ]
+    }
+  ],
+  VIP: [
+    {
+      duration: 45,
+      badge: 'VIP Supreme',
+      desc: 'A quick taste of the VIP treatments.',
+      features: [
+        { text: 'Deep back and neck massage' },
+        { text: 'Hand massage' },
+        { text: 'Relaxing foot massage' },
+        { text: 'EN-TEST1', icon: 'chili' },
+        { text: 'Aromatherapy' }
+      ]
+    },
+    {
+      duration: 60,
+      badge: 'VIP Pro',
+      desc: 'A complete premium relaxation ritual in full scope.',
+      features: [
+        { text: 'Deep full body massage' },
+        { text: 'Hand massage' },
+        { text: 'EN-TEST1', icon: 'chili' },
+        { text: 'EN-TEST2', icon: 'chili' },
+        { text: 'EN-TEST3', icon: 'chili' },
+        { text: 'Aromatherapy' },
+        { text: 'Dynamic percussive therapy (massage gun)' }
+      ]
+    },
+    {
+      duration: 90,
+      badge: 'VIP Max',
+      desc: 'The pro experience taken to the max, for relaxation lovers.',
+      features: [
+        { text: 'Maximum relaxation' },
+        { text: 'Deep full body massage' },
+        { text: 'Hand massage' },
+        { text: 'EN-TEST1', icon: 'chili' },
+        { text: 'EN-TEST2', icon: 'chili' },
+        { text: 'EN-TEST3', icon: 'chili' },
+        { text: 'Aromatherapy' },
+        { text: 'Dynamic percussive therapy' },
+        { text: 'Complimentary soft drink' },
+        { text: '+ Gift' }
+      ]
+    }
+  ]
+}
 };
-
 const packagesData = packagesTranslations[lang];
   return (
     <div className={`min-h-screen transition-all duration-700 ease-in-out pb-20 ${
@@ -822,10 +855,12 @@ const packagesData = packagesTranslations[lang];
                               <ul className="space-y-2.5 text-xs text-gray-600">
                                 {pkg.features.map((feat, idx) => (
                                   <li key={idx} className="flex items-start space-x-2">
-                                    <span className="text-[#2F5D50] font-bold flex-shrink-0">✓</span>
-                                    <span className="text-[#1E293B]">{feat}</span>
+                                    <span className="text-[#2F5D50] font-bold flex-shrink-0">
+                                      {feat.icon === 'chili' ? '🌶️' : '✓'}
+                                    </span>
+                                    <span className="text-[#1E293B]">{feat.text}</span>
                                   </li>
-                                ))}
+                                  ))}
                               </ul>
                             </div>
                           </div>
