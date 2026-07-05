@@ -693,10 +693,9 @@ export default function Home() {
 };
 const packagesData = packagesTranslations[lang];
   return (
-    <div className="max-w-xl mx-auto text-center">
-        <h1 className="text-3xl font-extrabold mb-2 text-[#E3C39D]">{t.massageTitle}</h1>
-        <p className="text-[#CDD5DB] bg-[#4B6382]/40 p-3 rounded border border-[#4B6382] block text-sm">{t.massageSubtitle}</p>
-      </div>
+    <div className={`min-h-screen transition-all duration-700 ease-in-out pb-20 ${
+      mode === 'photo' ? 'bg-[#1a1a1a] text-white font-figtree' : mode === 'massage' ? 'bg-[#071739] text-[#CDD5DB]' : 'bg-[#121212] text-white'
+    }`}>
 
       {/* ÚSPEŠNÁ REZERVÁCIA - OVERLAY */}
       {showSuccessPopup && (
@@ -807,9 +806,9 @@ const packagesData = packagesTranslations[lang];
               </div>
             ) : (
               <div className="space-y-8 animate-fadeIn">
-                                <div className="max-w-xl mx-auto text-center">
-                  <h1 className="text-3xl font-extrabold mb-2 text-[#2F5D50]">{t.massageTitle}</h1>
-                  <p className="text-[#1E293B] bg-[#A4B69A]/30 p-3 rounded border border-[#A4B69A]/50 block text-sm">{t.massageSubtitle}</p>
+                <div className="max-w-xl mx-auto text-center">
+                      <h1 className="text-3xl font-extrabold mb-2 text-[#E3C39D]">{t.massageTitle}</h1>
+                      <p className="text-[#CDD5DB] bg-[#4B6382]/40 p-3 rounded border border-[#4B6382] block text-sm">{t.massageSubtitle}</p>
                 </div>
                 <div className="flex justify-between max-w-xs mx-auto mb-8">
                   {[1, 2, 3].map((step) => (
