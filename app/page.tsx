@@ -807,7 +807,7 @@ const packagesData = packagesTranslations[lang];
             ) : (
               <div className="space-y-8 animate-fadeIn">
                <div className="max-w-xl mx-auto text-center">
-                <h1 className="text-3xl font-extrabold mb-1 text-[#E3C39D]">{t.massageTitle}</h1>
+                <h1 className="text-3xl font-extrabold mb-1 text-[#E3C39D] font-chillax">{t.massageTitle}</h1>
                 <p className="text-[#A4B5C4] text-sm">{t.massageSubtitle}</p>
               </div>
                 <div className="flex justify-between max-w-xs mx-auto mb-8">
@@ -915,63 +915,61 @@ const packagesData = packagesTranslations[lang];
 
                 {/* KROK 3: PREPOJENÝ KALENDÁR */}
                 {massageStep === 3 && selectedType && selectedDuration && (
-                  <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm text-[#1E293B] max-w-xl mx-auto">
-                    <h2 className="text-lg font-bold text-center text-[#2F5D50] mb-2">{t.step3Title}</h2>
-                    <div className="p-3 bg-[#F2EFE7] rounded-xl text-xs text-center border border-gray-200 text-[#1E293B] mb-6">
+                  <div className="bg-[#4B6382]/20 p-6 rounded-3xl border border-[#4B6382] text-[#CDD5DB] max-w-xl mx-auto">
+                    <h2 className="text-lg font-bold text-center text-[#E3C39D] mb-2">{t.step3Title}</h2>
+                    <div className="p-3 bg-[#071739]/40 rounded-xl text-xs text-center border border-[#4B6382] text-[#CDD5DB] mb-6">
                       {t.selected}: <strong>{selectedType === 'Klasik' ? 'CLASSIC' : 'VIP PREMIUM'} - {selectedDuration} {t.minutes}</strong>
                     </div>
-
+                
                     {loadingCalendar ? (
-                      <div className="text-center py-8 text-xs font-semibold text-gray-500">{t.loading}</div>
+                      <div className="text-center py-8 text-xs font-semibold text-[#A4B5C4]">{t.loading}</div>
                     ) : (
-                      <div className="border border-gray-100 rounded-2xl p-4 bg-gray-50/50 mb-6">
+                      <div className="border border-[#4B6382] rounded-2xl p-4 bg-[#071739]/30 mb-6">
                         <div className="flex justify-between items-center mb-4 px-2">
-                          <span className="text-base font-bold tracking-tight text-[#1E293B]">
+                          <span className="text-base font-bold tracking-tight text-[#CDD5DB]">
                             {t.months[currentMonth]} {currentYear}
                           </span>
                           <div className="flex space-x-2">
                             <button 
                               type="button" 
                               onClick={handlePrevMonth}
-                              className="p-1.5 px-3 bg-white border border-gray-200 rounded-lg text-xs font-bold text-gray-700 hover:bg-gray-100 transition shadow-sm"
+                              className="p-1.5 px-3 bg-[#4B6382] border border-[#4B6382] rounded-lg text-xs font-bold text-[#CDD5DB] hover:bg-[#A68868] transition shadow-sm"
                             >
                               ←
                             </button>
                             <button 
                               type="button" 
                               onClick={handleNextMonth}
-                              className="p-1.5 px-3 bg-white border border-gray-200 rounded-lg text-xs font-bold text-gray-700 hover:bg-gray-100 transition shadow-sm"
+                              className="p-1.5 px-3 bg-[#4B6382] border border-[#4B6382] rounded-lg text-xs font-bold text-[#CDD5DB] hover:bg-[#A68868] transition shadow-sm"
                             >
                               →
                             </button>
                           </div>
                         </div>
-
-                        <div className="grid grid-cols-7 text-center text-[10px] font-bold text-gray-400 mb-2 tracking-wider">
+                
+                        <div className="grid grid-cols-7 text-center text-[10px] font-bold text-[#A4B5C4] mb-2 tracking-wider">
                           <div>{t.mon}</div><div>{t.tue}</div><div>{t.wed}</div><div>{t.thu}</div><div>{t.fri}</div><div>{t.sat}</div><div>{t.sun}</div>
                         </div>
-
+                
                         <div className="grid grid-cols-7 gap-1.5">
                           {emptyCells.map((_, idx) => (
                             <div key={`empty-${idx}`} className="p-2"></div>
                           ))}
-
+                
                           {daysArray.map((day) => {
                             const dateKey = getDateKey(currentYear, currentMonth, day);
                             const daySlots = slotsByDate[dateKey] || [];
-
-                            // Deň je dostupný, ak má aspoň jeden inteligentne platný slot
+                
                             const validSlots = daySlots.filter((slot) =>
                               isValidSlotDuration(slot.availableMinutes, selectedDuration)
                             );
                             const hasValidSlots = validSlots.length > 0;
-
-                            // Najvyššia zľava spomedzi platných slotov v daný deň
+                
                             const dayDiscount = validSlots.reduce(
                               (max, s) => Math.max(max, s.discountPercent || 0),
                               0
                             );
-
+                
                             return (
                               <button
                                 type="button"
@@ -985,9 +983,9 @@ const packagesData = packagesTranslations[lang];
                                         ? 'bg-cyan-500 text-white font-bold ring-2 ring-cyan-300 shadow-[0_0_14px_rgba(34,211,238,0.85)]'
                                         : 'bg-cyan-50 text-cyan-700 font-bold border border-cyan-300 shadow-[0_0_10px_rgba(34,211,238,0.55)] hover:shadow-[0_0_14px_rgba(34,211,238,0.75)]'
                                       : selectedDateKey === dateKey
-                                        ? 'bg-[#2F5D50] text-white font-bold ring-2 ring-[#A4B69A] shadow'
-                                        : 'bg-[#A4B69A]/30 text-[#2F5D50] font-bold hover:bg-[#A4B69A]/50 border border-[#A4B69A]/40 shadow-sm'
-                                    : 'text-gray-400 bg-white border border-gray-100 opacity-60 cursor-not-allowed'
+                                        ? 'bg-[#E3C39D] text-[#071739] font-bold ring-2 ring-[#A68868] shadow'
+                                        : 'bg-[#4B6382]/40 text-[#CDD5DB] font-bold hover:bg-[#4B6382]/60 border border-[#4B6382] shadow-sm'
+                                    : 'text-[#4B6382] bg-[#071739]/20 border border-[#4B6382]/40 opacity-60 cursor-not-allowed'
                                 }`}
                               >
                                 {day}
@@ -1002,19 +1000,18 @@ const packagesData = packagesTranslations[lang];
                         </div>
                       </div>
                     )}
-
+                
                     {selectedDateKey && slotsByDate[selectedDateKey] && (
-                      <div className="animate-fadeIn space-y-2 mb-6 bg-[#A4B69A]/10 border border-[#A4B69A]/30 p-4 rounded-xl">
-                        <p className="text-xs font-bold text-[#2F5D50]">{t.chooseTime}</p>
+                      <div className="animate-fadeIn space-y-2 mb-6 bg-[#071739]/30 border border-[#4B6382] p-4 rounded-xl">
+                        <p className="text-xs font-bold text-[#E3C39D]">{t.chooseTime}</p>
                         <div className="grid grid-cols-3 gap-2">
                           {slotsByDate[selectedDateKey].map((slot) => {
-                            // Skryjeme sloty, ktoré nespĺňajú novú inteligentnú podmienku konca bloku
                             if (!isValidSlotDuration(slot.availableMinutes, selectedDuration)) {
                               return null;
                             }
-
+                
                             const hasDiscount = slot.discountPercent > 0;
-
+                
                             return (
                               <button
                                 type="button"
@@ -1024,10 +1021,10 @@ const packagesData = packagesTranslations[lang];
                                   selectedSlot === slot.startIso
                                     ? hasDiscount
                                       ? 'bg-cyan-500 text-white border-cyan-400 shadow-[0_0_12px_rgba(34,211,238,0.85)]'
-                                      : 'bg-[#2F5D50] text-white border-[#2F5D50] shadow'
+                                      : 'bg-[#E3C39D] text-[#071739] border-[#E3C39D] shadow'
                                     : hasDiscount
                                       ? 'bg-cyan-50 border-cyan-300 text-cyan-700 shadow-[0_0_8px_rgba(34,211,238,0.45)] hover:shadow-[0_0_10px_rgba(34,211,238,0.65)]'
-                                      : 'bg-white border-gray-200 text-[#1E293B] hover:border-[#2F5D50]'
+                                      : 'bg-[#4B6382]/30 border-[#4B6382] text-[#CDD5DB] hover:border-[#E3C39D]'
                                 }`}
                               >
                                 {slot.formattedTime}
@@ -1042,7 +1039,220 @@ const packagesData = packagesTranslations[lang];
                         </div>
                       </div>
                     )}
-
+                
+                    {/* FINÁLNY REZERVAČNÝ FORMULÁR */}
+                    {selectedSlot && (
+                      <form onSubmit={handleBookingSubmit} className="space-y-4 pt-4 border-t border-[#4B6382] mt-4 animate-fadeIn">
+                        <h3 className="font-bold text-xs text-[#A4B5C4]">{t.contactTitle}</h3>
+                        <div className={`p-3 font-bold rounded-xl text-xs text-center shadow-sm text-white ${
+                          selectedDiscountPercent > 0 ? 'bg-cyan-500' : 'bg-[#A68868]'
+                        }`}>
+                          {t.selected} termín: {new Date(selectedSlot).toLocaleDateString('sk-SK')} o {new Date(selectedSlot).toLocaleTimeString('sk-SK', {hour: '2-digit', minute:'2-digit'})}
+                        </div>
+                
+                        {/* CENOVÝ SÚHRN */}
+                        <div className="p-4 rounded-xl border border-[#4B6382] bg-[#071739]/30 space-y-3">
+                          <h3 className="font-bold text-[11px] uppercase tracking-wider text-[#A4B5C4]">{t.summaryTitle}</h3>
+                
+                          <div className="space-y-2">
+                            <div className="flex justify-between items-center text-sm text-[#CDD5DB]">
+                              <span>{selectedType === 'Klasik' ? t.klasikTitle : t.vipTitle} · {selectedDuration} {t.minutes}</span>
+                              <span className={selectedDiscountPercent > 0 || appliedCodePercent > 0 ? 'line-through text-[#A4B5C4]' : 'font-bold'}>
+                                {basePrice} €
+                              </span>
+                            </div>
+                            {selectedDiscountPercent > 0 && (
+                              <div className="flex justify-between items-center text-sm text-cyan-400 font-semibold">
+                                <span className="inline-flex items-center gap-1">
+                                  <span className="bg-cyan-500 text-white text-[9px] px-1.5 py-0.5 rounded-full uppercase tracking-wide">
+                                    {t.discountBadgeShort}
+                                  </span>
+                                  {t.discountApplied} (-{selectedDiscountPercent}%)
+                                </span>
+                                <span>-{Math.round(basePrice - priceAfterSlotDiscount)} €</span>
+                              </div>
+                            )}
+                          </div>
+                
+                          {/* ZĽAVOVÝ KÓD */}
+                          <div className="pt-2 border-t border-[#4B6382]">
+                            {!appliedCode ? (
+                              <div className="space-y-1.5">
+                                <label className="text-[11px] font-semibold text-[#A4B5C4]">{t.discountCodeLabel}</label>
+                                <div className="flex gap-2">
+                                  <input
+                                    type="text"
+                                    value={discountCodeInput}
+                                    onChange={(e) => {
+                                      setDiscountCodeInput(e.target.value);
+                                      if (codeCheckStatus === 'invalid') setCodeCheckStatus('idle');
+                                    }}
+                                    placeholder={t.discountCodePlaceholder}
+                                    className="flex-grow p-2.5 border border-[#4B6382] rounded-lg text-xs bg-[#071739]/40 focus:outline-none text-[#CDD5DB] uppercase placeholder:text-[#A4B5C4]"
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={handleApplyDiscountCode}
+                                    disabled={!discountCodeInput.trim() || codeCheckStatus === 'checking'}
+                                    className="px-4 py-2 rounded-lg text-xs font-bold bg-[#E3C39D] text-[#071739] hover:bg-[#A68868] hover:text-white transition disabled:bg-[#4B6382] disabled:text-[#A4B5C4] disabled:cursor-not-allowed"
+                                  >
+                                    {t.applyCodeBtn}
+                                  </button>
+                                </div>
+                                {codeCheckStatus === 'checking' && (
+                                  <p className="text-[10px] text-[#A4B5C4]">{t.codeCheckingMsg}</p>
+                                )}
+                                {codeCheckStatus === 'invalid' && (
+                                  <p className="text-[10px] text-red-400 font-medium">{t.codeInvalidMsg}</p>
+                                )}
+                
+                                {codeDebugInfo && (
+                                  <details className="mt-1 text-[10px] bg-yellow-50 border border-yellow-300 rounded-lg p-2 text-left" open>
+                                    <summary className="font-bold cursor-pointer text-yellow-800">
+                                      🐞 DEBUG odpoveď z /api/discount-code
+                                    </summary>
+                                    <pre className="whitespace-pre-wrap break-all mt-1 text-yellow-900">{codeDebugInfo}</pre>
+                                  </details>
+                                )}
+                              </div>
+                            ) : (
+                              <div className="flex justify-between items-center text-sm text-emerald-400 font-semibold">
+                                <span className="inline-flex items-center gap-1.5">
+                                  <span className="bg-emerald-600 text-white text-[9px] px-1.5 py-0.5 rounded-full uppercase tracking-wide">
+                                    {appliedCode}
+                                  </span>
+                                  {t.codeDiscountLabel} (-{appliedCodePercent}%)
+                                </span>
+                                <span className="flex items-center gap-2">
+                                  -{Math.round(priceAfterSlotDiscount - finalPrice)} €
+                                  <button
+                                    type="button"
+                                    onClick={handleRemoveDiscountCode}
+                                    className="text-[10px] underline text-[#A4B5C4] hover:text-[#CDD5DB]"
+                                  >
+                                    {t.removeCodeBtn}
+                                  </button>
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                
+                          {(selectedDiscountPercent > 0 || appliedCodePercent > 0) && (
+                            <div className="flex justify-between items-center text-base font-extrabold text-[#E3C39D] pt-2 border-t border-[#4B6382]">
+                              <span>{t.finalPriceLabel}</span>
+                              <span>{finalPrice} €</span>
+                            </div>
+                          )}
+                        </div>
+                
+                        {/* KONTAKTNÁ KARTA — meno + spôsoby kontaktu zlúčené do jedného boxu */}
+                        <div className="space-y-3 bg-[#071739]/30 p-3 rounded-xl border border-[#4B6382]">
+                          <input 
+                            type="text" 
+                            placeholder={t.name} 
+                            required 
+                            value={clientName}
+                            onChange={(e) => setClientName(e.target.value)}
+                            className="w-full p-3 border border-[#4B6382] rounded-xl text-sm bg-[#071739]/40 focus:bg-[#071739]/60 focus:outline-none text-[#CDD5DB] placeholder:text-[#A4B5C4]" 
+                          />
+                
+                          <p className="text-[11px] text-[#A4B5C4] font-medium">{t.contactNotice}</p>
+                          
+                          <div className="space-y-1">
+                            <label className="flex items-center space-x-2 text-xs font-semibold cursor-pointer text-[#CDD5DB]">
+                              <input type="checkbox" checked={activeContacts.phone} onChange={() => handleContactCheckboxChange('phone')} className="rounded border-[#4B6382] text-[#E3C39D] focus:ring-[#E3C39D]" />
+                              <span>{t.phone}</span>
+                            </label>
+                            {activeContacts.phone && (
+                              <div className="flex space-x-2">
+                                <select 
+                                  value={phonePrefix} 
+                                  onChange={(e) => setPhonePrefix(e.target.value)}
+                                  className="p-2 border border-[#4B6382] rounded-lg text-xs bg-[#071739]/40 focus:outline-none text-[#CDD5DB] font-sans"
+                                >
+                                  <option value="+421">🇸🇰 +421</option>
+                                  <option value="+420">🇨🇿 +420</option>
+                                </select>
+                                <input 
+                                  type="tel" 
+                                  required 
+                                  placeholder="905 123 456" 
+                                  value={contactValues.phone} 
+                                  onChange={(e) => handlePhoneChange(e.target.value)} 
+                                  className="flex-grow p-2 border border-[#4B6382] rounded-lg text-xs bg-[#071739]/40 focus:outline-none text-[#CDD5DB] tracking-wider placeholder:text-[#A4B5C4]" 
+                                />
+                              </div>
+                            )}
+                            {activeContacts.phone && contactValues.phone.length > 0 && contactValues.phone.length < 9 && (
+                              <p className="text-[10px] text-amber-400 font-medium pl-1">
+                                {lang === 'SK' ? 'Zadajte presne 9 číslic' : 'Enter exactly 9 digits'} ({contactValues.phone.length}/9)
+                              </p>
+                            )}
+                          </div>
+                
+                          <div className="space-y-1 pt-1">
+                            <label className="flex items-center space-x-2 text-xs font-semibold cursor-pointer text-[#CDD5DB]">
+                              <input type="checkbox" checked={activeContacts.instagram} onChange={() => handleContactCheckboxChange('instagram')} className="rounded border-[#4B6382] text-[#E3C39D] focus:ring-[#E3C39D]" />
+                              <span>{t.instagram}</span>
+                            </label>
+                            {activeContacts.instagram && (
+                              <input type="text" required placeholder="@uzivatel" value={contactValues.instagram} onChange={(e) => handleContactValueChange('instagram', e.target.value)} className="w-full p-2 border border-[#4B6382] rounded-lg text-xs bg-[#071739]/40 focus:outline-none text-[#CDD5DB] placeholder:text-[#A4B5C4]" />
+                            )}
+                          </div>
+                
+                          <div className="space-y-1 pt-1">
+                            <label className="flex items-center space-x-2 text-xs font-semibold cursor-pointer text-[#CDD5DB]">
+                              <input type="checkbox" checked={activeContacts.email} onChange={() => handleContactCheckboxChange('email')} className="rounded border-[#4B6382] text-[#E3C39D] focus:ring-[#E3C39D]" />
+                              <span>{t.email}</span>
+                            </label>
+                            {activeContacts.email && (
+                              <input type="email" required placeholder="meno@domena.com" value={contactValues.email} onChange={(e) => handleContactValueChange('email', e.target.value)} className="w-full p-2 border border-[#4B6382] rounded-lg text-xs bg-[#071739]/40 focus:outline-none text-[#CDD5DB] placeholder:text-[#A4B5C4]" />
+                            )}
+                          </div>
+                        </div>
+                
+                        <div className="space-y-1.5 bg-[#071739]/30 p-3 rounded-xl border border-[#4B6382]">
+                          <label className="flex items-center space-x-2 text-xs font-semibold cursor-pointer text-[#CDD5DB]">
+                            <input
+                              type="checkbox"
+                              checked={wantsNote}
+                              onChange={() => setWantsNote((prev) => !prev)}
+                              className="rounded border-[#4B6382] text-[#E3C39D] focus:ring-[#E3C39D]"
+                            />
+                            <span>{t.noteCheckboxLabel}</span>
+                          </label>
+                          {wantsNote && (
+                            <textarea
+                              rows={3}
+                              value={customerNote}
+                              onChange={(e) => setCustomerNote(e.target.value)}
+                              placeholder={t.notePlaceholder}
+                              className="w-full p-2.5 border border-[#4B6382] rounded-lg text-xs bg-[#071739]/40 focus:outline-none text-[#CDD5DB] placeholder:text-[#A4B5C4]"
+                            />
+                          )}
+                        </div>
+                
+                        <button 
+                          type="submit" 
+                          disabled={!isContactValid()}
+                          className={`w-full py-3 rounded-xl font-bold transition text-sm shadow-sm ${
+                            isContactValid() ? 'bg-[#E3C39D] text-[#071739] hover:bg-[#A68868] hover:text-white' : 'bg-[#4B6382]/40 text-[#A4B5C4] cursor-not-allowed'
+                          }`}
+                        >
+                          {t.bookBtn}
+                        </button>
+                      </form>
+                    )}
+                
+                    <button 
+                      type="button" 
+                      onClick={() => setMassageStep(2)} 
+                      className="mx-auto mt-6 flex items-center justify-center space-x-2 px-6 py-3.5 rounded-xl border-2 border-[#A4B5C4] text-[#A4B5C4] bg-transparent font-bold text-xs tracking-wider uppercase hover:bg-[#A4B5C4] hover:text-[#071739] transition-all duration-200 shadow-sm"
+                    >
+                      <span>⬅</span> <span>{t.backToPackages}</span>
+                    </button>
+                  </div>
+                )}
                     {/* FINÁLNY REZERVAČNÝ FORMULÁR */}
                     {selectedSlot && (
                       <form onSubmit={handleBookingSubmit} className="space-y-4 pt-4 border-t border-gray-100 mt-4 animate-fadeIn">
