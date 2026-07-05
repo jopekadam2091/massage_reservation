@@ -842,7 +842,7 @@ const packagesData = packagesTranslations[lang];
                 {/* KROK 2 */}
                 {massageStep === 2 && selectedType && (
                   <div className="space-y-6">
-                    <h2 className="text-2xl font-bold text-center text-[#2F5D50]">{t.step2Title} ({selectedType === 'Klasik' ? t.klasikTitle : t.vipTitle})</h2>
+                    <h2 className="text-2xl font-bold text-center text-[#E3C39D]">{t.step2Title} ({selectedType === 'Klasik' ? t.klasikTitle : t.vipTitle})</h2>
                     
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
                       {packagesData[selectedType].map((pkg) => {
@@ -851,51 +851,51 @@ const packagesData = packagesTranslations[lang];
                           : prices.VIP[pkg.duration as 45 | 60 | 90];
                         
                         const isMiddle = pkg.badge === 'Supreme' || pkg.badge === 'VIP Pro';
-
+                
                         return (
-                          <div key={pkg.duration} className={`flex flex-col bg-white rounded-3xl border shadow-sm transition-all overflow-hidden ${
-                            isMiddle ? 'border-[#D4A373] ring-2 ring-[#D4A373]/30 bg-gradient-to-b from-[#D4A373]/5 to-white' : 'border-gray-100'
+                          <div key={pkg.duration} className={`flex flex-col bg-[#4B6382]/20 rounded-3xl border shadow-sm transition-all overflow-hidden ${
+                            isMiddle ? 'border-[#E3C39D] ring-2 ring-[#E3C39D]/30 bg-gradient-to-b from-[#A68868]/10 to-[#4B6382]/20' : 'border-[#4B6382]'
                           }`}>
                             <div className="p-6 pb-0 flex flex-col items-start">
                               <span className={`px-3 py-1 text-[11px] font-bold tracking-wider uppercase rounded-full mb-4 ${
-                                isMiddle ? 'bg-[#D4A373] text-white' : 'bg-gray-100 text-gray-600'
+                                isMiddle ? 'bg-[#E3C39D] text-[#071739]' : 'bg-[#4B6382] text-[#CDD5DB]'
                               }`}>
                                 {pkg.badge}
                               </span>
-                              <div className="flex items-baseline text-[#1E293B] mb-1">
+                              <div className="flex items-baseline text-[#CDD5DB] mb-1">
                                 <span className="text-4xl font-black tracking-tight">{priceStr.split(' ')[0]}</span>
-                                <span className="text-lg font-bold ml-1 text-gray-500">eur</span>
-                                <span className="text-xs font-semibold text-gray-400 ml-2">/ {pkg.duration} {t.minutes}</span>
+                                <span className="text-lg font-bold ml-1 text-[#A4B5C4]">eur</span>
+                                <span className="text-xs font-semibold text-[#A4B5C4] ml-2">/ {pkg.duration} {t.minutes}</span>
                               </div>
-                              <p className="text-xs text-gray-500 min-h-[32px] mt-1">{pkg.desc}</p>
+                              <p className="text-xs text-[#A4B5C4] min-h-[32px] mt-1">{pkg.desc}</p>
                             </div>
-
+                
                             <div className="p-6 pt-4">
                               <button 
                                 type="button" 
                                 onClick={() => { setSelectedDuration(pkg.duration); setMassageStep(3); }}
                                 className={`w-full py-3 rounded-xl font-bold text-xs uppercase tracking-wider shadow-sm transition-all duration-300 ${
                                   isMiddle 
-                                    ? 'bg-[#2F5D50] text-white hover:bg-[#1f3f36]' 
-                                    : 'bg-[#1E293B] text-white hover:bg-black'
+                                    ? 'bg-[#E3C39D] text-[#071739] hover:bg-[#A68868] hover:text-white' 
+                                    : 'bg-[#CDD5DB] text-[#071739] hover:bg-white'
                                 }`}
                               >
                                 {t.selectBtn}
                               </button>
                             </div>
-
-                            <div className="border-t border-gray-100 my-2 mx-6"></div>
-
+                
+                            <div className="border-t border-[#4B6382] my-2 mx-6"></div>
+                
                             <div className="p-6 pt-2 flex-grow">
-                              <ul className="space-y-2.5 text-xs text-gray-600">
+                              <ul className="space-y-2.5 text-xs text-[#A4B5C4]">
                                 {pkg.features.map((feat, idx) => (
-                                 <li key={idx} className="flex items-start space-x-2">
-                                  <span className="w-4 flex-shrink-0 text-center text-[#2F5D50] font-bold">
-                                    {featureIcons[feat.icon ?? 'check']}
-                                  </span>
-                                  <span className="text-[#1E293B]">{feat.text}</span>
-                                    </li>
-                                  ))}
+                                  <li key={idx} className="flex items-start space-x-2">
+                                    <span className="w-4 flex-shrink-0 text-center text-[#E3C39D] font-bold">
+                                      {featureIcons[feat.icon ?? 'check']}
+                                    </span>
+                                    <span className="text-[#CDD5DB]">{feat.text}</span>
+                                  </li>
+                                ))}
                               </ul>
                             </div>
                           </div>
@@ -906,7 +906,7 @@ const packagesData = packagesTranslations[lang];
                     <button 
                       type="button" 
                       onClick={() => setMassageStep(1)} 
-                      className="mx-auto flex items-center justify-center space-x-2 px-6 py-3.5 rounded-xl border-2 border-[#1E293B] text-[#1E293B] bg-transparent font-bold text-xs tracking-wider uppercase hover:bg-[#1E293B] hover:text-white transition-all duration-200 shadow-sm"
+                      className="mx-auto flex items-center justify-center space-x-2 px-6 py-3.5 rounded-xl border-2 border-[#A4B5C4] text-[#A4B5C4] bg-transparent font-bold text-xs tracking-wider uppercase hover:bg-[#A4B5C4] hover:text-[#071739] transition-all duration-200 shadow-sm"
                     >
                       <span>⬅</span> <span>{t.backToLevel}</span>
                     </button>
