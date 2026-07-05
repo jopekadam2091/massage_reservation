@@ -769,9 +769,6 @@ const packagesData = packagesTranslations[lang];
             <button type="button" onClick={() => { setMode(null); setMassageStep(1); setSelectedType(null); setSelectedDuration(null); setSelectedDateKey(null); setSelectedSlot(null); }} className="text-xs uppercase tracking-widest font-bold px-4 py-2 rounded-full border transition border-current opacity-80 hover:opacity-100">
               {t.homeBtn}
             </button>
-            <div className="text-sm font-semibold tracking-wider uppercase opacity-40">
-              {mode === 'photo' ? '📷 ' + t.photo : '💆‍♂️ ' + t.massage}
-            </div>
           </header>
 
           <main className="max-w-4xl mx-auto p-6 mt-4">
@@ -1104,15 +1101,6 @@ const packagesData = packagesTranslations[lang];
                                 )}
                                 {codeCheckStatus === 'invalid' && (
                                   <p className="text-[10px] text-red-400 font-medium">{t.codeInvalidMsg}</p>
-                                )}
-                
-                                {codeDebugInfo && (
-                                  <details className="mt-1 text-[10px] bg-yellow-50 border border-yellow-300 rounded-lg p-2 text-left" open>
-                                    <summary className="font-bold cursor-pointer text-yellow-800">
-                                      🐞 DEBUG odpoveď z /api/discount-code
-                                    </summary>
-                                    <pre className="whitespace-pre-wrap break-all mt-1 text-yellow-900">{codeDebugInfo}</pre>
-                                  </details>
                                 )}
                               </div>
                             ) : (
