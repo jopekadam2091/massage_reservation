@@ -4,11 +4,32 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/app/lib/supabase';
 import { CalendarPlus, UserPlus, Calendar } from 'lucide-react';
 
-import { DashboardProps, Client, CalendarEvent } from './types';
 import { AfterWorkModal } from './AfterWorkModal';
 import { FsmGeneratorForm } from './FsmGeneratorForm';
 import { DirectBookingForm } from './DirectBookingForm';
 import { CalendarView } from './CalendarView';
+
+// Priamo definované typy v súbore
+export type DashboardProps = {
+  language: string;
+};
+
+export type Client = {
+  id: string;
+  full_name?: string;
+  email?: string;
+};
+
+export type CalendarEvent = {
+  id: string;
+  summary?: string;
+  start?: {
+    dateTime?: string;
+  };
+  end?: {
+    dateTime?: string;
+  };
+};
 
 export default function AdminReservationDashboard({ language }: DashboardProps) {
   const [activeTab, setActiveTab] = useState<'actions' | 'calendar'>('actions');
@@ -80,7 +101,7 @@ export default function AdminReservationDashboard({ language }: DashboardProps) 
       }
     } catch (err) {
       console.error('Chyba pri načítavaní kalendára:', err);
-    } fontally {
+    } finally {
       setLoadingCalEvents(false);
     }
   };
