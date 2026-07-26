@@ -13,34 +13,58 @@ const CALENDAR_ID = process.env.GOOGLE_CALENDAR_ID as string;
 
 export async function POST(req: Request) {
   try {
-    const { date, startTime, endTime, discountPercent } = await req.json();
+    const body = await req.json();
+    const { date, dates, startTime, endTime, discountPercent } = body;
 
-    if (!date || !startTime || !endTime) {
-      return NextResponse.json({ error: 'Vyplňte dátum a čas od-do' }, { status: 400 });
+    // 🚀 PODPORA PRE POLE DÁTUMOV (dates) AJ PRE JEDINÝ DÁTUM (date)
+    const targetDates: string[] = Array.isArray(dates) && dates.length > 0
+      ? dates
+      : date
+      ? [date]
+      : [];
+
+    if (targetDates.length === 0 || !startTime || !endTime) {
+      return NextResponse.json(
+        { error: 'Vyplňte dátum (alebo obdobie) a čas od-do' },
+        { status: 400 }
+      );
     }
 
-    const startIso = new Date(`${date}T${startTime}:00`).toISOString();
-    const endIso = new Date(`${date}T${endTime}:00`).toISOString();
-
-    const percentNum = parseInt(discountPercent, 10);
+    const percentNum = parseInt(discountPercent || '0', 10);
     const summary = percentNum > 0 ? `FSM_D${percentNum}` : 'FSM';
+    const createdEvents = [];
 
-    const event = {
-      summary: summary,
-      description: 'Otvorený voľný čas pre rezervácie masáží',
-      start: { dateTime: startIso },
-      end: { dateTime: endIso },
-      colorId: '8', // Sivá neutrálna farba pre FSM blok
-    };
+    // 🚀 PREJDEME VŠETKY DNI V POLE A PRE KAŽDÝ VYTVORÍME BLOK V GOOGLE KALENDÁRI
+    for (const d of targetDates) {
+      const startIso = new Date(`${d}T${startTime}:00`).toISOString();
+      const endIso = new Date(`${d}T${endTime}:00`).toISOString();
 
-    const response = await calendar.events.insert({
-      calendarId: CALENDAR_ID,
-      requestBody: event,
+      const event = {
+        summary: summary,
+        description: 'Otvorený voľný čas pre rezervácie masáží',
+        start: { dateTime: startIso },
+        end: { dateTime: endIso },
+        colorId: '8', // Sivá neutrálna farba pre FSM blok
+      };
+
+      const response = await calendar.events.insert({
+        calendarId: CALENDAR_ID,
+        requestBody: event,
+      });
+
+      createdEvents.push(response.data);
+    }
+
+    return NextResponse.json({
+      success: true,
+      count: createdEvents.length,
+      events: createdEvents,
     });
-
-    return NextResponse.json({ success: true, event: response.data });
   } catch (err: any) {
     console.error('Chyba pri vytváraní FSM bloku:', err);
-    return NextResponse.json({ error: err?.message || 'Chyba pri otváraní termínu' }, { status: 500 });
+    return NextResponse.json(
+      { error: err?.message || 'Chyba pri otváraní termínu' },
+      { status: 500 }
+    );
   }
 }

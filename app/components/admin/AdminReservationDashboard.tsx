@@ -43,10 +43,13 @@ export default function AdminReservationDashboard({ language }: Props) {
   const [activeTab, setActiveTab] = useState<'actions' | 'calendar'>('actions');
   const [actionSubTab, setActionSubTab] = useState<'fsm' | 'direct'>('fsm');
 
+  // Dnešný ISO dátum pre obmedzenie minulosti (YYYY-MM-DD)
+  const todayIso = useMemo(() => new Date().toISOString().split('T')[0], []);
+
   // 1. Stavy pre FSM GENERÁTOR
   const [fsmStartDate, setFsmStartDate] = useState('');
   const [fsmEndDate, setFsmEndDate] = useState('');
-  const [selectedDaysOfWeek, setSelectedDaysOfWeek] = useState<number[]>([1, 2, 3, 4]); // PO - ŠT
+  const [selectedDaysOfWeek, setSelectedDaysOfWeek] = useState<number[]>([0, 1, 2, 3, 4, 5, 6]);
   const [fsmExcludedDates, setFsmExcludedDates] = useState<string[]>([]);
   
   const [fsmStart, setFsmStart] = useState('17:00');
@@ -56,8 +59,9 @@ export default function AdminReservationDashboard({ language }: Props) {
   const [fsmSuccess, setFsmSuccess] = useState('');
   const [fsmError, setFsmError] = useState('');
 
-  // Okno pre "Dnes po práci"
+  // Okno pre "Dnes po práci" a "Mám Home Office"
   const [showAfterWorkModal, setShowAfterWorkModal] = useState(false);
+  const [showHomeOfficeModal, setShowHomeOfficeModal] = useState(false);
 
   // 2. Stavy pre Priamu rezerváciu klienta
   const [clients, setClients] = useState<any[]>([]);
@@ -80,16 +84,20 @@ export default function AdminReservationDashboard({ language }: Props) {
   const [loadingCalEvents, setLoadingCalEvents] = useState(false);
   const [selectedCalDayKey, setSelectedCalDayKey] = useState<string | null>(null);
 
+  // HROMADNÝ VÝBER DŇÍ V KALENDÁRI
+  const [selectedCalDayKeys, setSelectedCalDayKeys] = useState<string[]>([]);
+  const [deletingBatchFsm, setDeletingBatchFsm] = useState(false);
+
   useEffect(() => {
     const today = new Date();
-    const todayIso = today.toISOString().split('T')[0];
+    const todayStr = today.toISOString().split('T')[0];
     
     const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
     const endOfMonthIso = endOfMonth.toISOString().split('T')[0];
 
-    setFsmStartDate(todayIso);
+    setFsmStartDate(todayStr);
     setFsmEndDate(endOfMonthIso);
-    setDirectDate(todayIso);
+    setDirectDate(todayStr);
 
     const loadClients = async () => {
       const { data } = await supabase.from('profiles').select('id, full_name, email').order('full_name');
@@ -144,7 +152,7 @@ export default function AdminReservationDashboard({ language }: Props) {
       const dayOfWeek = cur.getDay();
       const dateStr = `${cur.getFullYear()}-${String(cur.getMonth() + 1).padStart(2, '0')}-${String(cur.getDate()).padStart(2, '0')}`;
 
-      if (selectedDaysOfWeek.includes(dayOfWeek) && !fsmExcludedDates.includes(dateStr)) {
+      if (dateStr >= todayIso && selectedDaysOfWeek.includes(dayOfWeek) && !fsmExcludedDates.includes(dateStr)) {
         result.push(dateStr);
       }
 
@@ -152,7 +160,7 @@ export default function AdminReservationDashboard({ language }: Props) {
     }
 
     return result;
-  }, [fsmStartDate, fsmEndDate, selectedDaysOfWeek, fsmExcludedDates]);
+  }, [fsmStartDate, fsmEndDate, selectedDaysOfWeek, fsmExcludedDates, todayIso]);
 
   const toggleDayOfWeek = (dayId: number) => {
     setSelectedDaysOfWeek((prev) =>
@@ -160,13 +168,13 @@ export default function AdminReservationDashboard({ language }: Props) {
     );
   };
 
-  // 🚀 1. PREDVOĽBA: DNES PO PRÁCI (S VÝBEROM ČASU ZAČIATKU)
+  // PREDVOĽBY FSM GENERÁTORA
   const applyPresetTodayAfterWorkConfirm = (startTime: string) => {
     const today = new Date();
-    const todayIso = today.toISOString().split('T')[0];
+    const todayStr = today.toISOString().split('T')[0];
     
-    setFsmStartDate(todayIso);
-    setFsmEndDate(todayIso);
+    setFsmStartDate(todayStr);
+    setFsmEndDate(todayStr);
     setFsmStart(startTime);
     setFsmEnd('20:00');
     setSelectedDaysOfWeek([today.getDay()]);
@@ -174,42 +182,66 @@ export default function AdminReservationDashboard({ language }: Props) {
     setShowAfterWorkModal(false);
   };
 
-  // 🚀 2. PREDVOĽBA: MÁM HO (Home Office 08:00 - 15:00)
-  const applyPresetHomeOffice = () => {
+  const applyPresetHomeOfficeConfirm = (rangeType: 'today' | 'this_week' | 'this_month') => {
     const today = new Date();
-    const todayIso = today.toISOString().split('T')[0];
+    const todayStr = today.toISOString().split('T')[0];
 
-    setFsmStartDate(todayIso);
-    setFsmEndDate(todayIso);
-    setFsmStart('08:00');
+    setFsmStart('09:00');
     setFsmEnd('15:00');
-    setSelectedDaysOfWeek([today.getDay()]);
     setFsmExcludedDates([]);
+
+    if (rangeType === 'today') {
+      setFsmStartDate(todayStr);
+      setFsmEndDate(todayStr);
+      setSelectedDaysOfWeek([today.getDay()]);
+    } else if (rangeType === 'this_week') {
+      const dayOfWeek = today.getDay();
+      const diffToMon = today.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
+      const monday = new Date(today.setDate(diffToMon));
+      const sunday = new Date(today.setDate(monday.getDate() + 6));
+
+      const monStr = monday.toISOString().split('T')[0];
+      setFsmStartDate(monStr < todayStr ? todayStr : monStr);
+      setFsmEndDate(sunday.toISOString().split('T')[0]);
+      setSelectedDaysOfWeek([1, 2, 3, 4, 5]);
+    } else if (rangeType === 'this_month') {
+      const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+      const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+
+      const firstStr = firstDay.toISOString().split('T')[0];
+      setFsmStartDate(firstStr < todayStr ? todayStr : firstStr);
+      setFsmEndDate(lastDay.toISOString().split('T')[0]);
+      setSelectedDaysOfWeek([1, 2, 3, 4, 5]);
+    }
+
+    setShowHomeOfficeModal(false);
   };
 
-  // 🚀 3. PREDVOĽBA: TENTO TÝŽDEŇ
   const applyPresetThisWeek = () => {
     const today = new Date();
+    const todayStr = today.toISOString().split('T')[0];
     const dayOfWeek = today.getDay();
     const diffToMon = today.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
     
     const monday = new Date(today.setDate(diffToMon));
     const sunday = new Date(today.setDate(monday.getDate() + 6));
 
-    setFsmStartDate(monday.toISOString().split('T')[0]);
+    const monStr = monday.toISOString().split('T')[0];
+    setFsmStartDate(monStr < todayStr ? todayStr : monStr);
     setFsmEndDate(sunday.toISOString().split('T')[0]);
-    setSelectedDaysOfWeek([1, 2, 3, 4, 5]); // PO - PI
+    setSelectedDaysOfWeek([1, 2, 3, 4, 5]);
   };
 
-  // 🚀 4. PREDVOĽBA: TENTO MESIAC
   const applyPresetThisMonth = () => {
     const today = new Date();
+    const todayStr = today.toISOString().split('T')[0];
     const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
     const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
 
-    setFsmStartDate(firstDay.toISOString().split('T')[0]);
+    const firstStr = firstDay.toISOString().split('T')[0];
+    setFsmStartDate(firstStr < todayStr ? todayStr : firstStr);
     setFsmEndDate(lastDay.toISOString().split('T')[0]);
-    setSelectedDaysOfWeek([1, 2, 3, 4, 5]); // PO - PI
+    setSelectedDaysOfWeek([1, 2, 3, 4, 5]);
   };
 
   const handleCreateFsm = async (e: React.FormEvent) => {
@@ -330,24 +362,152 @@ export default function AdminReservationDashboard({ language }: Props) {
   const monthNamesSK = ['Január', 'Február', 'Marec', 'Apríl', 'Máj', 'Jún', 'Júl', 'August', 'September', 'Október', 'November', 'December'];
   const monthNamesEN = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
-  const eventsByDateKey: Record<string, { fsm: any[]; bookings: any[] }> = {};
+  const eventsByDateKey = useMemo(() => {
+    const record: Record<string, { fsm: any[]; bookings: any[] }> = {};
 
-  allCalendarEvents.forEach((ev) => {
-    if (!ev.start?.dateTime) return;
-    const evDate = new Date(ev.start.dateTime);
-    const dateKey = `${evDate.getFullYear()}-${String(evDate.getMonth() + 1).padStart(2, '0')}-${String(evDate.getDate()).padStart(2, '0')}`;
+    allCalendarEvents.forEach((ev) => {
+      if (!ev.start?.dateTime) return;
+      const evDate = new Date(ev.start.dateTime);
+      const dateKey = `${evDate.getFullYear()}-${String(evDate.getMonth() + 1).padStart(2, '0')}-${String(evDate.getDate()).padStart(2, '0')}`;
 
-    if (!eventsByDateKey[dateKey]) {
-      eventsByDateKey[dateKey] = { fsm: [], bookings: [] };
+      if (!record[dateKey]) {
+        record[dateKey] = { fsm: [], bookings: [] };
+      }
+
+      const summary = (ev.summary || '').toUpperCase();
+      if (summary.includes('FSM')) {
+        record[dateKey].fsm.push(ev);
+      } else if (summary.includes('REZERVÁCIA')) {
+        record[dateKey].bookings.push(ev);
+      }
+    });
+
+    return record;
+  }, [allCalendarEvents]);
+
+  // SÚČET VŠETKÝCH FSM BLOKOV PRE VYBRANÉ DNI
+  const totalFsmInSelectedDays = useMemo(() => {
+    let total = 0;
+    selectedCalDayKeys.forEach((key) => {
+      if (eventsByDateKey[key]?.fsm) {
+        total += eventsByDateKey[key].fsm.length;
+      }
+    });
+    return total;
+  }, [selectedCalDayKeys, eventsByDateKey]);
+
+  // PREPÍNANIE VÝBERU DŇA V KALENDÁRI
+  const toggleCalDaySelect = (dateKey: string) => {
+    if (dateKey < todayIso) return;
+    setSelectedCalDayKeys((prev) =>
+      prev.includes(dateKey) ? prev.filter((k) => k !== dateKey) : [...prev, dateKey]
+    );
+    setSelectedCalDayKey(dateKey);
+  };
+
+  // VYBRAŤ VŠETKY DNI MESIACA, KTORÉ MAJÚ FSM
+  const selectAllDaysWithFsm = () => {
+    const daysWithFsm = daysArray
+      .map((day) => `${calYear}-${String(calMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`)
+      .filter((dateKey) => dateKey >= todayIso && (eventsByDateKey[dateKey]?.fsm?.length || 0) > 0);
+
+    setSelectedCalDayKeys(daysWithFsm);
+  };
+
+  // 🚀 PRESNÁ LOGIKA PRENOSU VYKLIKANÝCH DŇÍ DO GENERÁTORA A (OPEN SLOTS)
+  const handleTransferSelectedDaysToFsm = (singleKey?: string) => {
+    const keysToUse = singleKey 
+      ? [singleKey] 
+      : selectedCalDayKeys.length > 0 
+      ? selectedCalDayKeys 
+      : selectedCalDayKey 
+      ? [selectedCalDayKey] 
+      : [];
+
+    if (keysToUse.length === 0) return;
+
+    // 1. Zotriedime vybrané dátumy chronologicky
+    const sortedKeys = [...keysToUse].sort();
+    const minDate = sortedKeys[0];                   // Od dátumu (prvý zakliknutý)
+    const maxDate = sortedKeys[sortedKeys.length - 1]; // Do dátumu (posledný zakliknutý)
+
+    const selectedSet = new Set(sortedKeys);
+
+    // 2. Zaškrtneme všetky dni v týždni (PO–NE), aby žiaden vyklikaný deň nevypadol
+    setSelectedDaysOfWeek([0, 1, 2, 3, 4, 5, 6]);
+
+    // 3. Prejdeme všetky kalendárne dni od minDate po maxDate.
+    // Dni, ktoré NIE SÚ vo vyklikanom výbere, dáme do výnimiek (fsmExcludedDates)!
+    const excluded: string[] = [];
+    const cur = new Date(minDate + 'T00:00:00');
+    const end = new Date(maxDate + 'T00:00:00');
+
+    while (cur <= end) {
+      const curStr = `${cur.getFullYear()}-${String(cur.getMonth() + 1).padStart(2, '0')}-${String(cur.getDate()).padStart(2, '0')}`;
+
+      if (!selectedSet.has(curStr)) {
+        excluded.push(curStr);
+      }
+
+      cur.setDate(cur.getDate() + 1);
     }
 
-    const summary = (ev.summary || '').toUpperCase();
-    if (summary.includes('FSM')) {
-      eventsByDateKey[dateKey].fsm.push(ev);
-    } else if (summary.includes('REZERVÁCIA')) {
-      eventsByDateKey[dateKey].bookings.push(ev);
+    // 4. Uložíme do FSM Generátora
+    setFsmStartDate(minDate);
+    setFsmEndDate(maxDate);
+    setFsmExcludedDates(excluded);
+
+    // 5. Prepneme do záložky A: Otvoriť voľné termíny
+    setActiveTab('actions');
+    setActionSubTab('fsm');
+  };
+
+  // HROMADNÉ ZMAZANIE FSM SLOTOV PRE VYBRANÉ DNI
+  const handleBatchDeleteFsmSlots = async () => {
+    if (selectedCalDayKeys.length === 0) return;
+
+    const eventsToDelete: string[] = [];
+    selectedCalDayKeys.forEach((key) => {
+      const fsmEvs = eventsByDateKey[key]?.fsm || [];
+      fsmEvs.forEach((ev) => {
+        if (ev.id) eventsToDelete.push(ev.id);
+      });
+    });
+
+    if (eventsToDelete.length === 0) {
+      alert(language === 'sk' ? 'Pre vybrané dni sa nenašli žiadne voľné FSM bloky.' : 'No open FSM slots found for selected days.');
+      return;
     }
-  });
+
+    const confirmMsg = language === 'sk'
+      ? `Naozaj chcete hromadne zmazať ${eventsToDelete.length} voľných FSM blokov pre (${selectedCalDayKeys.length}) dní?`
+      : `Delete ${eventsToDelete.length} open FSM slots across (${selectedCalDayKeys.length}) days?`;
+
+    if (!confirm(confirmMsg)) return;
+
+    setDeletingBatchFsm(true);
+
+    try {
+      await Promise.all(
+        eventsToDelete.map((eventId) =>
+          fetch('/api/admin/cancel-appointment', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ eventId }),
+          })
+        )
+      );
+
+      setSelectedCalDayKeys([]);
+      setSelectedCalDayKey(null);
+      await fetchCalendarOverview();
+    } catch (err) {
+      console.error('Chyba pri hromadnom mazaní:', err);
+      alert(language === 'sk' ? 'Chyba pri hromadnom mazaní slotov.' : 'Error batch deleting slots.');
+    } finally {
+      setDeletingBatchFsm(false);
+    }
+  };
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 font-sans text-left">
@@ -426,14 +586,12 @@ export default function AdminReservationDashboard({ language }: Props) {
                 </div>
               </div>
 
-              {/* 🚀 RÝCHLE PREDVOĽBY 1-KLIK S NOVÝMI PRAVIDLAMI */}
+              {/* RÝCHLE PREDVOĽBY */}
               <div className="space-y-1.5 bg-indigo-50/60 dark:bg-indigo-950/30 p-3.5 rounded-2xl border border-indigo-100 dark:border-indigo-900/40">
                 <label className="block text-[11px] font-extrabold text-indigo-900 dark:text-indigo-300 uppercase tracking-wider">
                   {language === 'sk' ? '⚡ Rýchle predvoľby pravidiel:' : '⚡ Quick presets:'}
                 </label>
                 <div className="flex flex-wrap gap-2 pt-0.5">
-                  
-                  {/* 1. Dnes po práci (S výzvou kedy začať) */}
                   <button
                     type="button"
                     onClick={() => setShowAfterWorkModal(true)}
@@ -443,17 +601,15 @@ export default function AdminReservationDashboard({ language }: Props) {
                     <span>{language === 'sk' ? 'Dnes po práci' : 'Today after work'}</span>
                   </button>
 
-                  {/* 2. Mám HO (08:00 - 15:00) */}
                   <button
                     type="button"
-                    onClick={applyPresetHomeOffice}
+                    onClick={() => setShowHomeOfficeModal(true)}
                     className="px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800 border border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 font-bold text-xs hover:bg-indigo-600 hover:text-white transition shadow-sm cursor-pointer flex items-center gap-1.5"
                   >
                     <HomeIcon size={14} />
-                    <span>{language === 'sk' ? 'Mám HO (08:00–15:00)' : 'Home Office (08:00–15:00)'}</span>
+                    <span>{language === 'sk' ? 'Mám HO (09:00–15:00)' : 'Home Office (09:00–15:00)'}</span>
                   </button>
 
-                  {/* 3. Tento týždeň */}
                   <button
                     type="button"
                     onClick={applyPresetThisWeek}
@@ -462,7 +618,6 @@ export default function AdminReservationDashboard({ language }: Props) {
                     📅 {language === 'sk' ? 'Tento týždeň' : 'This week'}
                   </button>
 
-                  {/* 4. Tento mesiac */}
                   <button
                     type="button"
                     onClick={applyPresetThisMonth}
@@ -475,7 +630,7 @@ export default function AdminReservationDashboard({ language }: Props) {
 
               <form onSubmit={handleCreateFsm} className="space-y-4">
                 
-                {/* ROZSAH DÁTUMOV (OD - DO) */}
+                {/* ROZSAH DÁTUMOV (S OCHRANOU PRED MINULOSŤOU min={todayIso}) */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1 flex items-center gap-1.5">
@@ -485,6 +640,7 @@ export default function AdminReservationDashboard({ language }: Props) {
                     <input
                       type="date"
                       required
+                      min={todayIso}
                       value={fsmStartDate}
                       onChange={(e) => setFsmStartDate(e.target.value)}
                       className="w-full p-3 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 text-xs font-bold"
@@ -499,6 +655,7 @@ export default function AdminReservationDashboard({ language }: Props) {
                     <input
                       type="date"
                       required
+                      min={todayIso}
                       value={fsmEndDate}
                       onChange={(e) => setFsmEndDate(e.target.value)}
                       className="w-full p-3 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 text-xs font-bold"
@@ -506,7 +663,6 @@ export default function AdminReservationDashboard({ language }: Props) {
                   </div>
                 </div>
 
-                {/* DNI V TÝŽDNI (PO, UT, ST, ŠT, PI, SO, NE) */}
                 <div className="space-y-2">
                   <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 flex items-center gap-1.5">
                     <Filter size={14} className="text-indigo-500" />
@@ -534,7 +690,6 @@ export default function AdminReservationDashboard({ language }: Props) {
                   </div>
                 </div>
 
-                {/* 🚀 ČAS OD A ČAS DO V JEDNOM COMPAKTNOM RIADKU */}
                 <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 space-y-1">
                   <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 flex items-center gap-1.5 mb-2">
                     <Clock size={14} className="text-indigo-500" />
@@ -570,7 +725,6 @@ export default function AdminReservationDashboard({ language }: Props) {
                   </div>
                 </div>
 
-                {/* VYGENEROVANÝ ZOZNAM DŇÍ S MOŽNOSŤOU ODSTRÁNIŤ VÝNIMKY */}
                 {generatedTargetDates.length > 0 && (
                   <div className="space-y-1.5 p-3 rounded-2xl bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-100 dark:border-indigo-900/30">
                     <div className="flex items-center justify-between text-[11px] font-bold text-indigo-900 dark:text-indigo-300">
@@ -599,7 +753,6 @@ export default function AdminReservationDashboard({ language }: Props) {
                   </div>
                 )}
 
-                {/* 🚀 ROZŠÍRENÉ AKCIE A ZĽAVY (0% až 100%) */}
                 <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800">
                   <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 flex items-center gap-1.5">
                     <Percent size={14} className="text-sky-500" />
@@ -756,6 +909,7 @@ export default function AdminReservationDashboard({ language }: Props) {
                     <input
                       type="date"
                       required
+                      min={todayIso}
                       value={directDate}
                       onChange={(e) => setDirectDate(e.target.value)}
                       className="w-full p-3 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 text-xs font-bold"
@@ -855,7 +1009,7 @@ export default function AdminReservationDashboard({ language }: Props) {
                   {language === 'sk' ? 'Vizuálny prehľad kalendára' : 'Visual Calendar Overview'}
                 </h2>
                 <p className="text-xs text-slate-400 dark:text-slate-500">
-                  {language === 'sk' ? 'Kliknite na deň pre správy termínov alebo vymazanie voľných slotov' : 'Click a day to manage slots or delete open blocks'}
+                  {language === 'sk' ? 'Vyklikajte dni a zvoľte akciu (Otvoriť FSM termíny alebo Zmazať FSM)' : 'Click days to select. Open slots or delete FSM for selected days.'}
                 </p>
               </div>
             </div>
@@ -863,7 +1017,10 @@ export default function AdminReservationDashboard({ language }: Props) {
             <div className="flex items-center gap-2">
               <button
                 type="button"
-                onClick={() => setCalCurrentDate(new Date(calYear, calMonth - 1, 1))}
+                onClick={() => {
+                  setCalCurrentDate(new Date(calYear, calMonth - 1, 1));
+                  setSelectedCalDayKeys([]);
+                }}
                 className="p-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-indigo-600 hover:text-white transition cursor-pointer"
               >
                 <ChevronLeft size={16} />
@@ -873,7 +1030,10 @@ export default function AdminReservationDashboard({ language }: Props) {
               </span>
               <button
                 type="button"
-                onClick={() => setCalCurrentDate(new Date(calYear, calMonth + 1, 1))}
+                onClick={() => {
+                  setCalCurrentDate(new Date(calYear, calMonth + 1, 1));
+                  setSelectedCalDayKeys([]);
+                }}
                 className="p-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-indigo-600 hover:text-white transition cursor-pointer"
               >
                 <ChevronRight size={16} />
@@ -881,16 +1041,88 @@ export default function AdminReservationDashboard({ language }: Props) {
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-4 text-xs font-semibold text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/40 p-3 rounded-2xl border border-slate-100 dark:border-slate-800">
-            <span className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
-              <span>{language === 'sk' ? 'Rezervácia klienta' : 'Client Booking'}</span>
-            </span>
-            <span className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-indigo-500" />
-              <span>{language === 'sk' ? 'Otvorený FSM voľný čas' : 'Open FSM Slot'}</span>
-            </span>
+          <div className="flex flex-wrap items-center justify-between gap-3 text-xs font-semibold text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/40 p-3 rounded-2xl border border-slate-100 dark:border-slate-800">
+            <div className="flex flex-wrap items-center gap-4">
+              <span className="flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+                <span>{language === 'sk' ? 'Rezervácia klienta' : 'Client Booking'}</span>
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-indigo-500" />
+                <span>{language === 'sk' ? 'Otvorený FSM voľný čas' : 'Open FSM Slot'}</span>
+              </span>
+            </div>
+
+            <button
+              type="button"
+              onClick={selectAllDaysWithFsm}
+              className="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer"
+            >
+              {language === 'sk' ? 'Označiť všetky dni s FSM' : 'Select all days with FSM'}
+            </button>
           </div>
+
+          {/* 🚀 BATCH ACTION BAR PRE PRIDANIE A ZMAZANIE DŇÍ */}
+          {selectedCalDayKeys.length > 0 && (
+            <div className="p-3.5 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800 flex flex-col sm:flex-row items-center justify-between gap-3 animate-in fade-in duration-200">
+              <div className="text-xs font-bold text-indigo-900 dark:text-indigo-200 flex items-center gap-2">
+                <span className="px-2 py-0.5 rounded-lg bg-indigo-600 text-white font-extrabold">
+                  {selectedCalDayKeys.length}
+                </span>
+                <span>
+                  {language === 'sk' 
+                    ? `vybraných dní (${totalFsmInSelectedDays} FSM blokov existuje)` 
+                    : `selected days (${totalFsmInSelectedDays} FSM slots exist)`}
+                </span>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+                
+                {/* 🚀 TLAČIDLO PRE PRENOS VYKLIKANÝCH DŇÍ DO GENERÁTORA A (OPEN SLOTS) */}
+                <button
+                  type="button"
+                  onClick={() => handleTransferSelectedDaysToFsm()}
+                  className="flex-1 sm:flex-none py-2 px-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-95 cursor-pointer shadow-sm"
+                >
+                  <CalendarPlus size={14} />
+                  <span>
+                    {language === 'sk' 
+                      ? `Otvoriť FSM pre vybrané dni (${selectedCalDayKeys.length})` 
+                      : `Open FSM for selected days (${selectedCalDayKeys.length})`}
+                  </span>
+                </button>
+
+                {/* TLAČIDLO PRE HROMADNÉ MAZANIE */}
+                {totalFsmInSelectedDays > 0 && (
+                  <button
+                    type="button"
+                    onClick={handleBatchDeleteFsmSlots}
+                    disabled={deletingBatchFsm}
+                    className="flex-1 sm:flex-none py-2 px-3.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-95 cursor-pointer disabled:opacity-50"
+                  >
+                    {deletingBatchFsm ? (
+                      <Loader2 size={14} className="animate-spin" />
+                    ) : (
+                      <Trash2 size={14} />
+                    )}
+                    <span>
+                      {language === 'sk' 
+                        ? `Zmazať FSM (${totalFsmInSelectedDays})` 
+                        : `Delete FSM (${totalFsmInSelectedDays})`}
+                    </span>
+                  </button>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => setSelectedCalDayKeys([])}
+                  className="py-2 px-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-bold text-xs hover:bg-slate-100 transition cursor-pointer"
+                >
+                  {language === 'sk' ? 'Zrušiť' : 'Deselect'}
+                </button>
+              </div>
+            </div>
+          )}
 
           {loadingCalEvents ? (
             <div className="py-12 flex flex-col items-center justify-center gap-2 text-slate-400">
@@ -913,7 +1145,9 @@ export default function AdminReservationDashboard({ language }: Props) {
                 {daysArray.map((day) => {
                   const dateKey = `${calYear}-${String(calMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
                   const dayEvents = eventsByDateKey[dateKey] || { fsm: [], bookings: [] };
-                  const isSelected = selectedCalDayKey === dateKey;
+                  const isMultiSelected = selectedCalDayKeys.includes(dateKey);
+                  const isDetailSelected = selectedCalDayKey === dateKey;
+                  const isPastDay = dateKey < todayIso;
 
                   const hasFsm = dayEvents.fsm.length > 0;
                   const hasBookings = dayEvents.bookings.length > 0;
@@ -922,14 +1156,24 @@ export default function AdminReservationDashboard({ language }: Props) {
                     <button
                       type="button"
                       key={dateKey}
-                      onClick={() => setSelectedCalDayKey(dateKey)}
-                      className={`relative min-h-[64px] p-2 rounded-2xl border text-left flex flex-col justify-between transition active:scale-95 cursor-pointer ${
-                        isSelected
-                          ? 'border-2 border-emerald-500 bg-emerald-50/50 dark:bg-emerald-950/30 shadow-md'
-                          : 'border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 hover:bg-slate-100 dark:hover:bg-slate-800'
+                      disabled={isPastDay}
+                      onClick={() => toggleCalDaySelect(dateKey)}
+                      className={`relative min-h-[64px] p-2 rounded-2xl border text-left flex flex-col justify-between transition active:scale-95 ${
+                        isPastDay
+                          ? 'opacity-40 bg-slate-100 dark:bg-slate-900 border-slate-200 dark:border-slate-800 cursor-not-allowed'
+                          : isMultiSelected
+                          ? 'border-2 border-indigo-600 bg-indigo-100/60 dark:bg-indigo-950/60 shadow-md ring-2 ring-indigo-500/20 cursor-pointer'
+                          : isDetailSelected
+                          ? 'border-2 border-emerald-500 bg-emerald-50/50 dark:bg-emerald-950/30 shadow-md cursor-pointer'
+                          : 'border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer'
                       }`}
                     >
-                      <span className="text-xs font-black text-slate-800 dark:text-slate-100">{day}</span>
+                      <div className="flex items-center justify-between w-full">
+                        <span className="text-xs font-black text-slate-800 dark:text-slate-100">{day}</span>
+                        {isMultiSelected && (
+                          <span className="w-2 h-2 rounded-full bg-indigo-600 shrink-0" />
+                        )}
+                      </div>
 
                       <div className="flex flex-col gap-1 mt-1">
                         {hasBookings && (
@@ -940,7 +1184,7 @@ export default function AdminReservationDashboard({ language }: Props) {
 
                         {hasFsm && (
                           <span className="px-1.5 py-0.5 rounded-md bg-indigo-600 text-white text-[9px] font-extrabold truncate">
-                            {language === 'sk' ? 'Voľno' : 'Open'}
+                            {dayEvents.fsm.length > 1 ? `${dayEvents.fsm.length}× Voľno` : (language === 'sk' ? 'Voľno' : 'Open')}
                           </span>
                         )}
                       </div>
@@ -1014,17 +1258,18 @@ export default function AdminReservationDashboard({ language }: Props) {
 
                   <div className="flex flex-col sm:flex-row gap-2 pt-2 border-t border-slate-200 dark:border-slate-700">
                     <button
-                      type="button"
-                      onClick={() => {
-                        setFsmStartDate(selectedCalDayKey);
-                        setFsmEndDate(selectedCalDayKey);
-                        setActiveTab('actions');
-                        setActionSubTab('fsm');
-                      }}
-                      className="flex-1 py-2 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition cursor-pointer"
+                    type="button"
+                    onClick={() => handleTransferSelectedDaysToFsm()}
+                    className="flex-1 py-2 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition cursor-pointer"
                     >
-                      <Plus size={14} />
-                      <span>{language === 'sk' ? 'Otvoriť FSM slot na tento deň' : 'Open FSM slot for this day'}</span>
+                    <Plus size={14} />
+                    <span>
+                        {selectedCalDayKeys.length > 1
+                        ? (language === 'sk'
+                            ? `Otvoriť FSM pre vybrané dni (${selectedCalDayKeys.length})`
+                            : `Open FSM for selected days (${selectedCalDayKeys.length})`)
+                        : (language === 'sk' ? 'Otvoriť FSM slot na tento deň' : 'Open FSM slot for this day')}
+                    </span>
                     </button>
 
                     <button
@@ -1049,7 +1294,7 @@ export default function AdminReservationDashboard({ language }: Props) {
         </div>
       )}
 
-      {/* 🚀 MODAL OKNO PRE "DNES PO PRÁCI" (KEDY ZAČÍNAŠ?) */}
+      {/* MODAL OKNO PRE "DNES PO PRÁCI" */}
       {showAfterWorkModal && (
         <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-md flex items-center justify-center p-6 font-sans animate-fadeIn">
           <div className="w-full max-w-xs p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl space-y-4 text-center relative animate-in fade-in zoom-in-95 duration-200">
@@ -1085,6 +1330,63 @@ export default function AdminReservationDashboard({ language }: Props) {
                   {time}
                 </button>
               ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL OKNO PRE "MÁM HOME OFFICE" */}
+      {showHomeOfficeModal && (
+        <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-md flex items-center justify-center p-6 font-sans animate-fadeIn">
+          <div className="w-full max-w-xs p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl space-y-4 text-center relative animate-in fade-in zoom-in-95 duration-200">
+            <button
+              type="button"
+              onClick={() => setShowHomeOfficeModal(false)}
+              className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 cursor-pointer"
+            >
+              <X size={18} />
+            </button>
+
+            <div className="w-12 h-12 mx-auto rounded-2xl bg-indigo-100 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shadow-sm">
+              <HomeIcon size={22} />
+            </div>
+
+            <div className="space-y-1">
+              <h3 className="font-extrabold text-sm text-slate-800 dark:text-slate-100">
+                {language === 'sk' ? 'Mám Home Office (09:00–15:00)' : 'Home Office (09:00–15:00)'}
+              </h3>
+              <p className="text-[11px] text-slate-400">
+                {language === 'sk' ? 'Vyberte pre ktoré dni prednastaviť HO:' : 'Select days to pre-fill HO:'}
+              </p>
+            </div>
+
+            <div className="space-y-2 pt-1">
+              <button
+                type="button"
+                onClick={() => applyPresetHomeOfficeConfirm('today')}
+                className="w-full py-2.5 px-3 rounded-xl text-xs font-bold border transition cursor-pointer bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-indigo-600 hover:text-white hover:border-indigo-600 flex items-center justify-center gap-2"
+              >
+                <span>📅</span>
+                <span>{language === 'sk' ? 'Iba Dnes' : 'Today only'}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => applyPresetHomeOfficeConfirm('this_week')}
+                className="w-full py-2.5 px-3 rounded-xl text-xs font-bold border transition cursor-pointer bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-indigo-600 hover:text-white hover:border-indigo-600 flex items-center justify-center gap-2"
+              >
+                <span>📅</span>
+                <span>{language === 'sk' ? 'Tento týždeň (PO – PI)' : 'This week (MO – FR)'}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => applyPresetHomeOfficeConfirm('this_month')}
+                className="w-full py-2.5 px-3 rounded-xl text-xs font-bold border transition cursor-pointer bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-indigo-600 hover:text-white hover:border-indigo-600 flex items-center justify-center gap-2"
+              >
+                <span>📅</span>
+                <span>{language === 'sk' ? 'Tento mesiac (PO – PI)' : 'This month (MO – FR)'}</span>
+              </button>
             </div>
           </div>
         </div>

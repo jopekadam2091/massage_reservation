@@ -12,12 +12,12 @@ import SuccessModal from '@/app/components/SuccessModal';
 import Step1Level from '@/app/components/Step1Level';
 import Step2Packages from '@/app/components/Step2Packages';
 import Step3Calendar from '@/app/components/Step3Calendar';
-import AdminReservationDashboard from '@/app/components/admin/AdminReservationDashboard';
+import AdminReservationDashboard from '@/app/components/admin/reservation/AdminReservationDashboard';
 import CancelRequestModal from '@/app/components/admin/CancelRequestModal';
 
 import { 
   Gift, LogIn, ArrowRight, AlertCircle, Tag, Calendar, 
-  Clock, CalendarX, RotateCw, CheckCircle2, X 
+  Clock, CalendarX, RotateCw, CheckCircle2, X, ChevronDown, ChevronUp
 } from 'lucide-react';
 
 export default function Home() {
@@ -32,8 +32,12 @@ export default function Home() {
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const [showGuestNotice, setShowGuestNotice] = useState<boolean>(false);
 
-  const [existingBooking, setExistingBooking] = useState<any>(null);
-  const [latestStornoStatus, setLatestStornoStatus] = useState<string | null>(null);
+  // 🚀 NOVÉ STAVY PRE VIACERO REZERVAČNÝCH TERMÍNOV A ROZBAĽOVANIE
+  const [userBookings, setUserBookings] = useState<any[]>([]);
+  const [isBookingsExpanded, setIsBookingsExpanded] = useState<boolean>(false);
+  const [selectedCancelBooking, setSelectedCancelBooking] = useState<any>(null);
+  const [cancellationRequests, setCancellationRequests] = useState<any[]>([]);
+
   const [approvedStornoNotice, setApprovedStornoNotice] = useState<any>(null);
   const [dismissedApprovedRef, setDismissedApprovedRef] = useState<string | null>(null);
 
@@ -65,12 +69,13 @@ export default function Home() {
     setApprovedStornoNotice(null);
   };
 
+  // 🚀 NAČÍTANIE VŠETKÝCH REZERVAČNÝCH TERMÍNOV POUŽÍVATEĽA
   const refetchUserAppointments = async (email: string) => {
     setLoadingUserBooking(true);
     try {
       const res = await fetch(`/api/user/appointments?email=${encodeURIComponent(email)}`);
       const data = await res.json();
-      const activeCalBooking = (res.ok && data.bookings && data.bookings.length > 0) ? data.bookings[0] : null;
+      const allActiveBookings = (res.ok && data.bookings) ? data.bookings : [];
 
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user?.id) {
@@ -80,39 +85,32 @@ export default function Home() {
           .eq('user_id', session.user.id)
           .order('created_at', { ascending: false });
 
-        if (stornoList && stornoList.length > 0) {
-          const latestApproved = stornoList.find((s) => s.status === 'approved');
+        if (stornoList) {
+          setCancellationRequests(stornoList);
 
-          if (latestApproved && !activeCalBooking) {
-            const isDismissed = typeof window !== 'undefined' && localStorage.getItem(`dismissed_storno_${latestApproved.booking_ref}`) === 'true';
-            if (!isDismissed) {
-              setApprovedStornoNotice(latestApproved);
+          const latestApproved = stornoList.find((s) => s.status === 'approved');
+          if (latestApproved) {
+            const isMatchActive = allActiveBookings.some(
+              (b: any) => b.bookingRef?.toUpperCase() === latestApproved.booking_ref?.toUpperCase()
+            );
+
+            if (!isMatchActive) {
+              const isDismissed = typeof window !== 'undefined' && localStorage.getItem(`dismissed_storno_${latestApproved.booking_ref}`) === 'true';
+              if (!isDismissed) {
+                setApprovedStornoNotice(latestApproved);
+              } else {
+                setApprovedStornoNotice(null);
+              }
             } else {
               setApprovedStornoNotice(null);
             }
           } else {
             setApprovedStornoNotice(null);
           }
-
-          if (activeCalBooking && activeCalBooking.bookingRef) {
-            const matchingReq = stornoList.find(
-              (s) => s.booking_ref?.toUpperCase() === activeCalBooking.bookingRef?.toUpperCase()
-            );
-            if (matchingReq) {
-              setLatestStornoStatus(matchingReq.status);
-            } else {
-              setLatestStornoStatus(null);
-            }
-          } else {
-            setLatestStornoStatus(null);
-          }
-        } else {
-          setLatestStornoStatus(null);
-          setApprovedStornoNotice(null);
         }
       }
 
-      setExistingBooking(activeCalBooking);
+      setUserBookings(allActiveBookings);
     } catch (err) {
       console.error('Chyba kontroly rezervácií:', err);
     } finally {
@@ -304,7 +302,7 @@ export default function Home() {
   };
 
   const handleLevelSelect = (type: MassageType) => {
-    if (existingBooking && !isAdmin) {
+    if (userBookings.length > 0 && !isAdmin) {
       setPendingType(type);
       setShowAlreadyBookedNotice(true);
     } else {
@@ -335,6 +333,8 @@ export default function Home() {
     return d.toLocaleTimeString('sk-SK', { hour: '2-digit', minute: '2-digit', hour12: false });
   };
 
+  const earliestBooking = userBookings.length > 0 ? userBookings[0] : null;
+
   return (
     <div
       className="min-h-[calc(100vh-65px)] transition-colors duration-300 pb-20 bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 font-sans relative"
@@ -363,16 +363,17 @@ export default function Home() {
           isOpen={showCancelRequestModal}
           onClose={() => {
             setShowCancelRequestModal(false);
+            setSelectedCancelBooking(null);
             if (sessionUser?.email) refetchUserAppointments(sessionUser.email);
           }}
-          booking={existingBooking}
+          booking={selectedCancelBooking || earliestBooking}
           userId={sessionUser.id}
           language={language}
         />
       )}
 
       {/* VAROVNÉ OKNO PRED VÝBEROM BALÍČKA */}
-      {showAlreadyBookedNotice && existingBooking && !isAdmin && (
+      {showAlreadyBookedNotice && earliestBooking && !isAdmin && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-md flex items-center justify-center p-6 font-sans animate-fadeIn">
           <div className="w-full max-w-md p-6 rounded-3xl bg-white dark:bg-slate-900 border border-amber-200 dark:border-amber-900/50 shadow-2xl space-y-5 text-center relative animate-in fade-in zoom-in-95 duration-200">
             <div className="w-14 h-14 mx-auto rounded-2xl bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center shadow-sm">
@@ -385,31 +386,31 @@ export default function Home() {
               </h3>
               <p className="text-xs text-slate-500 dark:text-slate-400 text-center leading-relaxed">
                 {lang === 'SK'
-                  ? 'V systéme už evidujeme vašu nasledujúcu nadchádzajúcu masáž:'
-                  : 'We already have the following upcoming appointment registered for you:'}
+                  ? `V systéme evidujeme vaše aktívne rezervácie (${userBookings.length}):`
+                  : `We register your active appointments (${userBookings.length}):`}
               </p>
 
               <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-1 mt-3">
                 <div className="flex items-center justify-between">
                   <span className="font-extrabold text-xs text-indigo-600 dark:text-indigo-400 flex items-center gap-1">
                     <Tag size={12} />
-                    <span>{existingBooking.bookingRef ? `#${existingBooking.bookingRef}` : 'Rezervácia'}</span>
+                    <span>{earliestBooking.bookingRef ? `#${earliestBooking.bookingRef}` : 'Rezervácia'}</span>
                   </span>
                   <span className="text-[10px] font-black px-2 py-0.5 rounded-md bg-indigo-600 text-white">
-                    {format24hTimeText(existingBooking.start)}
+                    {format24hTimeText(earliestBooking.start)}
                   </span>
                 </div>
                 <p className="font-bold text-xs text-slate-800 dark:text-slate-100 pt-0.5">
-                  {formatFullDateText(existingBooking.start)}
+                  {formatFullDateText(earliestBooking.start)}
                 </p>
                 <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
-                  {existingBooking.summary.replace(/^REZERVÁCIA:\s*/i, '')}
+                  {earliestBooking.summary.replace(/^REZERVÁCIA:\s*/i, '')}
                 </p>
               </div>
 
               <p className="text-xs font-bold text-slate-800 dark:text-slate-200 text-center pt-2">
                 {lang === 'SK'
-                  ? 'Chcete si naozaj vytvoriť ďalšiu (druhú) rezerváciu?'
+                  ? 'Chcete si naozaj vytvoriť ďalšiu rezerváciu?'
                   : 'Do you really want to book an additional massage?'}
               </p>
             </div>
@@ -479,7 +480,7 @@ export default function Home() {
         </div>
       )}
 
-      {/* 🚀 HLAVNÝ OBSAH REZERVÁCIE S UPRAVENÝM VRCHNÝM ODSADENÍM (pt-3 / pt-4) */}
+      {/* 🚀 HLAVNÝ OBSAH REZERVÁCIE */}
       <main className="max-w-4xl mx-auto p-4 sm:p-6 pt-3 sm:pt-4">
         {isAdmin ? (
           <AdminReservationDashboard language={language} />
@@ -512,75 +513,133 @@ export default function Home() {
               </div>
             )}
 
-            {/* 2. KARTA AKTÍVNEJ REZERVÁCIE */}
-            {existingBooking && (
-              <div className="max-w-xl mx-auto p-4 rounded-3xl bg-indigo-50/90 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-900/50 shadow-sm text-left space-y-2.5 animate-in fade-in slide-in-from-top-3 duration-300">
+            {/* 🚀 2. KARTA AKTÍVNYCH REZERVAČNÝCH TERMÍNOV (S MOŽNOSŤOU ROZBALENIA/ZBALENIA) */}
+            {userBookings.length > 0 && (
+              <div className="max-w-xl mx-auto p-4 rounded-3xl bg-indigo-50/90 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-900/50 shadow-sm text-left space-y-3 animate-in fade-in slide-in-from-top-3 duration-300">
                 <div className="flex items-center justify-between">
                   <span className="flex items-center gap-1.5 font-bold text-xs uppercase tracking-wider text-indigo-700 dark:text-indigo-300">
                     <Calendar size={16} />
-                    <span>{lang === 'SK' ? 'Vaša aktívna rezervácia' : 'Your active appointment'}</span>
+                    <span>
+                      {lang === 'SK' 
+                        ? `Vaše aktívne rezervácie (${userBookings.length})` 
+                        : `Your active appointments (${userBookings.length})`}
+                    </span>
                   </span>
 
-                  <button
-                    type="button"
-                    onClick={() => sessionUser?.email && refetchUserAppointments(sessionUser.email)}
-                    disabled={loadingUserBooking}
-                    className="flex items-center gap-1 text-[11px] font-bold text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer"
-                  >
-                    <RotateCw size={12} className={loadingUserBooking ? 'animate-spin' : ''} />
-                    <span>{lang === 'SK' ? 'Obnoviť' : 'Refresh'}</span>
-                  </button>
+                  <div className="flex items-center gap-2">
+                    {/* Tlačidlo na rozbalenie/zbalenie ak je viac ako 1 rezervácia */}
+                    {userBookings.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => setIsBookingsExpanded(!isBookingsExpanded)}
+                        className="flex items-center gap-1 text-[11px] font-bold text-indigo-700 dark:text-indigo-300 bg-indigo-100 dark:bg-indigo-900/60 px-2.5 py-1 rounded-xl hover:bg-indigo-200 transition cursor-pointer"
+                      >
+                        <span>
+                          {isBookingsExpanded 
+                            ? (lang === 'SK' ? 'Zbaliť' : 'Collapse') 
+                            : (lang === 'SK' ? `Zobraziť všetky (${userBookings.length})` : `Show all (${userBookings.length})`)}
+                        </span>
+                        {isBookingsExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                      </button>
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={() => sessionUser?.email && refetchUserAppointments(sessionUser.email)}
+                      disabled={loadingUserBooking}
+                      className="flex items-center gap-1 text-[11px] font-bold text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer"
+                    >
+                      <RotateCw size={12} className={loadingUserBooking ? 'animate-spin' : ''} />
+                      <span>{lang === 'SK' ? 'Obnoviť' : 'Refresh'}</span>
+                    </button>
+                  </div>
                 </div>
 
-                <div className="p-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-indigo-100 dark:border-indigo-900/60 shadow-sm flex items-center justify-between gap-2">
-                  <div>
-                    <span className="font-extrabold text-[11px] text-indigo-600 dark:text-indigo-400 flex items-center gap-1 mb-1">
-                      <Tag size={12} />
-                      <span>{existingBooking.bookingRef ? `#${existingBooking.bookingRef}` : 'Rezervácia'}</span>
-                    </span>
-                    <p className="font-bold text-slate-800 dark:text-slate-100 text-sm">
-                      {formatFullDateText(existingBooking.start)}
-                    </p>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">
-                      {existingBooking.summary.replace(/^REZERVÁCIA:\s*/i, '')}
-                    </p>
-                  </div>
-                  <span className="px-3.5 py-1.5 rounded-xl bg-indigo-600 text-white text-xs font-black shrink-0 flex items-center gap-1">
-                    <Clock size={14} />
-                    <span>{format24hTimeText(existingBooking.start)}</span>
-                  </span>
+                {/* ZOZNAM KARIET REZERVAČNÝCH TERMÍNOV */}
+                <div className="space-y-3">
+                  {(isBookingsExpanded ? userBookings : userBookings.slice(0, 1)).map((booking) => {
+                    const matchingStornoReq = cancellationRequests.find(
+                      (s) => s.booking_ref?.toUpperCase() === booking.bookingRef?.toUpperCase()
+                    );
+                    const stornoStatus = matchingStornoReq?.status;
+
+                    return (
+                      <div
+                        key={booking.id || booking.bookingRef}
+                        className="p-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-indigo-100 dark:border-indigo-900/60 shadow-sm space-y-2.5 transition-all"
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <div>
+                            <span className="font-extrabold text-[11px] text-indigo-600 dark:text-indigo-400 flex items-center gap-1 mb-1">
+                              <Tag size={12} />
+                              <span>{booking.bookingRef ? `#${booking.bookingRef}` : 'Rezervácia'}</span>
+                            </span>
+                            <p className="font-bold text-slate-800 dark:text-slate-100 text-sm">
+                              {formatFullDateText(booking.start)}
+                            </p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">
+                              {booking.summary.replace(/^REZERVÁCIA:\s*/i, '')}
+                            </p>
+                          </div>
+                          <span className="px-3.5 py-1.5 rounded-xl bg-indigo-600 text-white text-xs font-black shrink-0 flex items-center gap-1">
+                            <Clock size={14} />
+                            <span>{format24hTimeText(booking.start)}</span>
+                          </span>
+                        </div>
+
+                        {stornoStatus === 'rejected' && (
+                          <div className="p-2.5 rounded-xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/40 text-xs font-semibold text-rose-600 dark:text-rose-400 flex items-center gap-2">
+                            <AlertCircle size={15} className="shrink-0" />
+                            <span>
+                              {lang === 'SK'
+                                ? 'Žiadosť o storno nebola akceptovaná adminom.'
+                                : 'Cancellation request was rejected.'}
+                            </span>
+                          </div>
+                        )}
+
+                        {stornoStatus === 'pending' && (
+                          <div className="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/40 text-xs font-semibold text-amber-700 dark:text-amber-400 flex items-center gap-2">
+                            <Clock size={15} className="shrink-0 animate-spin" />
+                            <span>
+                              {lang === 'SK'
+                                ? 'Žiadosť o storno čaká na schválenie adminom...'
+                                : 'Cancellation request pending admin approval...'}
+                            </span>
+                          </div>
+                        )}
+
+                        {stornoStatus !== 'pending' && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedCancelBooking(booking);
+                              setShowCancelRequestModal(true);
+                            }}
+                            className="w-full py-2 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 text-rose-600 dark:text-rose-400 font-bold text-xs hover:bg-rose-100 transition active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer"
+                          >
+                            <CalendarX size={14} />
+                            <span>{lang === 'SK' ? 'Požiadať o storno tejto rezervácie' : 'Request Cancellation'}</span>
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
 
-                {latestStornoStatus === 'rejected' && (
-                  <div className="p-2.5 rounded-xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/40 text-xs font-semibold text-rose-600 dark:text-rose-400 flex items-center gap-2">
-                    <AlertCircle size={15} className="shrink-0" />
-                    <span>
-                      {lang === 'SK'
-                        ? 'Žiadosť o storno nebola akceptovaná adminom. Rezervácia zostáva platná.'
-                        : 'Cancellation request was rejected. Appointment remains valid.'}
-                    </span>
-                  </div>
-                )}
-
-                {latestStornoStatus === 'pending' && (
-                  <div className="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/40 text-xs font-semibold text-amber-700 dark:text-amber-400 flex items-center gap-2">
-                    <Clock size={15} className="shrink-0 animate-spin" />
-                    <span>
-                      {lang === 'SK'
-                        ? 'Žiadosť o storno čaká na schválenie adminom...'
-                        : 'Cancellation request is pending admin approval...'}
-                    </span>
-                  </div>
-                )}
-
-                {latestStornoStatus !== 'pending' && (
+                {/* DOLNÁ LIŠTA AK JE VIAC REZERVAČNÝCH TERMÍNOV A SÚ ZBALENÉ */}
+                {userBookings.length > 1 && !isBookingsExpanded && (
                   <button
                     type="button"
-                    onClick={() => setShowCancelRequestModal(true)}
-                    className="w-full py-2 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 text-rose-600 dark:text-rose-400 font-bold text-xs hover:bg-rose-100 transition active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer"
+                    onClick={() => setIsBookingsExpanded(true)}
+                    className="w-full py-2 text-center text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer flex items-center justify-center gap-1 pt-1"
                   >
-                    <CalendarX size={14} />
-                    <span>{lang === 'SK' ? 'Požiadať o storno rezervácie' : 'Request Cancellation'}</span>
+                    <span>
+                      {lang === 'SK'
+                        ? `Zobraziť ďalšie rezervácie (${userBookings.length - 1})`
+                        : `Show additional bookings (${userBookings.length - 1})`}
+                    </span>
+                    <ChevronDown size={14} />
                   </button>
                 )}
               </div>
