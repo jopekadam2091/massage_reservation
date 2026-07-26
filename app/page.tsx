@@ -12,7 +12,7 @@ import SuccessModal from '@/app/components/SuccessModal';
 import Step1Level from '@/app/components/Step1Level';
 import Step2Packages from '@/app/components/Step2Packages';
 import Step3Calendar from '@/app/components/Step3Calendar';
-import AdminReservationDashboard from '@/app/components/admin/reservation/AdminReservationDashboard';
+import AdminReservationDashboard from '@/app/components/admin/AdminReservationDashboard';
 import CancelRequestModal from '@/app/components/admin/CancelRequestModal';
 
 import { 
