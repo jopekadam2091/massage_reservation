@@ -1,5 +1,11 @@
 import { google } from 'googleapis';
 import { NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
+import { sendBookingConfirmationEmail } from '@/app/lib/email';
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 const auth = new google.auth.JWT(
   process.env.GOOGLE_CLIENT_EMAIL,
@@ -13,7 +19,6 @@ const CALENDAR_ID = process.env.GOOGLE_CALENDAR_ID as string;
 
 const FSM_REGEX = /fsm/i;
 
-// 1. ČÍTANIE VOĽNÝCH TERMÍNOV (GET) - bez zmeny
 export async function GET() {
   try {
     const response = await calendar.events.list({
@@ -35,18 +40,14 @@ type FsmEvent = {
   end: Date;
 };
 
-// Podľa toho, ako rezervácia zasahuje do existujúceho "fsm" bloku, ho buď úplne
-// vymaže, skráti z jednej strany, alebo rozdelí na dve samostatné časti (pred a po).
 async function adjustAvailabilityEvent(ev: FsmEvent, bookingStart: Date, bookingEnd: Date) {
   const evStart = ev.start.getTime();
   const evEnd = ev.end.getTime();
   const bStart = bookingStart.getTime();
   const bEnd = bookingEnd.getTime();
 
-  // Žiadny časový prekryv -> nič sa nemení
   if (bEnd <= evStart || bStart >= evEnd) return;
 
-  // Rezervácia pokrýva celý blok -> vymazať
   if (bStart <= evStart && bEnd >= evEnd) {
     if (ev.id) {
       await calendar.events.delete({ calendarId: CALENDAR_ID, eventId: ev.id }).catch(() => {});
@@ -56,7 +57,6 @@ async function adjustAvailabilityEvent(ev: FsmEvent, bookingStart: Date, booking
 
   const summary = ev.summary || 'FSM';
 
-  // Rezervácia je celá vnútri bloku -> rozdeliť na dve časti (pred a po rezervácii)
   if (bStart > evStart && bEnd < evEnd) {
     if (ev.id) {
       await calendar.events.delete({ calendarId: CALENDAR_ID, eventId: ev.id }).catch(() => {});
@@ -80,7 +80,6 @@ async function adjustAvailabilityEvent(ev: FsmEvent, bookingStart: Date, booking
     return;
   }
 
-  // Prekryv na začiatku bloku -> posunúť začiatok bloku na koniec rezervácie
   if (bStart <= evStart && bEnd < evEnd && bEnd > evStart) {
     if (ev.id) {
       await calendar.events.patch({
@@ -92,7 +91,6 @@ async function adjustAvailabilityEvent(ev: FsmEvent, bookingStart: Date, booking
     return;
   }
 
-  // Prekryv na konci bloku -> skrátiť koniec bloku na začiatok rezervácie
   if (bStart > evStart && bStart < evEnd && bEnd >= evEnd) {
     if (ev.id) {
       await calendar.events.patch({
@@ -105,7 +103,6 @@ async function adjustAvailabilityEvent(ev: FsmEvent, bookingStart: Date, booking
   }
 }
 
-// 2. ZÁPIS REZERVÁCIE + INTELIGENTNÁ ÚPRAVA VOĽNÝCH BLOKOV (POST)
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -122,22 +119,17 @@ export async function POST(request: Request) {
       discountCode,
       codeDiscountPercent,
       finalPrice,
-      customerNote
+      customerNote,
+      appliedGiftIds
     } = body;
 
     if (!slot) {
       return NextResponse.json({ error: 'Chýba vybraný termín' }, { status: 400 });
     }
 
-    // "slot" je presný ISO string (UTC), ktorý frontend vytvoril priamo z reálneho
-    // Date objektu (žiadna manuálna manipulácia s časovým pásmom netreba).
     const bookingStart = new Date(slot);
     const bookingEnd = new Date(bookingStart.getTime() + (duration || 60) * 60000);
 
-    // ==========================================
-    // 🔥 KROK A: NÁJDENIE A ÚPRAVA VŠETKÝCH "FSM" BLOKOV ZASIAHNUTÝCH REZERVÁCIOU
-    // (bežné aj zľavové - každý sa posudzuje samostatne podľa vlastného prekryvu)
-    // ==========================================
     try {
       const timeMinFetch = new Date(bookingStart.getTime() - 24 * 60 * 60 * 1000).toISOString();
       const timeMaxFetch = new Date(bookingStart.getTime() + 24 * 60 * 60 * 1000).toISOString();
@@ -164,7 +156,6 @@ export async function POST(request: Request) {
           end: new Date(item.end!.dateTime as string)
         }));
 
-      // Spracované postupne (nie paralelne), aby sa predišlo konfliktom pri viacerých zásahoch naraz
       for (const ev of fsmRelated) {
         await adjustAvailabilityEvent(ev, bookingStart, bookingEnd);
       }
@@ -172,9 +163,6 @@ export async function POST(request: Request) {
       console.error('Chyba pri úprave voľných blokov:', adjustError);
     }
 
-    // ==========================================
-    // 📝 KROK B: ZÁPIS NOVEJ REZERVÁCIE (ZELENÁ FARBA) S KOMPLETNÝMI CENOVÝMI ÚDAJMI
-    // ==========================================
     const priceLines: string[] = [];
     priceLines.push(`Pôvodná cena: ${basePrice ?? '-'}€`);
     if (discountPercent && discountPercent > 0) {
@@ -196,7 +184,7 @@ export async function POST(request: Request) {
     ];
 
     if (customerNote && String(customerNote).trim()) {
-      descriptionParts.push('', `Poznámka klienta: ${String(customerNote).trim()}`);
+      descriptionParts.push('', `Poznámky & Odmeny: ${String(customerNote).trim()}`);
     }
 
     const event = {
@@ -204,13 +192,38 @@ export async function POST(request: Request) {
       description: descriptionParts.join('\n'),
       start: { dateTime: bookingStart.toISOString() },
       end: { dateTime: bookingEnd.toISOString() },
-      colorId: '10', // sýtozelená farba v Google Kalendári
+      colorId: '10',
     };
 
     const response = await calendar.events.insert({
       calendarId: CALENDAR_ID,
       requestBody: event,
     });
+
+    // 🚀 SPÁLENIE POUŽITÉHO DARČEKA V SUPABASE
+    if (Array.isArray(appliedGiftIds) && appliedGiftIds.length > 0) {
+      try {
+        await supabase
+          .from('gifts')
+          .update({ used: true })
+          .in('id', appliedGiftIds);
+      } catch (giftError) {
+        console.error('Chyba pri aktualizácii darčeka:', giftError);
+      }
+    }
+
+    // 🚀 ODOSLANIE POTVRDZOVACIEHO E-MAILU ZÁKAZNÍKOVI
+    if (email) {
+      sendBookingConfirmationEmail({
+        to: email,
+        name: name || 'Zákazník',
+        type: type || 'Masáž',
+        duration: duration || 60,
+        slot,
+        finalPrice: finalPrice || basePrice || 0,
+        customerNote,
+      }).catch((err) => console.error('Chyba e-mailovej notifikácie:', err));
+    }
 
     return NextResponse.json({ success: true, event: response.data });
   } catch (error) {

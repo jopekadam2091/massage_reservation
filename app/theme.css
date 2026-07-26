@@ -1,0 +1,92 @@
+/* ==========================================================================
+   PRIVÁTNE MASÁŽE & VERNOSTNÝ SYSTÉM - DIZAJNOVÝ SYSTÉM A TÉMA
+   ========================================================================== */
+
+@layer components {
+  
+  /* 1. HLAVNÝ STRÁNKOVÝ KONTAJNER */
+  .page-container {
+    @apply min-h-[calc(100vh-65px)] bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 font-sans p-4 sm:p-6 pt-3 sm:pt-4 transition-colors duration-300 relative;
+  }
+
+  /* 2. KARTY & PANELY */
+  .card {
+    @apply p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm text-left;
+  }
+
+  .card-glass {
+    @apply p-6 rounded-3xl bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-white/40 dark:border-slate-800 shadow-xl text-left;
+  }
+
+  .card-accent-indigo {
+    @apply p-6 rounded-3xl bg-gradient-to-b from-indigo-50/60 via-white to-white dark:from-indigo-950/40 dark:via-slate-900 dark:to-slate-900 border-2 border-indigo-500 shadow-xl shadow-indigo-500/10 text-left;
+  }
+
+  .card-accent-gold {
+    @apply p-6 rounded-3xl bg-gradient-to-b from-amber-50/40 via-white to-white dark:from-amber-950/20 dark:via-slate-900 dark:to-slate-900 border-2 border-amber-500/80 shadow-xl shadow-amber-500/10 text-left;
+  }
+
+  /* 3. TLAČIDLÁ (BUTTONS) */
+  .btn-primary {
+    @apply py-3 px-5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs uppercase tracking-wider shadow-md transition active:scale-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2;
+  }
+
+  .btn-secondary {
+    @apply py-2.5 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold text-xs transition active:scale-95 cursor-pointer flex items-center justify-center gap-1.5;
+  }
+
+  .btn-purple {
+    @apply py-3 px-5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs uppercase tracking-wider shadow-md transition active:scale-95 cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2;
+  }
+
+  .btn-emerald {
+    @apply py-3 px-5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs uppercase tracking-wider shadow-md transition active:scale-95 cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2;
+  }
+
+  .btn-danger {
+    @apply py-2.5 px-4 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 text-rose-600 dark:text-rose-400 font-bold text-xs hover:bg-rose-100 dark:hover:bg-rose-900/60 transition active:scale-95 cursor-pointer flex items-center justify-center gap-1.5;
+  }
+
+  .btn-vip-gradient {
+    @apply py-3.5 px-6 rounded-xl font-bold text-xs uppercase tracking-wider bg-gradient-to-r from-indigo-600 via-purple-600 to-violet-700 hover:brightness-110 text-white shadow-md transition active:scale-95 cursor-pointer flex items-center justify-center gap-2;
+  }
+
+  /* 4. FORMULÁRE & VSTUPNÉ POLIA (INPUTS & SELECTS) */
+  .input-field {
+    @apply w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500 placeholder-slate-400 transition;
+  }
+
+  .select-field {
+    @apply w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 text-xs font-extrabold focus:outline-none focus:ring-2 focus:ring-indigo-500 transition cursor-pointer;
+  }
+
+  /* 5. ODZNAKY A ODZNAKY STAVOV (BADGES) */
+  .badge-indigo {
+    @apply inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-indigo-100 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 text-[10px] font-bold uppercase tracking-wider;
+  }
+
+  .badge-emerald {
+    @apply inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 text-[10px] font-bold uppercase tracking-wider;
+  }
+
+  .badge-purple {
+    @apply inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 text-[10px] font-bold uppercase tracking-wider;
+  }
+
+  .badge-amber {
+    @apply inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 text-[10px] font-bold uppercase tracking-wider;
+  }
+
+  .badge-rose {
+    @apply inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 text-[10px] font-bold uppercase tracking-wider;
+  }
+
+  /* 6. MODAL OKNÁ */
+  .modal-backdrop {
+    @apply fixed inset-0 z-[100] bg-black/60 backdrop-blur-md flex items-center justify-center p-4 font-sans;
+  }
+
+  .modal-box {
+    @apply w-full max-w-md p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl space-y-4 relative text-center;
+  }
+}

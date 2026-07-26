@@ -1,4 +1,80 @@
 @import "tailwindcss";
+@import "./theme.css";
+
+/* 🚀 Povoľuje class-based dark mode v Tailwind v4 */
+@variant dark (&:where(.dark, .dark *));
+
+html {
+  color-scheme: light;
+}
+
+html.dark {
+  color-scheme: dark;
+}
+
+/* ==========================================================================
+   🚀 HARDVÉROVO AKCELEROVANÉ PLYNULÉ ANIMÁCIE (BEZ SEKANIE)
+   ========================================================================== */
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeOut {
+  0% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes scaleIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Plynulé triedy pre komponenty */
+.animate-fadeIn {
+  animation: fadeIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: opacity, transform;
+}
+
+.animate-fadeOut {
+  animation: fadeOut 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: opacity, transform;
+}
+
+.animate-scaleIn {
+  animation: scaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: opacity, transform;
+}
+
+/* Cielené plynulé zmeny tém bez preťaženia CPU */
+body, 
+button, 
+input, 
+select, 
+textarea, 
+.card, 
+.card-glass {
+  transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out, color 0.2s ease-in-out;
+}
 
 @font-face {
   font-family: 'Figtree';
