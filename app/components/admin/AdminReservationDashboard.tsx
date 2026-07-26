@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/app/lib/supabase';
 import { 
   CalendarPlus, UserPlus, Clock, Calendar, Sparkles, 
   CheckCircle2, AlertCircle, Loader2, Tag, Percent,
-  ChevronLeft, ChevronRight, Plus, CalendarX, Eye, Flame
+  ChevronLeft, ChevronRight, Plus, CalendarX, Eye, Flame, Trash2, X, Wand2, Filter,
+  Briefcase, Home as HomeIcon
 } from 'lucide-react';
 
 type Props = {
@@ -27,19 +28,36 @@ const GENERATE_24H_TIME_OPTIONS = () => {
 
 const TIME_OPTIONS = GENERATE_24H_TIME_OPTIONS();
 
+// Dni v týždni: 1 = PO, 2 = UT, 3 = ST, 4 = ŠT, 5 = PI, 6 = SO, 0 = NE
+const DAYS_OF_WEEK = [
+  { id: 1, sk: 'PO', en: 'MO' },
+  { id: 2, sk: 'UT', en: 'TU' },
+  { id: 3, sk: 'ST', en: 'WE' },
+  { id: 4, sk: 'ŠT', en: 'TH' },
+  { id: 5, sk: 'PI', en: 'FR' },
+  { id: 6, sk: 'SO', en: 'SA' },
+  { id: 0, sk: 'NE', en: 'SU' },
+];
+
 export default function AdminReservationDashboard({ language }: Props) {
-  // Hlavné záložky admina
   const [activeTab, setActiveTab] = useState<'actions' | 'calendar'>('actions');
   const [actionSubTab, setActionSubTab] = useState<'fsm' | 'direct'>('fsm');
 
-  // 1. Stavy pre Otvorenie FSM bloku
-  const [fsmDate, setFsmDate] = useState('');
-  const [fsmStart, setFsmStart] = useState('09:00');
-  const [fsmEnd, setFsmEnd] = useState('17:00');
+  // 1. Stavy pre FSM GENERÁTOR
+  const [fsmStartDate, setFsmStartDate] = useState('');
+  const [fsmEndDate, setFsmEndDate] = useState('');
+  const [selectedDaysOfWeek, setSelectedDaysOfWeek] = useState<number[]>([1, 2, 3, 4]); // PO - ŠT
+  const [fsmExcludedDates, setFsmExcludedDates] = useState<string[]>([]);
+  
+  const [fsmStart, setFsmStart] = useState('17:00');
+  const [fsmEnd, setFsmEnd] = useState('20:00');
   const [fsmDiscount, setFsmDiscount] = useState('0');
   const [loadingFsm, setLoadingFsm] = useState(false);
   const [fsmSuccess, setFsmSuccess] = useState('');
   const [fsmError, setFsmError] = useState('');
+
+  // Okno pre "Dnes po práci"
+  const [showAfterWorkModal, setShowAfterWorkModal] = useState(false);
 
   // 2. Stavy pre Priamu rezerváciu klienta
   const [clients, setClients] = useState<any[]>([]);
@@ -63,9 +81,15 @@ export default function AdminReservationDashboard({ language }: Props) {
   const [selectedCalDayKey, setSelectedCalDayKey] = useState<string | null>(null);
 
   useEffect(() => {
-    const today = new Date().toISOString().split('T')[0];
-    setFsmDate(today);
-    setDirectDate(today);
+    const today = new Date();
+    const todayIso = today.toISOString().split('T')[0];
+    
+    const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+    const endOfMonthIso = endOfMonth.toISOString().split('T')[0];
+
+    setFsmStartDate(todayIso);
+    setFsmEndDate(endOfMonthIso);
+    setDirectDate(todayIso);
 
     const loadClients = async () => {
       const { data } = await supabase.from('profiles').select('id, full_name, email').order('full_name');
@@ -75,7 +99,6 @@ export default function AdminReservationDashboard({ language }: Props) {
     fetchCalendarOverview();
   }, []);
 
-  // Načítanie všetkých udalostí pre grafický kalendár
   const fetchCalendarOverview = async () => {
     setLoadingCalEvents(true);
     try {
@@ -107,8 +130,95 @@ export default function AdminReservationDashboard({ language }: Props) {
     return d.toLocaleTimeString('sk-SK', { hour: '2-digit', minute: '2-digit', hour12: false });
   };
 
+  // GENERÁTOR DÁTUMOV Z OBDOBIA
+  const generatedTargetDates = useMemo(() => {
+    if (!fsmStartDate || !fsmEndDate) return [];
+
+    const result: string[] = [];
+    const cur = new Date(fsmStartDate + 'T00:00:00');
+    const end = new Date(fsmEndDate + 'T00:00:00');
+
+    if (cur > end) return [];
+
+    while (cur <= end) {
+      const dayOfWeek = cur.getDay();
+      const dateStr = `${cur.getFullYear()}-${String(cur.getMonth() + 1).padStart(2, '0')}-${String(cur.getDate()).padStart(2, '0')}`;
+
+      if (selectedDaysOfWeek.includes(dayOfWeek) && !fsmExcludedDates.includes(dateStr)) {
+        result.push(dateStr);
+      }
+
+      cur.setDate(cur.getDate() + 1);
+    }
+
+    return result;
+  }, [fsmStartDate, fsmEndDate, selectedDaysOfWeek, fsmExcludedDates]);
+
+  const toggleDayOfWeek = (dayId: number) => {
+    setSelectedDaysOfWeek((prev) =>
+      prev.includes(dayId) ? prev.filter((d) => d !== dayId) : [...prev, dayId]
+    );
+  };
+
+  // 🚀 1. PREDVOĽBA: DNES PO PRÁCI (S VÝBEROM ČASU ZAČIATKU)
+  const applyPresetTodayAfterWorkConfirm = (startTime: string) => {
+    const today = new Date();
+    const todayIso = today.toISOString().split('T')[0];
+    
+    setFsmStartDate(todayIso);
+    setFsmEndDate(todayIso);
+    setFsmStart(startTime);
+    setFsmEnd('20:00');
+    setSelectedDaysOfWeek([today.getDay()]);
+    setFsmExcludedDates([]);
+    setShowAfterWorkModal(false);
+  };
+
+  // 🚀 2. PREDVOĽBA: MÁM HO (Home Office 08:00 - 15:00)
+  const applyPresetHomeOffice = () => {
+    const today = new Date();
+    const todayIso = today.toISOString().split('T')[0];
+
+    setFsmStartDate(todayIso);
+    setFsmEndDate(todayIso);
+    setFsmStart('08:00');
+    setFsmEnd('15:00');
+    setSelectedDaysOfWeek([today.getDay()]);
+    setFsmExcludedDates([]);
+  };
+
+  // 🚀 3. PREDVOĽBA: TENTO TÝŽDEŇ
+  const applyPresetThisWeek = () => {
+    const today = new Date();
+    const dayOfWeek = today.getDay();
+    const diffToMon = today.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
+    
+    const monday = new Date(today.setDate(diffToMon));
+    const sunday = new Date(today.setDate(monday.getDate() + 6));
+
+    setFsmStartDate(monday.toISOString().split('T')[0]);
+    setFsmEndDate(sunday.toISOString().split('T')[0]);
+    setSelectedDaysOfWeek([1, 2, 3, 4, 5]); // PO - PI
+  };
+
+  // 🚀 4. PREDVOĽBA: TENTO MESIAC
+  const applyPresetThisMonth = () => {
+    const today = new Date();
+    const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+    const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+
+    setFsmStartDate(firstDay.toISOString().split('T')[0]);
+    setFsmEndDate(lastDay.toISOString().split('T')[0]);
+    setSelectedDaysOfWeek([1, 2, 3, 4, 5]); // PO - PI
+  };
+
   const handleCreateFsm = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (generatedTargetDates.length === 0) {
+      setFsmError(language === 'sk' ? 'Vyberte obdobie a aspoň jeden platný deň' : 'Select a date range and at least one valid day');
+      return;
+    }
+
     setLoadingFsm(true);
     setFsmSuccess('');
     setFsmError('');
@@ -118,7 +228,7 @@ export default function AdminReservationDashboard({ language }: Props) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          date: fsmDate,
+          dates: generatedTargetDates,
           startTime: fsmStart,
           endTime: fsmEnd,
           discountPercent: fsmDiscount,
@@ -127,7 +237,11 @@ export default function AdminReservationDashboard({ language }: Props) {
 
       const data = await res.json();
       if (res.ok && data.success) {
-        setFsmSuccess(language === 'sk' ? 'Voľné termíny boli úspešne otvorené v Google Kalendári!' : 'Free slots opened!');
+        setFsmSuccess(
+          language === 'sk' 
+            ? `Voľné FSM bloky pre (${generatedTargetDates.length}) dní boli úspešne vytvorené!` 
+            : `Free FSM slots for (${generatedTargetDates.length}) days opened!`
+        );
         fetchCalendarOverview();
         setTimeout(() => setFsmSuccess(''), 4000);
       } else {
@@ -186,7 +300,26 @@ export default function AdminReservationDashboard({ language }: Props) {
     }
   };
 
-  // VÝPOČTY PRE GRAFICKÝ KALENDÁR
+  const handleDeleteFsmSlot = async (eventId: string) => {
+    if (!confirm(language === 'sk' ? 'Naozaj chcete vymazať tento voľný FSM blok z kalendára?' : 'Delete this open FSM slot?')) return;
+
+    try {
+      const res = await fetch('/api/admin/cancel-appointment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ eventId }),
+      });
+
+      if (res.ok) {
+        await fetchCalendarOverview();
+      } else {
+        alert(language === 'sk' ? 'Chyba pri mazaní voľného bloku.' : 'Error deleting slot.');
+      }
+    } catch {
+      alert('Chyba pripojenia.');
+    }
+  };
+
   const calYear = calCurrentDate.getFullYear();
   const calMonth = calCurrentDate.getMonth();
   const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
@@ -197,7 +330,6 @@ export default function AdminReservationDashboard({ language }: Props) {
   const monthNamesSK = ['Január', 'Február', 'Marec', 'Apríl', 'Máj', 'Jún', 'Júl', 'August', 'September', 'Október', 'November', 'December'];
   const monthNamesEN = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
-  // Zoskupenie udalostí podľa dátumu
   const eventsByDateKey: Record<string, { fsm: any[]; bookings: any[] }> = {};
 
   allCalendarEvents.forEach((ev) => {
@@ -220,10 +352,8 @@ export default function AdminReservationDashboard({ language }: Props) {
   return (
     <div className="max-w-4xl mx-auto space-y-6 font-sans text-left">
       
-      {/* 🚀 HORNÉ NAVIGAČNÉ PREPÍNAČE ADMINA */}
+      {/* HORNÉ HLAVNÉ PREPÍNAČE */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white dark:bg-slate-900 p-2.5 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm">
-        
-        {/* TLAČIDLO 1: PRIDAŤ VOĽNÉ SLOTY / AKCIE (S SUB-PREPÍNAČOM A & B) */}
         <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800/80 p-1 rounded-2xl border border-slate-200 dark:border-slate-700 flex-1">
           <button
             type="button"
@@ -258,7 +388,6 @@ export default function AdminReservationDashboard({ language }: Props) {
           </button>
         </div>
 
-        {/* TLAČIDLO 2: GRAFICKÝ KALENDÁR */}
         <button
           type="button"
           onClick={() => {
@@ -274,142 +403,234 @@ export default function AdminReservationDashboard({ language }: Props) {
           <Calendar size={16} />
           <span>{language === 'sk' ? 'Kalendár' : 'Calendar View'}</span>
         </button>
-
       </div>
 
-      {/* ==================================================================== */}
-      {/* 🚀 TAB 1: FORMULÁRE AKCIÍ (A: OTVERENIE TERMÍNOV & B: PRIAMA REZERVÁCIA) */}
-      {/* ==================================================================== */}
+      {/* TAB 1: FORMULÁRE AKCIÍ */}
       {activeTab === 'actions' && (
         <div className="animate-in fade-in duration-200 space-y-6">
           
-          {/* POD-MOŽNOSŤ A: OTVORIŤ VOĽNÉ TERMÍNY (FSM) */}
+          {/* POD-MOŽNOSŤ A: CHYTRÝ GENERÁTOR OBDOBIA VOĽNÝCH TERMÍNOV (FSM) */}
           {actionSubTab === 'fsm' && (
             <div className="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-5">
               <div className="flex items-center gap-3 border-b border-slate-100 dark:border-slate-800 pb-4">
                 <div className="w-10 h-10 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shadow-md shadow-indigo-500/20">
-                  <CalendarPlus size={20} />
+                  <Wand2 size={20} />
                 </div>
                 <div>
                   <h2 className="font-extrabold text-slate-800 dark:text-slate-100 text-base">
-                    {language === 'sk' ? 'A: Otvoriť voľné termíny v kalendári' : 'A: Open Available Time Slots'}
+                    {language === 'sk' ? 'A: Generátor voľných termínov (Obdobie Od–Do + Výnimky)' : 'A: Smart Multi-Day Slot Generator'}
                   </h2>
                   <p className="text-xs text-slate-400 dark:text-slate-500">
-                    {language === 'sk' ? 'Vytvorí voľný FSM blok, v ktorom si klienti môžu vyberať časy' : 'Creates an FSM open block in Google Calendar'}
+                    {language === 'sk' ? 'Nastavte rozsah dní, zaškrtnite pracovné dni a zvoľte výnimky' : 'Set date range, toggle days of week and manage exceptions'}
                   </p>
                 </div>
               </div>
 
-              <form onSubmit={handleCreateFsm} className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {/* 🚀 RÝCHLE PREDVOĽBY 1-KLIK S NOVÝMI PRAVIDLAMI */}
+              <div className="space-y-1.5 bg-indigo-50/60 dark:bg-indigo-950/30 p-3.5 rounded-2xl border border-indigo-100 dark:border-indigo-900/40">
+                <label className="block text-[11px] font-extrabold text-indigo-900 dark:text-indigo-300 uppercase tracking-wider">
+                  {language === 'sk' ? '⚡ Rýchle predvoľby pravidiel:' : '⚡ Quick presets:'}
+                </label>
+                <div className="flex flex-wrap gap-2 pt-0.5">
                   
-                  {/* Dátum */}
-                  <div className="space-y-1">
-                    <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 flex items-center gap-1.5">
+                  {/* 1. Dnes po práci (S výzvou kedy začať) */}
+                  <button
+                    type="button"
+                    onClick={() => setShowAfterWorkModal(true)}
+                    className="px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800 border border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 font-bold text-xs hover:bg-indigo-600 hover:text-white transition shadow-sm cursor-pointer flex items-center gap-1.5"
+                  >
+                    <Briefcase size={14} />
+                    <span>{language === 'sk' ? 'Dnes po práci' : 'Today after work'}</span>
+                  </button>
+
+                  {/* 2. Mám HO (08:00 - 15:00) */}
+                  <button
+                    type="button"
+                    onClick={applyPresetHomeOffice}
+                    className="px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800 border border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 font-bold text-xs hover:bg-indigo-600 hover:text-white transition shadow-sm cursor-pointer flex items-center gap-1.5"
+                  >
+                    <HomeIcon size={14} />
+                    <span>{language === 'sk' ? 'Mám HO (08:00–15:00)' : 'Home Office (08:00–15:00)'}</span>
+                  </button>
+
+                  {/* 3. Tento týždeň */}
+                  <button
+                    type="button"
+                    onClick={applyPresetThisWeek}
+                    className="px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs hover:bg-slate-200 dark:hover:bg-slate-700 transition cursor-pointer"
+                  >
+                    📅 {language === 'sk' ? 'Tento týždeň' : 'This week'}
+                  </button>
+
+                  {/* 4. Tento mesiac */}
+                  <button
+                    type="button"
+                    onClick={applyPresetThisMonth}
+                    className="px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs hover:bg-slate-200 dark:hover:bg-slate-700 transition cursor-pointer"
+                  >
+                    📅 {language === 'sk' ? 'Tento mesiac' : 'This month'}
+                  </button>
+                </div>
+              </div>
+
+              <form onSubmit={handleCreateFsm} className="space-y-4">
+                
+                {/* ROZSAH DÁTUMOV (OD - DO) */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1 flex items-center gap-1.5">
                       <Calendar size={14} className="text-indigo-500" />
-                      <span>{language === 'sk' ? 'Dátum:' : 'Date:'}</span>
+                      <span>{language === 'sk' ? 'Od dátumu:' : 'Start date:'}</span>
                     </label>
                     <input
                       type="date"
                       required
-                      value={fsmDate}
-                      onChange={(e) => setFsmDate(e.target.value)}
-                      className="w-full p-3 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 text-xs font-bold focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                      value={fsmStartDate}
+                      onChange={(e) => setFsmStartDate(e.target.value)}
+                      className="w-full p-3 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 text-xs font-bold"
                     />
-                    {fsmDate && (
-                      <p className="text-[11px] font-extrabold text-indigo-600 dark:text-indigo-400 pt-0.5 pl-1">
-                        {formatFullDateText(fsmDate)}
-                      </p>
-                    )}
                   </div>
 
-                  {/* Čas OD */}
-                  <div className="space-y-1">
-                    <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 flex items-center gap-1.5">
-                      <Clock size={14} className="text-indigo-500" />
-                      <span>{language === 'sk' ? 'Čas OD (24h):' : 'From (24h):'}</span>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1 flex items-center gap-1.5">
+                      <Calendar size={14} className="text-indigo-500" />
+                      <span>{language === 'sk' ? 'Do dátumu:' : 'End date:'}</span>
                     </label>
-                    <select
-                      value={fsmStart}
-                      onChange={(e) => setFsmStart(e.target.value)}
-                      className="w-full p-3 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 text-xs font-extrabold focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                    >
-                      {TIME_OPTIONS.map((time) => (
-                        <option key={`start-${time}`} value={time}>{time}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* Čas DO */}
-                  <div className="space-y-1">
-                    <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 flex items-center gap-1.5">
-                      <Clock size={14} className="text-indigo-500" />
-                      <span>{language === 'sk' ? 'Čas DO (24h):' : 'To (24h):'}</span>
-                    </label>
-                    <select
-                      value={fsmEnd}
-                      onChange={(e) => setFsmEnd(e.target.value)}
-                      className="w-full p-3 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 text-xs font-extrabold focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                    >
-                      {TIME_OPTIONS.map((time) => (
-                        <option key={`end-${time}`} value={time}>{time}</option>
-                      ))}
-                    </select>
+                    <input
+                      type="date"
+                      required
+                      value={fsmEndDate}
+                      onChange={(e) => setFsmEndDate(e.target.value)}
+                      className="w-full p-3 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 text-xs font-bold"
+                    />
                   </div>
                 </div>
 
-                {/* Rýchle predvoľby */}
-                <div className="space-y-1.5 pt-1">
-                  <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                    {language === 'sk' ? 'Rýchle predvoľby času:' : 'Quick time presets:'}
+                {/* DNI V TÝŽDNI (PO, UT, ST, ŠT, PI, SO, NE) */}
+                <div className="space-y-2">
+                  <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 flex items-center gap-1.5">
+                    <Filter size={14} className="text-indigo-500" />
+                    <span>{language === 'sk' ? 'Dni v týždni, kedy sa majú sloty otvoriť:' : 'Active days of week:'}</span>
                   </label>
-                  <div className="flex flex-wrap gap-2">
-                    <button
-                      type="button"
-                      onClick={() => { setFsmStart('09:00'); setFsmEnd('13:00'); }}
-                      className="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs hover:bg-indigo-600 hover:text-white transition cursor-pointer"
-                    >
-                      09:00 - 13:00 ({language === 'sk' ? 'Dopoludnie' : 'Morning'})
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => { setFsmStart('13:00'); setFsmEnd('17:00'); }}
-                      className="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs hover:bg-indigo-600 hover:text-white transition cursor-pointer"
-                    >
-                      13:00 - 17:00 ({language === 'sk' ? 'Popoludnie' : 'Afternoon'})
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => { setFsmStart('09:00'); setFsmEnd('18:00'); }}
-                      className="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs hover:bg-indigo-600 hover:text-white transition cursor-pointer"
-                    >
-                      09:00 - 18:00 ({language === 'sk' ? 'Celý deň' : 'Full day'})
-                    </button>
+
+                  <div className="grid grid-cols-7 gap-1.5 sm:gap-2">
+                    {DAYS_OF_WEEK.map((d) => {
+                      const isChecked = selectedDaysOfWeek.includes(d.id);
+                      return (
+                        <button
+                          type="button"
+                          key={`day-${d.id}`}
+                          onClick={() => toggleDayOfWeek(d.id)}
+                          className={`py-2 rounded-xl text-xs font-black border transition cursor-pointer ${
+                            isChecked
+                              ? 'bg-indigo-600 border-indigo-600 text-white shadow-sm'
+                              : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-400 hover:bg-slate-100'
+                          }`}
+                        >
+                          {language === 'sk' ? d.sk : d.en}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
 
-                {/* Zľava na blok */}
-                <div className="space-y-1.5 pt-2 border-t border-slate-100 dark:border-slate-800">
+                {/* 🚀 ČAS OD A ČAS DO V JEDNOM COMPAKTNOM RIADKU */}
+                <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 space-y-1">
+                  <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 flex items-center gap-1.5 mb-2">
+                    <Clock size={14} className="text-indigo-500" />
+                    <span>{language === 'sk' ? 'Časový interval voľného bloku (24h):' : 'Slot time range (24h):'}</span>
+                  </label>
+
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1">
+                      <select
+                        value={fsmStart}
+                        onChange={(e) => setFsmStart(e.target.value)}
+                        className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 text-xs font-extrabold focus:outline-none"
+                      >
+                        {TIME_OPTIONS.map((time) => (
+                          <option key={`start-${time}`} value={time}>{time}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <span className="font-extrabold text-slate-400 text-sm">–</span>
+
+                    <div className="flex-1">
+                      <select
+                        value={fsmEnd}
+                        onChange={(e) => setFsmEnd(e.target.value)}
+                        className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 text-xs font-extrabold focus:outline-none"
+                      >
+                        {TIME_OPTIONS.map((time) => (
+                          <option key={`end-${time}`} value={time}>{time}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                {/* VYGENEROVANÝ ZOZNAM DŇÍ S MOŽNOSŤOU ODSTRÁNIŤ VÝNIMKY */}
+                {generatedTargetDates.length > 0 && (
+                  <div className="space-y-1.5 p-3 rounded-2xl bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-100 dark:border-indigo-900/30">
+                    <div className="flex items-center justify-between text-[11px] font-bold text-indigo-900 dark:text-indigo-300">
+                      <span>{language === 'sk' ? `Vygenerované dni (${generatedTargetDates.length}):` : `Generated days (${generatedTargetDates.length}):`}</span>
+                      <span className="text-[10px] text-slate-400 font-normal">{language === 'sk' ? 'Kliknite na X pre výnimku' : 'Click X for exception'}</span>
+                    </div>
+
+                    <div className="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto pt-1">
+                      {generatedTargetDates.map((d) => (
+                        <span
+                          key={`gen-${d}`}
+                          className="px-2.5 py-1 rounded-xl bg-white dark:bg-slate-800 border border-indigo-200 dark:border-indigo-800 text-indigo-900 dark:text-indigo-200 text-[11px] font-bold flex items-center gap-1 shadow-2xs"
+                        >
+                          <span>{formatFullDateText(d)}</span>
+                          <button
+                            type="button"
+                            onClick={() => setFsmExcludedDates([...fsmExcludedDates, d])}
+                            className="text-slate-400 hover:text-rose-500 cursor-pointer p-0.5 rounded-full"
+                            title={language === 'sk' ? 'Pridať ako výnimku' : 'Exclude date'}
+                          >
+                            <X size={12} />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* 🚀 ROZŠÍRENÉ AKCIE A ZĽAVY (0% až 100%) */}
+                <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800">
                   <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 flex items-center gap-1.5">
                     <Percent size={14} className="text-sky-500" />
-                    <span>{language === 'sk' ? 'Zľava na všetky sloty v tomto bloku (%):' : 'Discount on slots in this block (%):'}</span>
+                    <span>{language === 'sk' ? 'Akcia / Zľava na blok (%):' : 'Discount on slots (%):'}</span>
                   </label>
 
-                  <div className="flex flex-wrap items-center gap-2">
-                    {['0', '10', '15', '20', '25', '30'].map((p) => (
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    {['0', '10', '15', '20', '25', '30', '35', '40', '45', '50', '100'].map((p) => (
                       <button
                         key={`disc-${p}`}
                         type="button"
                         onClick={() => setFsmDiscount(p)}
                         className={`px-3 py-1.5 rounded-xl font-bold text-xs border transition cursor-pointer ${
                           fsmDiscount === p
-                            ? 'bg-sky-600 border-sky-600 text-white shadow-sm'
+                            ? 'bg-sky-600 border-sky-600 text-white shadow-sm scale-105'
                             : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300'
                         }`}
                       >
-                        {p === '0' ? (language === 'sk' ? 'Bez zľavy (0%)' : 'No discount') : `-${p}%`}
+                        {p === '0' ? (language === 'sk' ? 'Bez zľavy (0%)' : '0%') : `-${p}%`}
                       </button>
                     ))}
+
+                    <input
+                      type="number"
+                      min="0"
+                      max="100"
+                      value={fsmDiscount}
+                      onChange={(e) => setFsmDiscount(e.target.value)}
+                      className="w-16 p-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 text-xs font-bold text-center"
+                      placeholder="%"
+                    />
                   </div>
                 </div>
 
@@ -429,11 +650,15 @@ export default function AdminReservationDashboard({ language }: Props) {
 
                 <button
                   type="submit"
-                  disabled={loadingFsm}
+                  disabled={loadingFsm || generatedTargetDates.length === 0}
                   className="w-full py-3.5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs uppercase tracking-wider shadow-md transition active:scale-95 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                 >
                   {loadingFsm ? <Loader2 size={16} className="animate-spin" /> : <CalendarPlus size={16} />}
-                  <span>{language === 'sk' ? 'Otvoriť termíny v kalendári' : 'Open Slots in Calendar'}</span>
+                  <span>
+                    {language === 'sk'
+                      ? `Otvoriť termíny pre (${generatedTargetDates.length}) dní`
+                      : `Open Slots for (${generatedTargetDates.length}) days`}
+                  </span>
                 </button>
               </form>
             </div>
@@ -616,9 +841,7 @@ export default function AdminReservationDashboard({ language }: Props) {
         </div>
       )}
 
-      {/* ==================================================================== */}
-      {/* 🚀 TAB 2: INTERAKTÍVNY GRAFICKÝ KALENDÁR S INTERAKTÍVNYM KLIKOM NA DNI */}
-      {/* ==================================================================== */}
+      {/* TAB 2: GRAFICKÝ KALENDÁR */}
       {activeTab === 'calendar' && (
         <div className="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-5 animate-in fade-in duration-200">
           
@@ -632,7 +855,7 @@ export default function AdminReservationDashboard({ language }: Props) {
                   {language === 'sk' ? 'Vizuálny prehľad kalendára' : 'Visual Calendar Overview'}
                 </h2>
                 <p className="text-xs text-slate-400 dark:text-slate-500">
-                  {language === 'sk' ? 'Kliknite na deň pre detailný rozpis a pridať termíny' : 'Click a day to view timeline or open slots'}
+                  {language === 'sk' ? 'Kliknite na deň pre správy termínov alebo vymazanie voľných slotov' : 'Click a day to manage slots or delete open blocks'}
                 </p>
               </div>
             </div>
@@ -658,7 +881,6 @@ export default function AdminReservationDashboard({ language }: Props) {
             </div>
           </div>
 
-          {/* LEGENDA FARIEB */}
           <div className="flex flex-wrap items-center gap-4 text-xs font-semibold text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/40 p-3 rounded-2xl border border-slate-100 dark:border-slate-800">
             <span className="flex items-center gap-1.5">
               <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
@@ -677,7 +899,6 @@ export default function AdminReservationDashboard({ language }: Props) {
             </div>
           ) : (
             <div className="space-y-4">
-              {/* MRIEŽKA MESAČNÉHO KALENDÁRA */}
               <div className="grid grid-cols-7 gap-2">
                 {['PO', 'UT', 'ST', 'ŠT', 'PI', 'SO', 'NE'].map((d) => (
                   <div key={d} className="text-center text-[11px] font-black text-slate-400 py-1">
@@ -728,7 +949,7 @@ export default function AdminReservationDashboard({ language }: Props) {
                 })}
               </div>
 
-              {/* 🚀 AK JE VYBRANÝ DEŇ: ZOBRAZÍ ROZPIS A TLAČIDLÁ PRE OTVORENIE SLOTU / REZERVÁCIE */}
+              {/* DETAIL DŇA A VYMAZANIE FSM BLOKOV */}
               {selectedCalDayKey && (
                 <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-3 animate-in fade-in duration-200">
                   <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 pb-2">
@@ -739,13 +960,12 @@ export default function AdminReservationDashboard({ language }: Props) {
                     <button
                       type="button"
                       onClick={() => setSelectedCalDayKey(null)}
-                      className="text-xs text-slate-400 hover:text-slate-600"
+                      className="text-xs text-slate-400 hover:text-slate-600 cursor-pointer"
                     >
                       ✕
                     </button>
                   </div>
 
-                  {/* UDALOSTI DŇA */}
                   <div className="space-y-2 text-xs">
                     {(() => {
                       const dayEvents = eventsByDateKey[selectedCalDayKey] || { fsm: [], bookings: [] };
@@ -766,22 +986,38 @@ export default function AdminReservationDashboard({ language }: Props) {
                                 : 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-900/50 text-emerald-900 dark:text-emerald-300 font-bold'
                             }`}
                           >
-                            <span className="truncate">{ev.summary}</span>
-                            <span className="font-mono text-[10px] px-2 py-0.5 rounded-md bg-white dark:bg-slate-900 shadow-sm shrink-0">
-                              {format24hTimeText(ev.start?.dateTime)} - {format24hTimeText(ev.end?.dateTime)}
-                            </span>
+                            <div className="flex items-center gap-2 min-w-0">
+                              <span className="truncate">{ev.summary}</span>
+                            </div>
+
+                            <div className="flex items-center gap-2 shrink-0">
+                              <span className="font-mono text-[10px] px-2 py-0.5 rounded-md bg-white dark:bg-slate-900 shadow-sm">
+                                {format24hTimeText(ev.start?.dateTime)} - {format24hTimeText(ev.end?.dateTime)}
+                              </span>
+
+                              {isFsm && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteFsmSlot(ev.id)}
+                                  className="p-1 rounded-lg bg-rose-100 hover:bg-rose-200 text-rose-600 dark:bg-rose-950/60 dark:text-rose-400 transition cursor-pointer"
+                                  title={language === 'sk' ? 'Vymazať tento voľný FSM blok' : 'Delete open slot'}
+                                >
+                                  <Trash2 size={13} />
+                                </button>
+                              )}
+                            </div>
                           </div>
                         );
                       });
                     })()}
                   </div>
 
-                  {/* RYCHLE AKCIE PRE VYBRANÝ DEŇ */}
                   <div className="flex flex-col sm:flex-row gap-2 pt-2 border-t border-slate-200 dark:border-slate-700">
                     <button
                       type="button"
                       onClick={() => {
-                        setFsmDate(selectedCalDayKey);
+                        setFsmStartDate(selectedCalDayKey);
+                        setFsmEndDate(selectedCalDayKey);
                         setActiveTab('actions');
                         setActionSubTab('fsm');
                       }}
@@ -810,6 +1046,47 @@ export default function AdminReservationDashboard({ language }: Props) {
             </div>
           )}
 
+        </div>
+      )}
+
+      {/* 🚀 MODAL OKNO PRE "DNES PO PRÁCI" (KEDY ZAČÍNAŠ?) */}
+      {showAfterWorkModal && (
+        <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-md flex items-center justify-center p-6 font-sans animate-fadeIn">
+          <div className="w-full max-w-xs p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl space-y-4 text-center relative animate-in fade-in zoom-in-95 duration-200">
+            <button
+              type="button"
+              onClick={() => setShowAfterWorkModal(false)}
+              className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 cursor-pointer"
+            >
+              <X size={18} />
+            </button>
+
+            <div className="w-12 h-12 mx-auto rounded-2xl bg-indigo-100 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shadow-sm">
+              <Clock size={22} />
+            </div>
+
+            <div className="space-y-1">
+              <h3 className="font-extrabold text-sm text-slate-800 dark:text-slate-100">
+                {language === 'sk' ? 'Dnes po práci: Kedy môžete začať?' : 'Today after work: When can you start?'}
+              </h3>
+              <p className="text-[11px] text-slate-400">
+                {language === 'sk' ? 'Vyberte čas začiatku (zmena do 20:00)' : 'Select start time (until 20:00)'}
+              </p>
+            </div>
+
+            <div className="grid grid-cols-3 gap-2 pt-1">
+              {['16:00', '16:30', '17:00', '17:30', '18:00', '18:30'].map((time) => (
+                <button
+                  key={`afterwork-${time}`}
+                  type="button"
+                  onClick={() => applyPresetTodayAfterWorkConfirm(time)}
+                  className="py-2.5 rounded-xl text-xs font-black border transition cursor-pointer bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-indigo-600 hover:text-white hover:border-indigo-600 shadow-2xs"
+                >
+                  {time}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       )}
 

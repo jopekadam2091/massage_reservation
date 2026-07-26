@@ -11,7 +11,7 @@ import {
   QrCode, X, Gift, Sparkles, CheckCircle2,
   User, Flower2, Leaf, Sparkles as SparklesIcon, Sun, Moon, 
   Heart, Feather, Droplets, Coffee, Cat, Star,
-  Percent, Calendar, Clock, Tag
+  Percent, Calendar, Clock, Tag, Info
 } from 'lucide-react';
 
 interface Profile {
@@ -23,6 +23,7 @@ interface Profile {
   avatar_color: string | null;
   referral_code: string | null;
   referred_by: string | null;
+  hide_app_info?: boolean; // 🚀 ZOBRAZOVANIE INFO O APLIKÁCII
 }
 
 interface ActiveGift {
@@ -63,6 +64,9 @@ export default function ProfilPage() {
   const [loading, setLoading] = useState(true);
   const [isQrOpen, setIsQrOpen] = useState(false);
 
+  // 🚀 STAV PRE ZOBRAZENIE INFO BANNERU
+  const [showInfoBanner, setShowInfoBanner] = useState(true);
+
   const [referredPeople, setReferredPeople] = useState<ReferredPerson[]>([]);
   const [revealedGiftStates, setRevealedGiftStates] = useState<Record<string, { status: 'ineligible' | 'revealed'; code?: string; name?: string }>>({});
 
@@ -81,6 +85,12 @@ export default function ProfilPage() {
   };
 
   const loadProfile = async () => {
+    // Rýchla kontrola z localStorage
+    const localHide = localStorage.getItem('hide_app_info');
+    if (localHide === 'true') {
+      setShowInfoBanner(false);
+    }
+
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) {
       router.push('/login');
@@ -89,7 +99,7 @@ export default function ProfilPage() {
 
     const { data: profileData } = await supabase
       .from('profiles')
-      .select('id, full_name, email, program_type, avatar_icon, avatar_color, referral_code, referred_by')
+      .select('id, full_name, email, program_type, avatar_icon, avatar_color, referral_code, referred_by, hide_app_info')
       .eq('id', session.user.id)
       .single();
 
@@ -98,6 +108,12 @@ export default function ProfilPage() {
       return;
     }
     setProfile(profileData);
+
+    // Ak má používateľ v databáze skryté info, neukážeme ho
+    if (profileData.hide_app_info) {
+      setShowInfoBanner(false);
+      localStorage.setItem('hide_app_info', 'true');
+    }
 
     const { data: stampsData } = await supabase
       .from('stamps')
@@ -216,10 +232,61 @@ export default function ProfilPage() {
   const shouldShowDisclaimer = activePrices.length >= targetStampsCount;
 
   return (
-    /* 🚀 OPRAVA MEDZERY: Zmeniť justify-center na justify-start a znížiť pt-4 */
     <main className="flex min-h-[calc(100vh-65px)] flex-col items-center justify-start p-4 sm:p-6 pt-3 sm:pt-4 gap-4 bg-slate-50 dark:bg-slate-950 transition-colors duration-300 font-sans">
       
       <div className="w-full max-w-sm flex flex-col gap-4">
+
+        {/* 🚀 NOVÝ BANNER PRE INFORMÁCIE O APLIKÁCII */}
+        {!profile.hide_app_info && showInfoBanner && (
+          <div className="relative overflow-hidden p-4 rounded-3xl bg-gradient-to-r from-sky-500/10 via-indigo-500/10 to-purple-500/10 border border-sky-200 dark:border-sky-900/50 shadow-sm text-left space-y-3 animate-in fade-in slide-in-from-top-2 duration-300">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-sky-500 text-white shadow-xs shrink-0">
+                  <Sparkles size={18} />
+                </div>
+                <div>
+                  <h4 className="font-extrabold text-xs text-slate-800 dark:text-slate-100">
+                    {language === 'sk' ? 'Informácie o aplikácii' : 'App Information'}
+                  </h4>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                    {language === 'sk' 
+                      ? 'Prehľad vašich rezervácií, pečiatok a špeciálnych darčekov na jednom mieste.'
+                      : 'Overview of your bookings, loyalty stamps, and special gifts in one place.'}
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setShowInfoBanner(false)}
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 cursor-pointer shrink-0"
+                title={language === 'sk' ? 'Zavrieť' : 'Close'}
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-1 border-t border-sky-200/50 dark:border-sky-900/30">
+              <button
+                type="button"
+                onClick={async () => {
+                  setShowInfoBanner(false);
+                  setProfile((prev) => prev ? { ...prev, hide_app_info: true } : null);
+                  localStorage.setItem('hide_app_info', 'true');
+
+                  await supabase
+                    .from('profiles')
+                    .update({ hide_app_info: true })
+                    .eq('id', profile.id);
+                }}
+                className="text-[11px] font-bold text-sky-700 dark:text-sky-300 hover:underline flex items-center gap-1 cursor-pointer"
+              >
+                <CheckCircle2 size={13} />
+                <span>{language === 'sk' ? 'Už nezobrazovať po prihlásení' : 'Don\'t show again'}</span>
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* KARTA AKTÍVNEJ NADCHÁDZAJÚCEJ REZERVÁCIE */}
         {userBookings.length > 0 && (

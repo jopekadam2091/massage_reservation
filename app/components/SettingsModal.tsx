@@ -5,7 +5,7 @@ import { supabase } from '../lib/supabase';
 import { useAvatar } from '../lib/AvatarContext';
 import { 
   X, User, Flower2, Leaf, Sparkles as SparklesIcon, Sun, Moon, 
-  Heart, Feather, Droplets, Coffee, Cat, Star, Copy, Check, UserPlus, Loader2, Bell
+  Heart, Feather, Droplets, Coffee, Cat, Star, Copy, Check, UserPlus, Loader2, Bell, Info
 } from 'lucide-react';
 
 interface Profile {
@@ -17,6 +17,7 @@ interface Profile {
   referral_code: string | null;
   referred_by: string | null;
   email_notifications?: boolean; // 🚀 NOTIFIKAČNÉ PREDVOĽBY
+  hide_app_info?: boolean;        // 🚀 ZOBRAZOVANIE INFO O APLIKÁCII
 }
 
 interface ReferredPerson {
@@ -97,7 +98,7 @@ export default function SettingsModal({
       try {
         const { data: profileData, error } = await supabase
           .from('profiles')
-          .select('id, full_name, email, avatar_icon, avatar_color, referral_code, referred_by, email_notifications')
+          .select('id, full_name, email, avatar_icon, avatar_color, referral_code, referred_by, email_notifications, hide_app_info')
           .eq('id', userId)
           .maybeSingle();
 
@@ -108,6 +109,11 @@ export default function SettingsModal({
         if (profileData && isMounted) {
           setProfile(profileData);
           setAvatarSettings(profileData.avatar_icon || 'User', profileData.avatar_color || '#10b981');
+          
+          // Uložíme hodnotu aj do localStorage pre okamžité načítanie pri spustení
+          if (profileData.hide_app_info !== undefined) {
+            localStorage.setItem('hide_app_info', String(profileData.hide_app_info));
+          }
 
           if (profileData.referred_by) {
             const { data: referrerData } = await supabase
@@ -272,7 +278,7 @@ export default function SettingsModal({
               </div>
             </div>
 
-            {/* 🚀 NOVÉ: iOS PREPÍNAČ PRE E-MAILOVÉ NOTIFIKÁCIE */}
+            {/* PREPÍNAČ PRE E-MAILOVÉ NOTIFIKÁCIE */}
             <div className="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800 text-left">
               <div className="flex items-center gap-2">
                 <Bell size={16} className="text-indigo-600 dark:text-indigo-400" />
@@ -304,6 +310,44 @@ export default function SettingsModal({
                 <div
                   className={`w-5 h-5 rounded-full bg-white shadow-md transition-transform duration-300 ${
                     (profile.email_notifications ?? true) ? 'translate-x-6' : 'translate-x-0'
+                  }`}
+                />
+              </button>
+            </div>
+
+            {/* 🚀 NOVÉ: iOS PREPÍNAČ PRE SKRYTIE INFORMÁCIÍ O APLIKÁCII */}
+            <div className="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800 text-left">
+              <div className="flex items-center gap-2">
+                <Info size={16} className="text-sky-600 dark:text-sky-400" />
+                <div>
+                  <p className="text-xs font-bold text-slate-800 dark:text-slate-100">
+                    {language === 'sk' ? 'Nezobrazovať info o aplikácii' : 'Hide app info & news'}
+                  </p>
+                  <p className="text-[10px] text-slate-400">
+                    {language === 'sk' ? 'Skryje oznamovacie okná a sprievodcu po prihlásení' : 'Hides app announcements and guide on login'}
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={async () => {
+                  const nextVal = !(profile.hide_app_info ?? false);
+                  setProfile({ ...profile, hide_app_info: nextVal });
+                  localStorage.setItem('hide_app_info', String(nextVal));
+
+                  await supabase
+                    .from('profiles')
+                    .update({ hide_app_info: nextVal })
+                    .eq('id', profile.id);
+                }}
+                className={`w-12 h-6 rounded-full p-0.5 relative transition-colors duration-300 cursor-pointer ${
+                  (profile.hide_app_info ?? false) ? 'bg-sky-600' : 'bg-slate-300 dark:bg-slate-700'
+                }`}
+              >
+                <div
+                  className={`w-5 h-5 rounded-full bg-white shadow-md transition-transform duration-300 ${
+                    (profile.hide_app_info ?? false) ? 'translate-x-6' : 'translate-x-0'
                   }`}
                 />
               </button>
