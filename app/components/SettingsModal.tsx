@@ -5,7 +5,7 @@ import { supabase } from '../lib/supabase';
 import { useAvatar } from '../lib/AvatarContext';
 import { 
   X, User, Flower2, Leaf, Sparkles as SparklesIcon, Sun, Moon, 
-  Heart, Feather, Droplets, Coffee, Cat, Star, Copy, Check, UserPlus, Loader2, Bell, Info
+  Heart, Feather, Droplets, Coffee, Cat, Star, Copy, Check, UserPlus, Loader2, Bell, Smartphone
 } from 'lucide-react';
 
 interface Profile {
@@ -16,8 +16,8 @@ interface Profile {
   avatar_color: string | null;
   referral_code: string | null;
   referred_by: string | null;
-  email_notifications?: boolean; // 🚀 NOTIFIKAČNÉ PREDVOĽBY
-  hide_app_info?: boolean;        // 🚀 ZOBRAZOVANIE INFO O APLIKÁCII
+  email_notifications?: boolean;
+  hide_pwa_prompt?: boolean; // 🚀 PREPÍNAČ PRE PWA INŠTALAČNÚ VÝZVU
 }
 
 interface ReferredPerson {
@@ -98,7 +98,7 @@ export default function SettingsModal({
       try {
         const { data: profileData, error } = await supabase
           .from('profiles')
-          .select('id, full_name, email, avatar_icon, avatar_color, referral_code, referred_by, email_notifications, hide_app_info')
+          .select('id, full_name, email, avatar_icon, avatar_color, referral_code, referred_by, email_notifications, hide_pwa_prompt')
           .eq('id', userId)
           .maybeSingle();
 
@@ -110,9 +110,9 @@ export default function SettingsModal({
           setProfile(profileData);
           setAvatarSettings(profileData.avatar_icon || 'User', profileData.avatar_color || '#10b981');
           
-          // Uložíme hodnotu aj do localStorage pre okamžité načítanie pri spustení
-          if (profileData.hide_app_info !== undefined) {
-            localStorage.setItem('hide_app_info', String(profileData.hide_app_info));
+          if (profileData.hide_pwa_prompt !== undefined) {
+            localStorage.setItem('hide_pwa_prompt', String(profileData.hide_pwa_prompt));
+            localStorage.setItem('pwa_prompt_dismissed', String(profileData.hide_pwa_prompt));
           }
 
           if (profileData.referred_by) {
@@ -315,16 +315,16 @@ export default function SettingsModal({
               </button>
             </div>
 
-            {/* 🚀 NOVÉ: iOS PREPÍNAČ PRE SKRYTIE INFORMÁCIÍ O APLIKÁCII */}
+            {/* 🚀 PREPÍNAČ PRE SKRYTIE INŠTALAČNEJ VÝZVY PWA APLIKÁCIE */}
             <div className="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800 text-left">
               <div className="flex items-center gap-2">
-                <Info size={16} className="text-sky-600 dark:text-sky-400" />
+                <Smartphone size={16} className="text-sky-600 dark:text-sky-400" />
                 <div>
                   <p className="text-xs font-bold text-slate-800 dark:text-slate-100">
-                    {language === 'sk' ? 'Nezobrazovať info o aplikácii' : 'Hide app info & news'}
+                    {language === 'sk' ? 'Skryť výzvu na inštaláciu' : 'Hide app install prompt'}
                   </p>
                   <p className="text-[10px] text-slate-400">
-                    {language === 'sk' ? 'Skryje oznamovacie okná a sprievodcu po prihlásení' : 'Hides app announcements and guide on login'}
+                    {language === 'sk' ? 'Nezobrazovať info o inštalácii aplikácie' : 'Hide PWA install prompt on login'}
                   </p>
                 </div>
               </div>
@@ -332,22 +332,24 @@ export default function SettingsModal({
               <button
                 type="button"
                 onClick={async () => {
-                  const nextVal = !(profile.hide_app_info ?? false);
-                  setProfile({ ...profile, hide_app_info: nextVal });
-                  localStorage.setItem('hide_app_info', String(nextVal));
+                  const nextVal = !(profile.hide_pwa_prompt ?? false);
+                  setProfile({ ...profile, hide_pwa_prompt: nextVal });
+
+                  localStorage.setItem('hide_pwa_prompt', String(nextVal));
+                  localStorage.setItem('pwa_prompt_dismissed', String(nextVal));
 
                   await supabase
                     .from('profiles')
-                    .update({ hide_app_info: nextVal })
+                    .update({ hide_pwa_prompt: nextVal })
                     .eq('id', profile.id);
                 }}
                 className={`w-12 h-6 rounded-full p-0.5 relative transition-colors duration-300 cursor-pointer ${
-                  (profile.hide_app_info ?? false) ? 'bg-sky-600' : 'bg-slate-300 dark:bg-slate-700'
+                  (profile.hide_pwa_prompt ?? false) ? 'bg-sky-600' : 'bg-slate-300 dark:bg-slate-700'
                 }`}
               >
                 <div
                   className={`w-5 h-5 rounded-full bg-white shadow-md transition-transform duration-300 ${
-                    (profile.hide_app_info ?? false) ? 'translate-x-6' : 'translate-x-0'
+                    (profile.hide_pwa_prompt ?? false) ? 'translate-x-6' : 'translate-x-0'
                   }`}
                 />
               </button>

@@ -3,49 +3,83 @@
 import { useEffect, useState } from 'react';
 import { Smartphone, Download, X, Share } from 'lucide-react';
 import { useLanguage } from '../lib/LanguageContext';
+import { supabase } from '../lib/supabase'; // 🚀 PRIDANÝ IMPORT SUPABASE
 
 export default function PwaInstallPrompt() {
   const { language } = useLanguage();
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [isIos, setIsIos] = useState(false);
-  
-  // 🚀 ZAPNUTÉ NA true, ABY BOL OZNAM IHNEĎ VIDITEĽNÝ PRE TESTOVANIE
-  const [showPrompt, setShowPrompt] = useState(true);
+  const [showPrompt, setShowPrompt] = useState(false); // 🚀 ZMENENÉ Z true NA false (východiskový stav)
 
   useEffect(() => {
-    // Ak už aplikácia beží ako nainštalovaná PWA (standalone), skryjeme ju
+    // 1. KONTROLA PREFERENCIÍ Z LOCALSTORAGE & SESSIONSTORAGE
+    const isDismissed = 
+      localStorage.getItem('hide_pwa_prompt') === 'true' ||
+      localStorage.getItem('pwa_prompt_dismissed') === 'true' ||
+      sessionStorage.getItem('pwa_prompt_dismissed') === 'true';
+
+    if (isDismissed) {
+      setShowPrompt(false);
+      return;
+    }
+
+    // 2. KONTROLA STANDALONE REŽIMU (ak už appka beží ako nainštalovaná)
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone;
     if (isStandalone) {
       setShowPrompt(false);
       return;
     }
 
-    // Ak si používateľ oznam zatvoril v tejto relácii, skryjeme
-    const dismissed = sessionStorage.getItem('pwa_prompt_dismissed');
-    if (dismissed) {
-      setShowPrompt(false);
-      return;
-    }
+    // 3. KONTROLA NASTAVENIA V SUPABASE PRE PRIHLÁSENÉHO POUŽÍVATEĽA
+    const checkUserPreference = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          const { data } = await supabase
+            .from('profiles')
+            .select('hide_pwa_prompt')
+            .eq('id', session.user.id)
+            .maybeSingle();
 
-    // Odachytenie inštalačnej udalosti pre Chrome/Android
-    const handleBeforeInstallPrompt = (e: Event) => {
-      e.preventDefault();
-      setDeferredPrompt(e);
+          if (data?.hide_pwa_prompt) {
+            setShowPrompt(false);
+            localStorage.setItem('hide_pwa_prompt', 'true');
+            localStorage.setItem('pwa_prompt_dismissed', 'true');
+            return true;
+          }
+        }
+      } catch (err) {
+        console.error('Chyba pri načítaní PWA preferencií:', err);
+      }
+      return false;
+    };
+
+    checkUserPreference().then((isHiddenInProfile) => {
+      if (isHiddenInProfile) return;
+
+      // Zobrazíme výzvu ak nie je vypnutá
       setShowPrompt(true);
-    };
 
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      // Odachytenie inštalačnej udalosti pre Chrome/Android
+      const handleBeforeInstallPrompt = (e: Event) => {
+        e.preventDefault();
+        setDeferredPrompt(e);
+        setShowPrompt(true);
+      };
 
-    // Detekcia iOS
-    const userAgent = window.navigator.userAgent.toLowerCase();
-    const isIosDevice = /iphone|ipad|ipod/.test(userAgent);
-    if (isIosDevice) {
-      setIsIos(true);
-    }
+      window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
 
-    return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-    };
+      // Detekcia iOS
+      const userAgent = window.navigator.userAgent.toLowerCase();
+      const isIosDevice = /iphone|ipad|ipod/.test(userAgent);
+      if (isIosDevice) {
+        setIsIos(true);
+      }
+
+      return () => {
+        window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      };
+    });
   }, []);
 
   const handleInstallClick = async () => {
@@ -54,6 +88,7 @@ export default function PwaInstallPrompt() {
       const { outcome } = await deferredPrompt.userChoice;
       if (outcome === 'accepted') {
         setShowPrompt(false);
+        handleDismiss(); // Uložíme trvalé skrytie po úspešnej inštalácii
       }
       setDeferredPrompt(null);
     } else {
@@ -66,9 +101,24 @@ export default function PwaInstallPrompt() {
     }
   };
 
-  const handleDismiss = () => {
+  // 🚀 ZATVORENIE KRÍŽIKOM - TRVALO ULOŽÍ DO LOCALSTORAGE AJ SUPABASE
+  const handleDismiss = async () => {
     setShowPrompt(false);
+    localStorage.setItem('hide_pwa_prompt', 'true');
+    localStorage.setItem('pwa_prompt_dismissed', 'true');
     sessionStorage.setItem('pwa_prompt_dismissed', 'true');
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        await supabase
+          .from('profiles')
+          .update({ hide_pwa_prompt: true })
+          .eq('id', session.user.id);
+      }
+    } catch (err) {
+      console.error('Chyba pri zápise PWA preferencie do databázy:', err);
+    }
   };
 
   if (!showPrompt) return null;
@@ -79,7 +129,7 @@ export default function PwaInstallPrompt() {
         <button
           type="button"
           onClick={handleDismiss}
-          className="absolute top-3 right-3 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition"
+          className="absolute top-3 right-3 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition cursor-pointer"
         >
           <X size={18} />
         </button>
@@ -114,7 +164,7 @@ export default function PwaInstallPrompt() {
           <button
             type="button"
             onClick={handleInstallClick}
-            className="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-md transition active:scale-95 flex items-center justify-center gap-2"
+            className="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-md transition active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
           >
             <Download size={14} />
             <span>{language === 'sk' ? 'Nainštalovať aplikáciu' : 'Install App'}</span>
