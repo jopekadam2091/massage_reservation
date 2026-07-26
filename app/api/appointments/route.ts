@@ -212,8 +212,26 @@ export async function POST(request: Request) {
       }
     }
 
-    // 🚀 ODOSLANIE POTVRDZOVACIEHO E-MAILU ZÁKAZNÍKOVI
+    // 🚀 KONTROLA PREFERENCIE POUŽÍVATEĽA PRED ODOSLANÍM E-MAILU
+    let allowEmail = true;
     if (email) {
+      try {
+        const { data: userProfile } = await supabase
+          .from('profiles')
+          .select('email_notifications')
+          .eq('email', email)
+          .maybeSingle();
+
+        if (userProfile && userProfile.email_notifications === false) {
+          allowEmail = false;
+        }
+      } catch (err) {
+        console.error('Chyba kontroly e-mailových notifikácií:', err);
+      }
+    }
+
+    // 🚀 ODOSLANIE POTVRDZOVACIEHO E-MAILU (IBA AK SÚ NOTIFIKÁCIE POVOLENÉ)
+    if (email && allowEmail) {
       sendBookingConfirmationEmail({
         to: email,
         name: name || 'Zákazník',

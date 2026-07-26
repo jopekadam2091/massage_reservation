@@ -1,6 +1,11 @@
 import { google } from 'googleapis';
 import { NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
 import { sendCancellationDecisionEmail } from '@/app/lib/email';
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 const auth = new google.auth.JWT(
   process.env.GOOGLE_CLIENT_EMAIL,
@@ -63,14 +68,31 @@ async function handleCancel(eventId?: string, query?: string) {
     });
   }
 
-  // Odoslanie e-mailu klientovi o stornovaní
+  // 🚀 KONTROLA PREFERENCIE POUŽÍVATEĽA PRED ODOSLANÍM E-MAILU O STORNE
   if (clientEmail) {
-    sendCancellationDecisionEmail({
-      to: clientEmail,
-      name: clientName,
-      bookingRef: bookingRef,
-      status: 'approved',
-    }).catch(() => {});
+    let allowEmail = true;
+    try {
+      const { data: userProfile } = await supabase
+        .from('profiles')
+        .select('email_notifications')
+        .eq('email', clientEmail)
+        .maybeSingle();
+
+      if (userProfile && userProfile.email_notifications === false) {
+        allowEmail = false;
+      }
+    } catch (err) {
+      console.error('Chyba kontroly notifikácií pri storne:', err);
+    }
+
+    if (allowEmail) {
+      sendCancellationDecisionEmail({
+        to: clientEmail,
+        name: clientName,
+        bookingRef: bookingRef,
+        status: 'approved',
+      }).catch(() => {});
+    }
   }
 
   return { success: true, message: `Rezervácia "${targetEvent.summary}" bola úspešne zrušená!` };
