@@ -14,7 +14,7 @@ const translations = {
     navLogout: 'Odhlásiť sa',
 
     // Auth
-    appTitle: 'Masáže Vernosť',
+    appTitle: 'Vernostný program Masáž+',
     subtitleLogin: 'Prihlás sa do svojho profilu',
     subtitleRegister: 'Vytvor si vernostnú kartičku',
     fullNameLabel: 'Celé meno',
@@ -71,7 +71,7 @@ const translations = {
     navLogout: 'Log Out',
 
     // Auth
-    appTitle: 'Loyalty System',
+    appTitle: 'Loyalty System Massage+',
     subtitleLogin: 'Sign in to your account',
     subtitleRegister: 'Create a new account',
     fullNameLabel: 'Full name',

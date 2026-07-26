@@ -68,9 +68,6 @@ export default function Card({ fullName, programType, activeStampsPrices, avatar
             <p className={`text-xs ${colors.textSecondary}`}>{t.loyaltyProgram}</p>
           </div>
         </div>
-        <span className="px-3 py-1 text-xs font-semibold rounded-full bg-white/80 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 border border-white/40 dark:border-slate-700 shadow-sm">
-          {programType === '5_stamps' ? t.massages5 : t.massages10}
-        </span>
       </div>
 
       {/* Držiteľ karty */}
