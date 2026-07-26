@@ -11,7 +11,7 @@ import {
   QrCode, X, Gift, Sparkles, CheckCircle2,
   User, Flower2, Leaf, Sparkles as SparklesIcon, Sun, Moon, 
   Heart, Feather, Droplets, Coffee, Cat, Star,
-  Percent, Calendar, Clock, Tag
+  Percent, Calendar, Clock, Tag, RotateCw
 } from 'lucide-react';
 
 interface Profile {
@@ -62,6 +62,7 @@ export default function ProfilPage() {
   const [activeGifts, setActiveGifts] = useState<ActiveGift[]>([]);
   const [userBookings, setUserBookings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false); // 🚀 STAV PRE ANIMÁCIU REFRESHU
   const [isQrOpen, setIsQrOpen] = useState(false);
 
   const [referredPeople, setReferredPeople] = useState<ReferredPerson[]>([]);
@@ -154,6 +155,13 @@ export default function ProfilPage() {
     }
 
     setLoading(false);
+  };
+
+  // 🚀 MANUÁLNE OBNOVENIE PEČIATOK A PROFILU
+  const handleManualRefresh = async () => {
+    setRefreshing(true);
+    await loadProfile();
+    setTimeout(() => setRefreshing(false), 500);
   };
 
   useEffect(() => {
@@ -353,7 +361,7 @@ export default function ProfilPage() {
           </div>
         )}
         
-        {/* --- PANEL POUŽÍVATEĽA --- */}
+        {/* --- PANEL POUŽÍVATEĽA WITH REFRESH BUTTON --- */}
         <div className="w-full flex items-center justify-between px-1">
           <button 
             onClick={() => setIsQrOpen(true)}
@@ -382,7 +390,16 @@ export default function ProfilPage() {
             </div>
           </div>
 
-          <div className="w-9" />
+          {/* 🚀 NOVÉ TLAČIDLO PRE REFRESH PEČIATOK A PROFILU */}
+          <button
+            type="button"
+            onClick={handleManualRefresh}
+            disabled={refreshing}
+            className="p-2.5 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-indigo-600 hover:text-white dark:hover:bg-indigo-600 transition active:scale-95 cursor-pointer shadow-xs disabled:opacity-50"
+            title={language === 'sk' ? 'Obnoviť pečiatky' : 'Refresh stamps'}
+          >
+            <RotateCw size={18} className={refreshing ? 'animate-spin text-indigo-600 dark:text-indigo-400' : ''} />
+          </button>
         </div>
 
         {/* VERNOSTNÁ KARTA S PEČIATKAMI */}

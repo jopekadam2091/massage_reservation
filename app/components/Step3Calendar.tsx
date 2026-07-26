@@ -4,7 +4,7 @@ import { LangType, MassageType, TimeSlot, DiscountTheme, ContactMethod } from '@
 import { PRICES } from '@/app/constants/config';
 import { getDateKey, isValidSlotDuration } from '@/app/utils/calendar';
 import { supabase } from '@/app/lib/supabase';
-import { ChevronLeft, ChevronRight, Gift, Sparkles, Tag, Info } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Gift, Sparkles, Tag, Info, RotateCw } from 'lucide-react';
 
 interface ActiveGift {
   id: string;
@@ -28,6 +28,7 @@ type Props = {
   discountTheme: DiscountTheme;
   onBack: () => void;
   onSuccess: (bookingDetails?: any) => void;
+  onRefreshCalendar?: () => void; // 🚀 PRIDANÝ REFRESH HANDLER
 };
 
 export default function Step3Calendar({
@@ -46,6 +47,7 @@ export default function Step3Calendar({
   discountTheme,
   onBack,
   onSuccess,
+  onRefreshCalendar,
 }: Props) {
   const [activeContacts, setActiveContacts] = useState<Record<ContactMethod, boolean>>({
     phone: true,
@@ -316,7 +318,19 @@ export default function Step3Calendar({
             <span className="text-base font-bold tracking-tight text-slate-800 dark:text-slate-100">
               {t.months[currentMonth]} {currentYear}
             </span>
-            <div className="flex space-x-2">
+            <div className="flex space-x-2 items-center">
+              {/* 🚀 NOVÉ TLAČIDLO REFRESH */}
+              {onRefreshCalendar && (
+                <button
+                  type="button"
+                  onClick={onRefreshCalendar}
+                  disabled={loadingCalendar}
+                  title={lang === 'SK' ? 'Obnoviť termíny' : 'Refresh slots'}
+                  className="p-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-indigo-600 hover:text-white dark:hover:bg-indigo-600 transition shadow-sm cursor-pointer disabled:opacity-50"
+                >
+                  <RotateCw size={16} className={loadingCalendar ? 'animate-spin' : ''} />
+                </button>
+              )}
               <button
                 type="button"
                 onClick={handlePrevMonth}
