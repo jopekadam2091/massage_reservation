@@ -100,21 +100,33 @@ export default function SettingsModal({
 
     const loadSettingsData = async () => {
       try {
-        let profileData: any = null;
-        try {
-          const { data: p } = await supabase
+        let { data: profileData, error: profileErr } = await supabase
+          .from('profiles')
+          .select('id, full_name, email, avatar_icon, avatar_color, referral_code, referred_by, email_notifications, hide_pwa_prompt, birth_date')
+          .eq('id', userId)
+          .maybeSingle();
+
+        if (profileErr || !profileData) {
+          // Náhradný dotaz bez voliteľných stĺpcov pre prípad, že neexistujú v DB
+          const { data: fallbackData } = await supabase
             .from('profiles')
-            .select('id, full_name, email, avatar_icon, avatar_color, referral_code, referred_by, email_notifications, hide_pwa_prompt, birth_date')
+            .select('id, full_name, email, avatar_icon, avatar_color, referral_code, referred_by')
             .eq('id', userId)
             .maybeSingle();
-          profileData = p;
-        } catch {
-          const { data: p } = await supabase
-            .from('profiles')
-            .select('id, full_name, email, avatar_icon, avatar_color, referral_code, referred_by, email_notifications, hide_pwa_prompt')
-            .eq('id', userId)
-            .maybeSingle();
-          profileData = p;
+          profileData = fallbackData;
+        }
+
+        if (!profileData) {
+          const { data: { user } } = await supabase.auth.getUser();
+          profileData = {
+            id: userId,
+            full_name: user?.user_metadata?.full_name || 'Používateľ',
+            email: user?.email || '',
+            avatar_icon: 'User',
+            avatar_color: '#10b981',
+            referral_code: null,
+            referred_by: null,
+          };
         }
 
         if (profileData && isMounted) {
