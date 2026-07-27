@@ -100,11 +100,14 @@ export default function SettingsModal({
 
     const loadSettingsData = async () => {
       try {
-        let { data: profileData, error: profileErr } = await supabase
+        let profileData: any = null;
+        const { data: pData, error: profileErr } = await supabase
           .from('profiles')
           .select('id, full_name, email, avatar_icon, avatar_color, referral_code, referred_by, email_notifications, hide_pwa_prompt, birth_date')
           .eq('id', userId)
           .maybeSingle();
+
+        profileData = pData;
 
         if (profileErr || !profileData) {
           // Náhradný dotaz bez voliteľných stĺpcov pre prípad, že neexistujú v DB
@@ -113,7 +116,7 @@ export default function SettingsModal({
             .select('id, full_name, email, avatar_icon, avatar_color, referral_code, referred_by')
             .eq('id', userId)
             .maybeSingle();
-          profileData = fallbackData;
+          profileData = fallbackData ? { ...fallbackData, email_notifications: true, hide_pwa_prompt: false, birth_date: null } : null;
         }
 
         if (!profileData) {
