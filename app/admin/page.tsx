@@ -98,28 +98,14 @@ export default function AdminPage() {
   }, [router]);
 
   const fetchProfiles = async () => {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select(`
-        id, 
-        full_name, 
-        email, 
-        program_type,
-        referral_code,
-        referred_by,
-        referral_discount_status,
-        stamps(id, price, claimed, created_at, claimed_at, removed_at),
-        gifts!gifts_user_id_fkey(id, gift_type, custom_code, used, created_at, revoked_at)
-      `)
-      .order('full_name', { ascending: true });
-
-    if (!error && data) {
-      const formattedData = data.map((p: any) => ({
-        ...p,
-        stamps: p.stamps || [],
-        gifts: p.gifts || [],
-      }));
-      setProfiles(formattedData);
+    try {
+      const res = await fetch('/api/admin/users');
+      const data = await res.json();
+      if (res.ok && data.users) {
+        setProfiles(data.users);
+      }
+    } catch (err) {
+      console.error('Chyba načítavania používateľov:', err);
     }
   };
 

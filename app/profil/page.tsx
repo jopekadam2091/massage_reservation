@@ -4,11 +4,12 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '../lib/supabase';
 import Card from '../components/Card';
+import BadgesGrid from '../components/BadgesGrid';
 import QrCodeGenerator from '../components/QrCodeGenerator';
 import { useLanguage } from '../lib/LanguageContext';
 import { useAvatar } from '../lib/AvatarContext';
 import { 
-  QrCode, X, Gift, Sparkles, CheckCircle2,
+  QrCode, X, Gift, Sparkles, CheckCircle2, AlertCircle,
   User, Flower2, Leaf, Sparkles as SparklesIcon, Sun, Moon, 
   Heart, Feather, Droplets, Coffee, Cat, Star,
   Percent, Calendar, Clock, Tag, RotateCw
@@ -24,6 +25,7 @@ interface Profile {
   referral_code: string | null;
   referred_by: string | null;
   hide_pwa_prompt?: boolean;
+  is_banned?: boolean;
 }
 
 interface ActiveGift {
@@ -89,11 +91,21 @@ export default function ProfilPage() {
       return;
     }
 
-    const { data: profileData } = await supabase
+    let { data: profileData, error: profileErr } = await supabase
       .from('profiles')
-      .select('id, full_name, email, program_type, avatar_icon, avatar_color, referral_code, referred_by, hide_pwa_prompt')
+      .select('id, full_name, email, program_type, avatar_icon, avatar_color, referral_code, referred_by, hide_pwa_prompt, is_banned')
       .eq('id', session.user.id)
-      .single();
+      .maybeSingle();
+
+    if (profileErr || !profileData) {
+      // Náhradný dotaz bez is_banned pre prípad, že stĺpec zatiaľ v DB neexistuje
+      const { data: fallbackData } = await supabase
+        .from('profiles')
+        .select('id, full_name, email, program_type, avatar_icon, avatar_color, referral_code, referred_by, hide_pwa_prompt')
+        .eq('id', session.user.id)
+        .maybeSingle();
+      profileData = fallbackData ? { ...fallbackData, is_banned: false } : null;
+    }
 
     if (!profileData) {
       router.push('/login');
@@ -214,6 +226,42 @@ export default function ProfilPage() {
     return (
       <main className="flex min-h-[calc(100vh-65px)] items-center justify-center bg-slate-50 dark:bg-slate-950 font-sans">
         <p className="text-slate-500 dark:text-slate-400">{t.loading}</p>
+      </main>
+    );
+  }
+
+  if (profile.is_banned) {
+    return (
+      <main className="flex min-h-[calc(100vh-65px)] flex-col items-center justify-center p-6 bg-slate-50 dark:bg-slate-950 font-sans text-center">
+        <div className="w-full max-w-md p-8 rounded-3xl bg-white dark:bg-slate-900 border border-rose-200 dark:border-rose-900/50 shadow-2xl space-y-5 animate-in fade-in duration-300">
+          <div className="w-16 h-16 rounded-3xl bg-rose-100 dark:bg-rose-950/80 text-rose-600 mx-auto flex items-center justify-center shadow-lg shadow-rose-500/20">
+            <AlertCircle size={36} />
+          </div>
+
+          <div className="space-y-2">
+            <h2 className="font-extrabold text-xl text-slate-800 dark:text-slate-100">
+              {language === 'sk' ? 'Účet bol zablokovaný' : 'Account Suspended'}
+            </h2>
+            <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+              {language === 'sk'
+                ? 'Váš účet bol pozastavený. Z tohto dôvodu nemôžete využívať rezervačný systém ani vernostnú kartu.'
+                : 'Your account has been suspended. You cannot use the reservation system or loyalty card.'}
+            </p>
+            <p className="text-xs font-semibold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 p-3 rounded-2xl border border-rose-200/60 dark:border-rose-900/40">
+              {language === 'sk'
+                ? 'Pre viac informácií kontaktujte prosím podporu (support).'
+                : 'For more information, please contact support.'}
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="w-full py-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold text-xs hover:bg-slate-200 dark:hover:bg-slate-700 transition cursor-pointer"
+          >
+            {t.logout}
+          </button>
+        </div>
       </main>
     );
   }
@@ -409,6 +457,9 @@ export default function ProfilPage() {
           activeStampsPrices={activePrices}
           avatarColor={currentColor}
         />
+
+        {/* SEKCIA ODZNAKOV A ÚSPECHOV */}
+        <BadgesGrid userId={profile.id} language={language} />
 
         {shouldShowDisclaimer && (
           <div className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200/60 dark:border-amber-900/40 text-xs text-amber-900 dark:text-amber-400 shadow-sm text-left space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">

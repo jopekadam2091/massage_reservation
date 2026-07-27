@@ -37,16 +37,28 @@ export interface GiftRecord {
   revoked_at: string | null;
 }
 
+export interface UserBadge {
+  badge_id: string;
+  is_unlocked: boolean;
+  unlocked_at: string | null;
+  current_progress: number;
+  max_progress: number;
+}
+
 export interface Profile {
   id: string;
   full_name: string | null;
   email: string;
+  role?: string | null;
   program_type: '5_stamps' | '10_stamps';
   referral_code: string | null;
   referred_by: string | null;
   referral_discount_status: string | null;
+  is_banned?: boolean;
+  birth_date?: string | null;
   stamps: StampRecord[];
   gifts: GiftRecord[];
+  badges?: UserBadge[];
 }
 
 export type TimeSlot = {

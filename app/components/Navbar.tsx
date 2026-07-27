@@ -9,6 +9,7 @@ import { useTheme } from '../lib/ThemeContext';
 import { useAvatar } from '../lib/AvatarContext';
 import SettingsModal from './SettingsModal';
 import UserHistoryModal from './UserHistoryModal';
+import AdminUserManagementModal from './admin/AdminUserManagementModal';
 
 import { 
   Calendar, CreditCard, ShieldCheck, User, Sun, Moon, LogOut, Settings,
@@ -42,6 +43,7 @@ export default function Navbar() {
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [isAdminUserMgmtOpen, setIsAdminUserMgmtOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); // 🚀 HAMBURGER MENU STATE
 
   useEffect(() => {
@@ -103,7 +105,13 @@ export default function Navbar() {
             {/* VĽAVO: PROFIL S MENOM ALEBO HOSŤ */}
             <button
               type="button"
-              onClick={() => setIsProfileModalOpen(true)}
+              onClick={() => {
+                if (isAdmin) {
+                  setIsAdminUserMgmtOpen(true);
+                } else {
+                  setIsProfileModalOpen(true);
+                }
+              }}
               className="flex items-center gap-2.5 font-bold text-slate-800 dark:text-slate-100 text-sm tracking-tight min-w-0 hover:opacity-85 transition active:scale-98 text-left cursor-pointer"
             >
               {sessionUser ? (
@@ -313,6 +321,12 @@ export default function Navbar() {
         isOpen={isProfileModalOpen}
         onClose={() => setIsProfileModalOpen(false)}
         sessionUser={sessionUser}
+        language={language}
+      />
+
+      <AdminUserManagementModal
+        isOpen={isAdminUserMgmtOpen}
+        onClose={() => setIsAdminUserMgmtOpen(false)}
         language={language}
       />
     </>

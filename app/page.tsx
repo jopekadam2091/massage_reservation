@@ -30,6 +30,7 @@ export default function Home() {
 
   const [sessionUser, setSessionUser] = useState<any>(null);
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
+  const [isUserBanned, setIsUserBanned] = useState<boolean>(false);
   const [showGuestNotice, setShowGuestNotice] = useState<boolean>(false);
 
   // 🚀 NOVÉ STAVY PRE VIACERO REZERVAČNÝCH TERMÍNOV A ROZBAĽOVANIE
@@ -139,9 +140,26 @@ export default function Home() {
             await refetchUserAppointments(session.user.email);
           }
         }
+
+        // Bezpečná kontrola banu bez toho, aby chýbajúci stĺpec v DB zhodil prihlásenie
+        try {
+          const { data: banCheck, error: banErr } = await supabase
+            .from('profiles')
+            .select('is_banned')
+            .eq('id', session.user.id)
+            .maybeSingle();
+          if (!banErr && banCheck?.is_banned) {
+            setIsUserBanned(true);
+          } else {
+            setIsUserBanned(false);
+          }
+        } catch {
+          setIsUserBanned(false);
+        }
       } else {
         setSessionUser(null);
         setIsAdmin(false);
+        setIsUserBanned(false);
         setShowGuestNotice(true);
       }
     };
@@ -350,6 +368,28 @@ export default function Home() {
         } as React.CSSProperties
       }
     >
+      {isUserBanned && (
+        <div className="max-w-md mx-auto my-6 p-6 rounded-3xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 shadow-xl text-center space-y-3 font-sans animate-in fade-in duration-300">
+          <div className="w-14 h-14 rounded-2xl bg-rose-100 dark:bg-rose-950/80 text-rose-600 mx-auto flex items-center justify-center shadow-md">
+            <AlertCircle size={28} />
+          </div>
+          <div className="space-y-1">
+            <h2 className="font-extrabold text-base text-slate-800 dark:text-slate-100">
+              {language === 'sk' ? 'Váš účet bol zablokovaný' : 'Your account is suspended'}
+            </h2>
+            <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+              {language === 'sk'
+                ? 'Váš účet bol pozastavený. Nie je možné vytvárať nové rezervácie ani využívať výhody účtu.'
+                : 'Your account has been suspended. New bookings are disabled.'}
+            </p>
+          </div>
+          <p className="text-[11px] font-semibold text-rose-600 dark:text-rose-400 bg-rose-100/60 dark:bg-rose-900/40 p-2.5 rounded-xl border border-rose-200 dark:border-rose-900/50">
+            {language === 'sk'
+              ? 'Pre viac informácií alebo odblokovanie kontaktujte prosím podporu (support).'
+              : 'For assistance or unblocking, please contact support.'}
+          </p>
+        </div>
+      )}
       <SuccessModal
         isOpen={showSuccessPopup}
         onClose={() => setShowSuccessPopup(false)}

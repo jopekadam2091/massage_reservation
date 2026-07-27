@@ -5,7 +5,7 @@ import { supabase } from '../lib/supabase';
 import { useAvatar } from '../lib/AvatarContext';
 import { 
   X, User, Flower2, Leaf, Sparkles as SparklesIcon, Sun, Moon, 
-  Heart, Feather, Droplets, Coffee, Cat, Star, Copy, Check, UserPlus, Loader2, Bell, Smartphone
+  Heart, Feather, Droplets, Coffee, Cat, Star, Copy, Check, UserPlus, Loader2, Bell, Smartphone, Cake
 } from 'lucide-react';
 
 interface Profile {
@@ -18,6 +18,7 @@ interface Profile {
   referred_by: string | null;
   email_notifications?: boolean;
   hide_pwa_prompt?: boolean; // 🚀 PREPÍNAČ PRE PWA INŠTALAČNÚ VÝZVU
+  birth_date?: string | null;
 }
 
 interface ReferredPerson {
@@ -87,6 +88,9 @@ export default function SettingsModal({
   const [codeCopied, setCodeCopied] = useState(false);
   const [referrerInfo, setReferrerInfo] = useState<ReferrerInfo | null>(null);
   const [referredPeople, setReferredPeople] = useState<ReferredPerson[]>([]);
+  const [birthDate, setBirthDate] = useState<string>('');
+  const [savingBirthDate, setSavingBirthDate] = useState<boolean>(false);
+  const [birthDateMsg, setBirthDateMsg] = useState<string>('');
 
   useEffect(() => {
     if (!isOpen || !userId) return;
@@ -96,18 +100,26 @@ export default function SettingsModal({
 
     const loadSettingsData = async () => {
       try {
-        const { data: profileData, error } = await supabase
-          .from('profiles')
-          .select('id, full_name, email, avatar_icon, avatar_color, referral_code, referred_by, email_notifications, hide_pwa_prompt')
-          .eq('id', userId)
-          .maybeSingle();
-
-        if (error) {
-          console.error('Chyba načítavania profilu pre nastavenia:', error);
+        let profileData: any = null;
+        try {
+          const { data: p } = await supabase
+            .from('profiles')
+            .select('id, full_name, email, avatar_icon, avatar_color, referral_code, referred_by, email_notifications, hide_pwa_prompt, birth_date')
+            .eq('id', userId)
+            .maybeSingle();
+          profileData = p;
+        } catch {
+          const { data: p } = await supabase
+            .from('profiles')
+            .select('id, full_name, email, avatar_icon, avatar_color, referral_code, referred_by, email_notifications, hide_pwa_prompt')
+            .eq('id', userId)
+            .maybeSingle();
+          profileData = p;
         }
 
         if (profileData && isMounted) {
           setProfile(profileData);
+          setBirthDate(profileData.birth_date || '');
           setAvatarSettings(profileData.avatar_icon || 'User', profileData.avatar_color || '#10b981');
           
           if (profileData.hide_pwa_prompt !== undefined) {
@@ -276,6 +288,63 @@ export default function SettingsModal({
                   />
                 ))}
               </div>
+            </div>
+
+            {/* 🎂 DÁTUM NARODENÍN */}
+            <div className="pt-3 border-t border-slate-100 dark:border-slate-800 text-left space-y-2">
+              <div className="flex items-center gap-2">
+                <Cake size={16} className="text-pink-500" />
+                <div>
+                  <p className="text-xs font-bold text-slate-800 dark:text-slate-100">
+                    {language === 'sk' ? 'Dátum narodenín 🎂' : 'Date of Birth 🎂'}
+                  </p>
+                  <p className="text-[10px] text-slate-400">
+                    {language === 'sk' ? 'Pre automatické odomknutie odznaku Oslávenec' : 'To automatically unlock the Birthday Treat badge'}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <input
+                  type="date"
+                  value={birthDate}
+                  onChange={(e) => setBirthDate(e.target.value)}
+                  className="flex-1 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 text-xs focus:outline-none focus:ring-2 focus:ring-pink-500 font-medium"
+                />
+                <button
+                  type="button"
+                  disabled={savingBirthDate}
+                  onClick={async () => {
+                    setSavingBirthDate(true);
+                    setBirthDateMsg('');
+                    try {
+                      const res = await fetch('/api/user/settings', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ userId: profile.id, birth_date: birthDate }),
+                      });
+                      const data = await res.json();
+                      if (res.ok) {
+                        setBirthDateMsg(language === 'sk' ? 'Dátum narodenín bol uložený! 🎉' : 'Birthday date saved! 🎉');
+                        setTimeout(() => setBirthDateMsg(''), 3000);
+                      }
+                    } catch (err) {
+                      console.error('Chyba ukladania narodenín:', err);
+                    } finally {
+                      setSavingBirthDate(false);
+                    }
+                  }}
+                  className="px-3.5 py-2 rounded-xl bg-pink-600 hover:bg-pink-700 text-white font-bold text-xs shadow-xs transition active:scale-95 disabled:opacity-50 cursor-pointer"
+                >
+                  {savingBirthDate ? (language === 'sk' ? 'Ukladám...' : 'Saving...') : (language === 'sk' ? 'Uložiť' : 'Save')}
+                </button>
+              </div>
+
+              {birthDateMsg && (
+                <p className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 p-2 rounded-xl border border-emerald-200 dark:border-emerald-900/50 animate-in fade-in duration-200">
+                  {birthDateMsg}
+                </p>
+              )}
             </div>
 
             {/* PREPÍNAČ PRE E-MAILOVÉ NOTIFIKÁCIE */}
