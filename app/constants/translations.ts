@@ -11,7 +11,7 @@ export const translations = {
     klasikTitle: 'MASÁŽ CLASSIC',
     klasikDesc: 'Dôkladné uvoľnenie svalového napätia, regenerácia tela.',
     vipTitle: 'MASÁŽ VIP PREMIUM',
-    vipDesc: 'Exkluzívny rituál vrátane aromaterapie, masáže hlavy a maximálneho pokoja.',
+    vipDesc: 'Exkluzívny rituál vrátane aromaterapie, senzuálnej masáže a maximálneho pokoja.',
     step2Title: '2. Krok: Vyberte si optimálny balíček',
     step3Title: '3. Krok: Vyberte si exkluzívny voľný termín z kalendára',
     selected: 'Vybrané',

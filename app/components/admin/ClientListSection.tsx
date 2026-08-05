@@ -147,7 +147,7 @@ export default function ClientListSection({
                         setStampPrice('');
                       }}
                       disabled={isCardFull}
-                      className="flex items-center gap-1.5 px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs rounded-xl shadow-sm transition active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                      className="flex items-center gap-1.5 px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs rounded-xl shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none cursor-pointer"
                     >
                       <PlusCircle size={14} />
                       {language === 'sk' ? 'Pečiatka' : 'Stamp'}
@@ -157,7 +157,7 @@ export default function ClientListSection({
                       <button
                         type="button"
                         onClick={() => handleClaimReferralDiscount(profile)}
-                        className="flex items-center justify-center gap-1.5 px-3 py-2 bg-sky-600 hover:bg-sky-700 text-white font-semibold text-xs rounded-xl shadow-sm transition active:scale-95 cursor-pointer"
+                        className="flex items-center justify-center gap-1.5 px-3 py-2 bg-sky-600 hover:bg-sky-700 text-white font-semibold text-xs rounded-xl shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 active:scale-95 cursor-pointer"
                       >
                         <Percent size={14} />
                         {language === 'sk' ? 'Referal -10%' : 'Referral -10%'}
@@ -172,7 +172,7 @@ export default function ClientListSection({
                         setCustomCode('');
                         setGiftError('');
                       }}
-                      className="flex items-center justify-center gap-1.5 px-3 py-2 min-w-[118px] bg-purple-600 hover:bg-purple-700 text-white font-semibold text-xs rounded-xl shadow-sm transition active:scale-95 cursor-pointer"
+                      className="flex items-center justify-center gap-1.5 px-3 py-2 min-w-[118px] bg-purple-600 hover:bg-purple-700 text-white font-semibold text-xs rounded-xl shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 active:scale-95 cursor-pointer"
                     >
                       <Gift size={14} />
                       {language === 'sk' ? 'Prekvapenie' : 'Surprise'}
@@ -181,10 +181,10 @@ export default function ClientListSection({
                     <button
                       type="button"
                       onClick={() => handleResetCard(profile)}
-                      className={`flex items-center justify-center gap-1.5 px-3 py-2 min-w-[92px] font-semibold text-xs rounded-xl transition active:scale-95 cursor-pointer ${
+                      className={`flex items-center justify-center gap-1.5 px-3 py-2 min-w-[92px] font-semibold text-xs rounded-xl transition-all duration-200 hover:-translate-y-0.5 active:scale-95 cursor-pointer ${
                         isCardFull
-                          ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-md ring-2 ring-emerald-300 dark:ring-emerald-800'
-                          : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300'
+                          ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-md hover:shadow-lg shadow-emerald-500/20 ring-2 ring-emerald-300 dark:ring-emerald-800'
+                          : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 shadow-xs'
                       }`}
                     >
                       <RotateCcw size={14} />
@@ -194,7 +194,7 @@ export default function ClientListSection({
                     <button
                       type="button"
                       onClick={() => setHistoryProfile(profile)}
-                      className="flex items-center gap-1.5 px-3 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 font-semibold text-xs rounded-xl transition active:scale-95 cursor-pointer"
+                      className="flex items-center gap-1.5 px-3 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 font-semibold text-xs rounded-xl shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 active:scale-95 cursor-pointer"
                       title={language === 'sk' ? 'História klienta' : 'Client history'}
                     >
                       <History size={14} />

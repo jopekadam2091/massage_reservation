@@ -49,6 +49,46 @@ html.dark {
   }
 }
 
+@keyframes popoverIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.92) translateY(-10px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes popoverOut {
+  0% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.92) translateY(-10px);
+  }
+}
+
+@keyframes backdropFadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes backdropFadeOut {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
 /* Plynulé triedy pre komponenty */
 .animate-fadeIn {
   animation: fadeIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
@@ -63,6 +103,26 @@ html.dark {
 .animate-scaleIn {
   animation: scaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   will-change: opacity, transform;
+}
+
+.animate-popoverIn {
+  animation: popoverIn 0.35s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  transform-origin: top right;
+  will-change: opacity, transform;
+}
+
+.animate-popoverOut {
+  animation: popoverOut 0.28s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  transform-origin: top right;
+  will-change: opacity, transform;
+}
+
+.animate-backdropFadeIn {
+  animation: backdropFadeIn 0.35s ease-out forwards;
+}
+
+.animate-backdropFadeOut {
+  animation: backdropFadeOut 0.28s ease-in forwards;
 }
 
 /* Cielené plynulé zmeny tém bez preťaženia CPU */

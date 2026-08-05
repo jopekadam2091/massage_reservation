@@ -146,8 +146,8 @@ export class BadgeRegistry {
       categoryLabel: { sk: 'Skúšanie služieb', en: 'Trying Services' },
       title: { sk: 'Maratónec', en: 'Marathoner' },
       description: { 
-        sk: 'Absolvuj extra dlhú procedúru v trvaní 90 alebo 120 minút.', 
-        en: 'Complete an extra long session lasting 90 or 120 minutes.' 
+        sk: 'Absolvuj extra dlhú procedúru v trvaní 90 minút.', 
+        en: 'Complete an extra long session lasting 90 minutes.' 
       },
       iconName: 'GiStopwatch',
       unlockedBg: 'from-rose-500 via-red-600 to-rose-800',

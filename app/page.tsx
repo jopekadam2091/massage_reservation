@@ -355,7 +355,7 @@ export default function Home() {
 
   return (
     <div
-      className="min-h-[calc(100vh-65px)] transition-colors duration-300 pb-20 bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 font-sans relative"
+      className="min-h-[calc(100vh-65px)] transition-colors duration-300 pb-20 bg-slate-50 dark:bg-zinc-950 text-slate-800 dark:text-zinc-100 font-sans relative"
       style={
         {
           '--discount-border': discountTheme.border,
@@ -555,9 +555,9 @@ export default function Home() {
 
             {/* 🚀 2. KARTA AKTÍVNYCH REZERVAČNÝCH TERMÍNOV (S MOŽNOSŤOU ROZBALENIA/ZBALENIA) */}
             {userBookings.length > 0 && (
-              <div className="max-w-xl mx-auto p-4 rounded-3xl bg-indigo-50/90 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-900/50 shadow-sm text-left space-y-3 animate-in fade-in slide-in-from-top-3 duration-300">
+              <div className="max-w-xl mx-auto p-4 rounded-3xl bg-violet-50/80 dark:bg-zinc-800/80 border border-violet-200/80 dark:border-violet-900/50 shadow-sm text-left space-y-3 animate-in fade-in slide-in-from-top-3 duration-300">
                 <div className="flex items-center justify-between">
-                  <span className="flex items-center gap-1.5 font-bold text-xs uppercase tracking-wider text-indigo-700 dark:text-indigo-300">
+                  <span className="flex items-center gap-1.5 font-bold text-xs uppercase tracking-wider text-violet-700 dark:text-violet-300">
                     <Calendar size={16} />
                     <span>
                       {lang === 'SK' 
@@ -572,7 +572,7 @@ export default function Home() {
                       <button
                         type="button"
                         onClick={() => setIsBookingsExpanded(!isBookingsExpanded)}
-                        className="flex items-center gap-1 text-[11px] font-bold text-indigo-700 dark:text-indigo-300 bg-indigo-100 dark:bg-indigo-900/60 px-2.5 py-1 rounded-xl hover:bg-indigo-200 transition cursor-pointer"
+                        className="flex items-center gap-1 text-[11px] font-bold text-violet-700 dark:text-violet-300 bg-violet-100 dark:bg-violet-900/60 px-2.5 py-1 rounded-xl hover:bg-violet-200 transition cursor-pointer"
                       >
                         <span>
                           {isBookingsExpanded 
@@ -587,7 +587,7 @@ export default function Home() {
                       type="button"
                       onClick={() => sessionUser?.email && refetchUserAppointments(sessionUser.email)}
                       disabled={loadingUserBooking}
-                      className="flex items-center gap-1 text-[11px] font-bold text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer"
+                      className="flex items-center gap-1 text-[11px] font-bold text-violet-600 dark:text-violet-400 hover:underline cursor-pointer"
                     >
                       <RotateCw size={12} className={loadingUserBooking ? 'animate-spin' : ''} />
                       <span>{lang === 'SK' ? 'Obnoviť' : 'Refresh'}</span>
@@ -606,22 +606,22 @@ export default function Home() {
                     return (
                       <div
                         key={booking.id || booking.bookingRef}
-                        className="p-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-indigo-100 dark:border-indigo-900/60 shadow-sm space-y-2.5 transition-all"
+                        className="p-3.5 rounded-2xl bg-white dark:bg-zinc-800 border border-violet-100 dark:border-violet-900/60 shadow-sm space-y-2.5 transition-all"
                       >
                         <div className="flex items-center justify-between gap-2">
                           <div>
-                            <span className="font-extrabold text-[11px] text-indigo-600 dark:text-indigo-400 flex items-center gap-1 mb-1">
+                            <span className="font-extrabold text-[11px] text-violet-600 dark:text-violet-400 flex items-center gap-1 mb-1">
                               <Tag size={12} />
                               <span>{booking.bookingRef ? `#${booking.bookingRef}` : 'Rezervácia'}</span>
                             </span>
-                            <p className="font-bold text-slate-800 dark:text-slate-100 text-sm">
+                            <p className="font-bold text-slate-800 dark:text-zinc-100 text-sm">
                               {formatFullDateText(booking.start)}
                             </p>
-                            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">
+                            <p className="text-xs text-slate-500 dark:text-zinc-400 font-medium mt-0.5">
                               {booking.summary.replace(/^REZERVÁCIA:\s*/i, '')}
                             </p>
                           </div>
-                          <span className="px-3.5 py-1.5 rounded-xl bg-indigo-600 text-white text-xs font-black shrink-0 flex items-center gap-1">
+                          <span className="px-3.5 py-1.5 rounded-xl bg-violet-600 text-white text-xs font-black shrink-0 flex items-center gap-1">
                             <Clock size={14} />
                             <span>{format24hTimeText(booking.start)}</span>
                           </span>
@@ -672,7 +672,7 @@ export default function Home() {
                   <button
                     type="button"
                     onClick={() => setIsBookingsExpanded(true)}
-                    className="w-full py-2 text-center text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer flex items-center justify-center gap-1 pt-1"
+                    className="w-full py-2 text-center text-xs font-bold text-violet-600 dark:text-violet-400 hover:underline cursor-pointer flex items-center justify-center gap-1 pt-1"
                   >
                     <span>
                       {lang === 'SK'
@@ -696,17 +696,17 @@ export default function Home() {
               {[1, 2, 3].map((step) => (
                 <div key={step} className="flex items-center space-x-1.5">
                   <div
-                    className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition shadow-sm ${
+                    className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition shadow-xs ${
                       massageStep === step
-                        ? 'bg-indigo-600 text-white'
-                        : 'bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-300 dark:border-slate-700'
+                        ? 'bg-violet-600 text-white shadow-md shadow-violet-500/20'
+                        : 'bg-slate-200 dark:bg-zinc-800 text-slate-500 dark:text-zinc-400 border border-slate-300 dark:border-zinc-700'
                     }`}
                   >
                     {step}
                   </div>
                   <span
                     className={`text-xs font-semibold ${
-                      massageStep === step ? 'text-indigo-600 dark:text-indigo-400 font-bold' : 'text-slate-400 dark:text-slate-500'
+                      massageStep === step ? 'text-violet-600 dark:text-violet-400 font-bold' : 'text-slate-400 dark:text-zinc-500'
                     }`}
                   >
                     {step === 1 ? t.step1 : step === 2 ? t.step2 : t.step3}

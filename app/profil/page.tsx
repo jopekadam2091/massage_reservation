@@ -273,33 +273,33 @@ export default function ProfilPage() {
   const shouldShowDisclaimer = activePrices.length >= targetStampsCount;
 
   return (
-    <main className="flex min-h-[calc(100vh-65px)] flex-col items-center justify-start p-4 sm:p-6 pt-3 sm:pt-4 gap-4 bg-slate-50 dark:bg-slate-950 transition-colors duration-300 font-sans">
+    <main className="flex min-h-[calc(100vh-65px)] flex-col items-center justify-start p-4 sm:p-6 pt-3 sm:pt-4 gap-4 bg-slate-50 dark:bg-zinc-900 transition-colors duration-300 font-sans">
       
       <div className="w-full max-w-sm flex flex-col gap-4">
 
         {/* KARTA AKTÍVNEJ NADCHÁDZAJÚCEJ REZERVÁCIE */}
         {userBookings.length > 0 && (
-          <div className="p-4 rounded-3xl bg-indigo-50/90 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-900/50 shadow-sm text-left space-y-3 animate-in fade-in slide-in-from-top-3 duration-300">
-            <div className="flex items-center gap-2 text-indigo-700 dark:text-indigo-300 font-bold text-xs uppercase tracking-wider">
+          <div className="p-4 rounded-3xl bg-violet-50/80 dark:bg-zinc-800/80 border border-violet-200/80 dark:border-violet-900/50 shadow-sm text-left space-y-3 animate-in fade-in slide-in-from-top-3 duration-300">
+            <div className="flex items-center gap-2 text-violet-700 dark:text-violet-300 font-bold text-xs uppercase tracking-wider">
               <Calendar size={16} />
               <span>{language === 'sk' ? 'Vaša nadchádzajúca rezervácia' : 'Your upcoming appointment'}</span>
             </div>
 
             <div className="space-y-2">
               {userBookings.map((b) => (
-                <div key={b.id} className="p-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-indigo-100 dark:border-indigo-900/60 shadow-sm space-y-1.5">
+                <div key={b.id} className="p-3.5 rounded-2xl bg-white dark:bg-zinc-800 border border-violet-100 dark:border-violet-900/60 shadow-sm space-y-1.5">
                   <div className="flex items-center justify-between gap-2">
-                    <span className="font-extrabold text-xs text-indigo-600 dark:text-indigo-400 flex items-center gap-1">
+                    <span className="font-extrabold text-xs text-violet-600 dark:text-violet-400 flex items-center gap-1">
                       <Tag size={13} />
                       <span>{b.bookingRef ? `#${b.bookingRef}` : 'Rezervácia'}</span>
                     </span>
-                    <span className="px-2.5 py-1 rounded-xl bg-indigo-600 text-white text-[10px] font-black flex items-center gap-1">
+                    <span className="px-2.5 py-1 rounded-xl bg-violet-600 text-white text-[10px] font-black flex items-center gap-1">
                       <Clock size={12} />
                       <span>{format24hTimeText(b.start)}</span>
                     </span>
                   </div>
 
-                  <p className="font-bold text-slate-800 dark:text-slate-100 text-sm">
+                  <p className="font-bold text-slate-800 dark:text-zinc-100 text-sm">
                     {formatFullDateText(b.start)}
                   </p>
 

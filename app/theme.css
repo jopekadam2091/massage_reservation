@@ -4,81 +4,85 @@
 
 @layer components {
   
-  /* 1. HLAVNÝ STRÁNKOVÝ KONTAJNER */
+  /* 1. HLAVNÝ STRÁNKOVÝ KONTAJNER (SOFTER CHARCOAL DARK MODE, NOT PITCH BLACK) */
   .page-container {
-    @apply min-h-[calc(100vh-65px)] bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 font-sans p-4 sm:p-6 pt-3 sm:pt-4 transition-colors duration-300 relative;
+    @apply min-h-[calc(100vh-65px)] bg-slate-50 dark:bg-zinc-900 text-slate-800 dark:text-zinc-100 font-sans p-4 sm:p-6 pt-3 sm:pt-4 transition-colors duration-300 relative;
   }
 
-  /* 2. KARTY & PANELY */
+  /* 2. KARTY & PANELY (GLASSMORPHISM & DEPTH) */
   .card {
-    @apply p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm text-left;
+    @apply p-6 rounded-3xl bg-white dark:bg-zinc-800/90 border border-slate-200/80 dark:border-zinc-700/80 shadow-sm text-left transition-all duration-200 ease-in-out;
   }
 
   .card-glass {
-    @apply p-6 rounded-3xl bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-white/40 dark:border-slate-800 shadow-xl text-left;
+    @apply p-6 rounded-3xl bg-white/80 dark:bg-zinc-800/80 backdrop-blur-xl border border-white/50 dark:border-zinc-700/80 shadow-xl shadow-slate-900/5 dark:shadow-black/30 text-left transition-all duration-200 ease-in-out;
   }
 
-  .card-accent-indigo {
-    @apply p-6 rounded-3xl bg-gradient-to-b from-indigo-50/60 via-white to-white dark:from-indigo-950/40 dark:via-slate-900 dark:to-slate-900 border-2 border-indigo-500 shadow-xl shadow-indigo-500/10 text-left;
+  .card-interactive {
+    @apply p-6 rounded-3xl bg-white/80 dark:bg-zinc-800/80 backdrop-blur-xl border border-white/50 dark:border-zinc-700/80 shadow-xl shadow-slate-900/5 dark:shadow-black/30 text-left transition-all duration-200 ease-in-out hover:-translate-y-0.5 hover:shadow-2xl hover:border-slate-300 dark:hover:border-zinc-600 cursor-pointer;
+  }
+
+  .card-accent-violet {
+    @apply p-6 rounded-3xl bg-gradient-to-b from-violet-50/70 via-white to-white dark:from-violet-950/40 dark:via-zinc-800 dark:to-zinc-800 border-2 border-violet-500/80 shadow-xl shadow-violet-500/10 text-left transition-all duration-200 ease-in-out;
   }
 
   .card-accent-gold {
-    @apply p-6 rounded-3xl bg-gradient-to-b from-amber-50/40 via-white to-white dark:from-amber-950/20 dark:via-slate-900 dark:to-slate-900 border-2 border-amber-500/80 shadow-xl shadow-amber-500/10 text-left;
+    @apply p-6 rounded-3xl bg-gradient-to-b from-amber-50/50 via-white to-white dark:from-amber-950/25 dark:via-zinc-800 dark:to-zinc-800 border-2 border-amber-500/80 shadow-xl shadow-amber-500/10 text-left transition-all duration-200 ease-in-out;
   }
 
-  /* 3. TLAČIDLÁ (BUTTONS) */
+  /* 3. TLAČIDLÁ (WARM VIOLET & SALON ACCENTS) */
   .btn-primary {
-    @apply py-3 px-5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs uppercase tracking-wider shadow-md transition active:scale-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2;
+    @apply py-2.5 px-5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-bold text-xs uppercase tracking-wider shadow-md hover:shadow-lg shadow-violet-500/20 transition-all duration-200 ease-in-out active:scale-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2;
   }
 
   .btn-secondary {
-    @apply py-2.5 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold text-xs transition active:scale-95 cursor-pointer flex items-center justify-center gap-1.5;
+    @apply py-2.5 px-4 rounded-xl bg-slate-100 dark:bg-zinc-700/80 text-slate-700 dark:text-zinc-200 border border-slate-200 dark:border-zinc-600/80 hover:bg-slate-200 dark:hover:bg-zinc-700 font-bold text-xs shadow-xs transition-all duration-200 ease-in-out active:scale-95 cursor-pointer flex items-center justify-center gap-1.5;
   }
 
   .btn-purple {
-    @apply py-3 px-5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs uppercase tracking-wider shadow-md transition active:scale-95 cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2;
+    @apply py-2.5 px-5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs uppercase tracking-wider shadow-md hover:shadow-lg shadow-purple-500/20 transition-all duration-200 ease-in-out active:scale-95 cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2;
   }
 
   .btn-emerald {
-    @apply py-3 px-5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs uppercase tracking-wider shadow-md transition active:scale-95 cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2;
+    @apply py-2.5 px-5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs uppercase tracking-wider shadow-md hover:shadow-lg shadow-emerald-500/20 transition-all duration-200 ease-in-out active:scale-95 cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2;
   }
 
   .btn-danger {
-    @apply py-2.5 px-4 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 text-rose-600 dark:text-rose-400 font-bold text-xs hover:bg-rose-100 dark:hover:bg-rose-900/60 transition active:scale-95 cursor-pointer flex items-center justify-center gap-1.5;
+    @apply py-2.5 px-4 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 text-rose-600 dark:text-rose-400 font-bold text-xs hover:bg-rose-100 dark:hover:bg-rose-900/60 shadow-xs transition-all duration-200 ease-in-out active:scale-95 cursor-pointer flex items-center justify-center gap-1.5;
   }
 
   .btn-vip-gradient {
-    @apply py-3.5 px-6 rounded-xl font-bold text-xs uppercase tracking-wider bg-gradient-to-r from-indigo-600 via-purple-600 to-violet-700 hover:brightness-110 text-white shadow-md transition active:scale-95 cursor-pointer flex items-center justify-center gap-2;
+    @apply py-3 px-6 rounded-xl font-bold text-xs uppercase tracking-wider bg-gradient-to-r from-violet-600 via-purple-600 to-amber-600 hover:brightness-110 text-white shadow-md hover:shadow-lg transition-all duration-200 ease-in-out active:scale-95 cursor-pointer flex items-center justify-center gap-2;
   }
 
   /* 4. FORMULÁRE & VSTUPNÉ POLIA (INPUTS & SELECTS) */
   .input-field {
-    @apply w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500 placeholder-slate-400 transition;
+    @apply w-full py-2.5 px-3.5 rounded-xl border border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-800/90 text-slate-800 dark:text-zinc-100 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-violet-500/80 focus:border-violet-500 placeholder-slate-400 dark:placeholder-zinc-500 transition-all duration-200;
   }
 
   .select-field {
-    @apply w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 text-xs font-extrabold focus:outline-none focus:ring-2 focus:ring-indigo-500 transition cursor-pointer;
+    @apply w-full py-2.5 px-3.5 rounded-xl border border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-800/90 text-slate-800 dark:text-zinc-100 text-xs font-extrabold focus:outline-none focus:ring-2 focus:ring-violet-500/80 focus:border-violet-500 transition-all duration-200 cursor-pointer;
   }
 
-  /* 5. ODZNAKY A ODZNAKY STAVOV (BADGES) */
-  .badge-indigo {
-    @apply inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-indigo-100 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 text-[10px] font-bold uppercase tracking-wider;
+  /* 5. ODZNAKY A ODZNAKY STAVOV */
+  .badge-violet {
+    @apply inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-violet-50 dark:bg-violet-950/60 text-violet-700 dark:text-violet-300 border border-violet-200/80 dark:border-violet-800/50 text-[10px] font-bold uppercase tracking-wider;
   }
 
   .badge-emerald {
-    @apply inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 text-[10px] font-bold uppercase tracking-wider;
+    @apply inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/50 text-[10px] font-bold uppercase tracking-wider;
   }
 
   .badge-purple {
-    @apply inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 text-[10px] font-bold uppercase tracking-wider;
+    @apply inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/50 text-[10px] font-bold uppercase tracking-wider;
   }
 
   .badge-amber {
-    @apply inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 text-[10px] font-bold uppercase tracking-wider;
+    @apply inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/50 text-[10px] font-bold uppercase tracking-wider;
   }
 
   .badge-rose {
-    @apply inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 text-[10px] font-bold uppercase tracking-wider;
+    @apply inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200/80 dark:border-rose-800/50 text-[10px] font-bold uppercase tracking-wider;
   }
 
   /* 6. MODAL OKNÁ */
@@ -87,6 +91,6 @@
   }
 
   .modal-box {
-    @apply w-full max-w-md p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl space-y-4 relative text-center;
+    @apply w-full max-w-md p-6 rounded-3xl bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 shadow-2xl space-y-4 relative text-center;
   }
-}
+}

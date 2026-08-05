@@ -437,7 +437,7 @@ export default function AdminPage() {
   }
 
   return (
-    <main className="min-h-[calc(100vh-65px)] bg-slate-50 dark:bg-slate-950 transition-colors duration-300 p-4 sm:p-8 font-sans">
+    <main className="min-h-[calc(100vh-65px)] bg-slate-50 dark:bg-zinc-900 transition-colors duration-300 p-4 sm:p-8 font-sans">
       {scanSuccessMsg && (
         <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[60] flex items-center gap-2 px-4 py-3 rounded-2xl bg-emerald-600 text-white text-sm font-semibold shadow-2xl animate-in fade-in slide-in-from-top-4 duration-300">
           <CheckCircle size={16} />

@@ -303,30 +303,30 @@ export default function Step3Calendar({
   };
 
   return (
-    <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 max-w-xl mx-auto shadow-sm font-sans">
-      <h2 className="text-lg font-bold text-center text-slate-800 dark:text-slate-100 mb-2">{t.step3Title}</h2>
+    <div className="bg-white dark:bg-zinc-800/90 p-6 rounded-3xl border border-slate-200 dark:border-zinc-700/80 text-slate-800 dark:text-zinc-100 max-w-xl mx-auto shadow-sm font-sans">
+      <h2 className="text-lg font-bold text-center text-slate-800 dark:text-zinc-100 mb-2">{t.step3Title}</h2>
       
-      <div className="p-3 bg-indigo-50 dark:bg-indigo-950/40 rounded-2xl text-xs text-center border border-indigo-100 dark:border-indigo-900/50 text-indigo-900 dark:text-indigo-300 font-semibold mb-6">
+      <div className="p-3 bg-violet-50/80 dark:bg-zinc-700/80 rounded-2xl text-xs text-center border border-violet-200/80 dark:border-violet-800/50 text-violet-900 dark:text-violet-300 font-semibold mb-6">
         {t.selected}: <strong>{isVipUpgradeApplied ? 'VIP PREMIUM (Supreme Upgrade)' : selectedType === 'Klasik' ? 'CLASSIC' : 'VIP PREMIUM'} - {isVipUpgradeApplied ? 45 : selectedDuration} {t.minutes}</strong>
       </div>
 
       {loadingCalendar ? (
-        <div className="text-center py-8 text-xs font-semibold text-slate-400 dark:text-slate-500 animate-pulse">{t.loading}</div>
+        <div className="text-center py-8 text-xs font-semibold text-slate-400 dark:text-zinc-500 animate-pulse">{t.loading}</div>
       ) : (
-        <div className="border border-slate-200 dark:border-slate-800 rounded-2xl p-4 bg-slate-50/50 dark:bg-slate-900/50 mb-6">
+        <div className="border border-slate-200 dark:border-zinc-700/80 rounded-2xl p-4 bg-slate-50/50 dark:bg-zinc-800/50 mb-6">
           <div className="flex justify-between items-center mb-4 px-2">
-            <span className="text-base font-bold tracking-tight text-slate-800 dark:text-slate-100">
+            <span className="text-base font-bold tracking-tight text-slate-800 dark:text-zinc-100">
               {t.months[currentMonth]} {currentYear}
             </span>
             <div className="flex space-x-2 items-center">
-              {/* 🚀 NOVÉ TLAČIDLO REFRESH */}
+              {/* 🚀 REFRESH BUTTON */}
               {onRefreshCalendar && (
                 <button
                   type="button"
                   onClick={onRefreshCalendar}
                   disabled={loadingCalendar}
                   title={lang === 'SK' ? 'Obnoviť termíny' : 'Refresh slots'}
-                  className="p-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-indigo-600 hover:text-white dark:hover:bg-indigo-600 transition shadow-sm cursor-pointer disabled:opacity-50"
+                  className="p-2 bg-white dark:bg-zinc-700/80 border border-slate-200 dark:border-zinc-600 rounded-lg text-xs font-bold text-slate-700 dark:text-zinc-200 hover:bg-violet-600 hover:text-white dark:hover:bg-violet-600 transition shadow-sm cursor-pointer disabled:opacity-50"
                 >
                   <RotateCw size={16} className={loadingCalendar ? 'animate-spin' : ''} />
                 </button>
@@ -334,21 +334,21 @@ export default function Step3Calendar({
               <button
                 type="button"
                 onClick={handlePrevMonth}
-                className="p-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-indigo-600 hover:text-white dark:hover:bg-indigo-600 transition shadow-sm"
+                className="p-2 bg-white dark:bg-zinc-700/80 border border-slate-200 dark:border-zinc-600 rounded-lg text-xs font-bold text-slate-700 dark:text-zinc-200 hover:bg-violet-600 hover:text-white dark:hover:bg-violet-600 transition shadow-sm"
               >
                 <ChevronLeft size={16} />
               </button>
               <button
                 type="button"
                 onClick={handleNextMonth}
-                className="p-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-indigo-600 hover:text-white dark:hover:bg-indigo-600 transition shadow-sm"
+                className="p-2 bg-white dark:bg-zinc-700/80 border border-slate-200 dark:border-zinc-600 rounded-lg text-xs font-bold text-slate-700 dark:text-zinc-200 hover:bg-violet-600 hover:text-white dark:hover:bg-violet-600 transition shadow-sm"
               >
                 <ChevronRight size={16} />
               </button>
             </div>
           </div>
 
-          <div className="grid grid-cols-7 text-center text-[10px] font-bold text-slate-400 dark:text-slate-500 mb-2 tracking-wider">
+          <div className="grid grid-cols-7 text-center text-[10px] font-bold text-slate-400 dark:text-zinc-500 mb-2 tracking-wider">
             <div>{t.mon}</div><div>{t.tue}</div><div>{t.wed}</div><div>{t.thu}</div><div>{t.fri}</div><div>{t.sat}</div><div>{t.sun}</div>
           </div>
 
@@ -384,17 +384,17 @@ export default function Step3Calendar({
                     hasValidSlots
                       ? hasDayDiscount
                         ? isSelectedDay
-                          ? 'bg-sky-600 text-white font-bold shadow-md'
-                          : 'bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 font-bold border border-sky-300 dark:border-sky-800 hover:bg-sky-100'
+                          ? 'bg-amber-600 text-white font-bold shadow-md shadow-amber-500/20'
+                          : 'bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 font-bold border border-amber-300 dark:border-amber-800 hover:bg-amber-100'
                         : isSelectedDay
-                          ? 'bg-indigo-600 text-white font-bold shadow-md'
-                          : 'bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold hover:bg-indigo-50 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 shadow-sm'
-                      : 'text-slate-300 dark:text-slate-700 bg-slate-100/50 dark:bg-slate-900/30 border border-slate-200/40 dark:border-slate-800/40 cursor-not-allowed'
+                          ? 'bg-violet-600 text-white font-bold shadow-md shadow-violet-500/20'
+                          : 'bg-white dark:bg-zinc-700/80 text-slate-800 dark:text-zinc-200 font-bold hover:bg-violet-50 dark:hover:bg-zinc-700 border border-slate-200 dark:border-zinc-600 shadow-sm'
+                      : 'text-slate-300 dark:text-zinc-600 bg-slate-100/50 dark:bg-zinc-800/40 border border-slate-200/40 dark:border-zinc-700/40 cursor-not-allowed'
                   }`}
                 >
                   {day}
                   {hasDayDiscount && (
-                    <span className="absolute -top-1.5 -right-1.5 text-[9px] font-extrabold px-1.5 py-0.5 rounded-full bg-sky-500 text-white shadow-sm leading-none min-w-[22px] text-center">
+                    <span className="absolute -top-1.5 -right-1.5 text-[9px] font-extrabold px-1.5 py-0.5 rounded-full bg-amber-500 text-white shadow-sm leading-none min-w-[22px] text-center">
                       -{dayDiscount}%
                     </span>
                   )}
@@ -406,8 +406,8 @@ export default function Step3Calendar({
       )}
 
       {selectedDateKey && slotsByDate[selectedDateKey] && (
-        <div className="animate-fadeIn space-y-2 mb-6 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 p-4 rounded-2xl">
-          <p className="text-xs font-bold text-slate-500 dark:text-slate-400">{t.chooseTime}</p>
+        <div className="animate-fadeIn space-y-2 mb-6 bg-slate-50 dark:bg-zinc-700/50 border border-slate-200 dark:border-zinc-600 p-4 rounded-2xl">
+          <p className="text-xs font-bold text-slate-500 dark:text-zinc-400">{t.chooseTime}</p>
           <div className="grid grid-cols-3 gap-2">
             {slotsByDate[selectedDateKey].map((slot) => {
               if (!isValidSlotDuration(slot.availableMinutes, isVipUpgradeApplied ? 45 : selectedDuration)) {
@@ -424,15 +424,15 @@ export default function Step3Calendar({
                   onClick={() => setSelectedSlot(slot.startIso)}
                   className={`relative p-2.5 text-xs text-center font-bold rounded-xl border transition active:scale-95 ${
                     isSelectedSlot
-                      ? 'bg-[#0e74a4] text-white border-[#0e74a4] shadow-md'
+                      ? 'bg-violet-600 text-white border-violet-600 shadow-md shadow-violet-500/20'
                       : hasDiscount
-                        ? 'bg-sky-50 dark:bg-sky-950/40 border-sky-300 dark:border-sky-800 text-sky-700 dark:text-sky-300 hover:bg-sky-100'
-                        : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 hover:border-indigo-500'
+                        ? 'bg-amber-50 dark:bg-amber-950/40 border-amber-300 dark:border-amber-800 text-amber-800 dark:text-amber-300 hover:bg-amber-100'
+                        : 'bg-white dark:bg-zinc-700/80 border-slate-200 dark:border-zinc-600 text-slate-800 dark:text-zinc-200 hover:border-violet-500'
                   }`}
                 >
                   {slot.formattedTime}
                   {hasDiscount && (
-                    <span className="absolute -top-1.5 -right-1.5 text-[9px] font-extrabold px-1.5 py-0.5 rounded-full bg-sky-500 text-white shadow-sm leading-none min-w-[22px] text-center">
+                    <span className="absolute -top-1.5 -right-1.5 text-[9px] font-extrabold px-1.5 py-0.5 rounded-full bg-amber-500 text-white shadow-sm leading-none min-w-[22px] text-center">
                       -{slot.discountPercent}%
                     </span>
                   )}
@@ -445,7 +445,7 @@ export default function Step3Calendar({
 
       {/* REZERVAČNÝ FORMULÁR */}
       {selectedSlot && (
-        <form onSubmit={handleBookingSubmit} className="space-y-4 pt-4 border-t border-slate-200 dark:border-slate-800 mt-4 animate-fadeIn">
+        <form onSubmit={handleBookingSubmit} className="space-y-4 pt-4 border-t border-slate-200 dark:border-zinc-700 mt-4 animate-fadeIn">
           
           {/* 🎁 SEKCIA PRE REGISTROVANÝCH - UPLATNENIE ODMIEN */}
           {sessionUser && userGifts.length > 0 && (
@@ -460,8 +460,8 @@ export default function Step3Calendar({
                   if (gift.custom_code || gift.gift_type === 'discount_code' || gift.gift_type === 'referral_reward') {
                     const codeText = gift.custom_code || 'REFERRAL10';
                     return (
-                      <div key={gift.id} className="flex items-center justify-between bg-white dark:bg-slate-800 p-2.5 rounded-xl border border-purple-100 dark:border-purple-900 text-xs">
-                        <span className="font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                      <div key={gift.id} className="flex items-center justify-between bg-white dark:bg-zinc-700/80 p-2.5 rounded-xl border border-purple-100 dark:border-purple-900 text-xs">
+                        <span className="font-semibold text-slate-800 dark:text-zinc-200 flex items-center gap-1.5">
                           <Tag size={14} className="text-purple-500" />
                           {lang === 'SK' ? 'Zľavový kód:' : 'Discount code:'} <strong>{codeText}</strong>
                         </span>
@@ -471,7 +471,7 @@ export default function Step3Calendar({
                             setDiscountCodeInput(codeText);
                             toggleGiftIdToBurn(gift.id, true);
                           }}
-                          className="px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-[11px] font-bold transition"
+                          className="px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-[11px] font-bold transition cursor-pointer"
                         >
                           {lang === 'SK' ? 'Aplikovať kód' : 'Apply code'}
                         </button>
@@ -481,7 +481,7 @@ export default function Step3Calendar({
 
                   if (gift.gift_type === 'next_visit_gift') {
                     return (
-                      <label key={gift.id} className="flex items-center space-x-2.5 bg-white dark:bg-slate-800 p-3 rounded-xl border border-purple-100 dark:border-purple-900 text-xs font-semibold cursor-pointer text-slate-800 dark:text-slate-200">
+                      <label key={gift.id} className="flex items-center space-x-2.5 bg-white dark:bg-zinc-700/80 p-3 rounded-xl border border-purple-100 dark:border-purple-900 text-xs font-semibold cursor-pointer text-slate-800 dark:text-zinc-200">
                         <input
                           type="checkbox"
                           checked={applyGiftReward}
@@ -510,8 +510,8 @@ export default function Step3Calendar({
                     return (
                       <div key={gift.id} className="relative overflow-hidden rounded-xl">
                         <label
-                          className={`flex items-center space-x-2.5 bg-white dark:bg-slate-800 p-3 rounded-xl border border-purple-100 dark:border-purple-900 text-xs font-semibold ${
-                            isEligible ? 'cursor-pointer text-slate-800 dark:text-slate-200' : 'text-slate-400 select-none'
+                          className={`flex items-center space-x-2.5 bg-white dark:bg-zinc-700/80 p-3 rounded-xl border border-purple-100 dark:border-purple-900 text-xs font-semibold ${
+                            isEligible ? 'cursor-pointer text-slate-800 dark:text-zinc-200' : 'text-slate-400 select-none'
                           }`}
                         >
                           <input
@@ -535,8 +535,8 @@ export default function Step3Calendar({
                         </label>
 
                         {!isEligible && selectedType === 'Klasik' && (selectedDuration === 30 || selectedDuration === 45) && (
-                          <div className="absolute inset-0 bg-white/80 dark:bg-slate-900/85 backdrop-blur-sm rounded-xl flex items-center justify-center p-3 text-center z-10 border border-amber-200 dark:border-amber-900/50 shadow-sm animate-fadeIn">
-                            <div className="flex items-center gap-2 text-xs font-bold text-slate-800 dark:text-slate-100">
+                          <div className="absolute inset-0 bg-white/80 dark:bg-zinc-800/90 backdrop-blur-sm rounded-xl flex items-center justify-center p-3 text-center z-10 border border-amber-200 dark:border-amber-900/50 shadow-sm animate-fadeIn">
+                            <div className="flex items-center gap-2 text-xs font-bold text-slate-800 dark:text-zinc-100">
                               <Info size={16} className="text-amber-500 shrink-0" />
                               <span>
                                 {lang === 'SK'
@@ -556,17 +556,17 @@ export default function Step3Calendar({
             </div>
           )}
 
-          <h3 className="font-bold text-xs text-slate-500 dark:text-slate-400">{t.contactTitle}</h3>
+          <h3 className="font-bold text-xs text-slate-500 dark:text-zinc-400">{t.contactTitle}</h3>
           
-          <div className="text-center text-sm font-bold text-indigo-600 dark:text-indigo-400">
-            {t.selectedTerm}: <span className="text-slate-800 dark:text-slate-100">{new Date(selectedSlot).toLocaleDateString('sk-SK')} o {new Date(selectedSlot).toLocaleTimeString('sk-SK', {hour: '2-digit', minute:'2-digit'})}</span>
+          <div className="text-center text-sm font-bold text-violet-600 dark:text-violet-400">
+            {t.selectedTerm}: <span className="text-slate-800 dark:text-zinc-100">{new Date(selectedSlot).toLocaleDateString('sk-SK')} o {new Date(selectedSlot).toLocaleTimeString('sk-SK', {hour: '2-digit', minute:'2-digit'})}</span>
           </div>
 
-          <div className="p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-800/40 space-y-3">
-            <h3 className="font-bold text-[11px] uppercase tracking-wider text-slate-400 dark:text-slate-500">{t.summaryTitle}</h3>
+          <div className="p-4 rounded-2xl border border-slate-200 dark:border-zinc-700/80 bg-slate-50/80 dark:bg-zinc-700/40 space-y-3">
+            <h3 className="font-bold text-[11px] uppercase tracking-wider text-slate-400 dark:text-zinc-500">{t.summaryTitle}</h3>
 
             <div className="space-y-2">
-              <div className="flex justify-between items-center text-sm text-slate-800 dark:text-slate-100">
+              <div className="flex justify-between items-center text-sm text-slate-800 dark:text-zinc-100">
                 <span>
                   {isVipUpgradeApplied ? 'VIP PREMIUM (Supreme)' : selectedType === 'Klasik' ? t.klasikTitle : t.vipTitle} · {isVipUpgradeApplied ? 45 : selectedDuration} {t.minutes}
                 </span>
@@ -586,9 +586,9 @@ export default function Step3Calendar({
               )}
 
               {selectedDiscountPercent > 0 && (
-                <div className="flex justify-between items-center text-sm font-semibold text-sky-600 dark:text-sky-400">
+                <div className="flex justify-between items-center text-sm font-semibold text-amber-600 dark:text-amber-400">
                   <span className="inline-flex items-center gap-1">
-                    <span className="text-[9px] px-1.5 py-0.5 rounded-full uppercase tracking-wide bg-sky-500 text-white">
+                    <span className="text-[9px] px-1.5 py-0.5 rounded-full uppercase tracking-wide bg-amber-500 text-white">
                       {t.discountBadgeShort}
                     </span>
                     {t.discountApplied} (-{selectedDiscountPercent}%)
@@ -598,10 +598,10 @@ export default function Step3Calendar({
               )}
             </div>
 
-            <div className="pt-2 border-t border-slate-200 dark:border-slate-700">
+            <div className="pt-2 border-t border-slate-200 dark:border-zinc-700">
               {!appliedCode ? (
                 <div className="space-y-1.5">
-                  <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">{t.discountCodeLabel}</label>
+                  <label className="text-[11px] font-semibold text-slate-500 dark:text-zinc-400">{t.discountCodeLabel}</label>
                   <div className="flex gap-2">
                     <input
                       type="text"
@@ -611,13 +611,13 @@ export default function Step3Calendar({
                         if (codeCheckStatus === 'invalid') setCodeCheckStatus('idle');
                       }}
                       placeholder={t.discountCodePlaceholder}
-                      className="flex-grow p-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-xs bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800 dark:text-slate-100 uppercase"
+                      className="flex-grow p-2.5 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs bg-white dark:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-violet-500 text-slate-800 dark:text-zinc-100 uppercase"
                     />
                     <button
                       type="button"
                       onClick={handleApplyDiscountCode}
                       disabled={!discountCodeInput.trim() || codeCheckStatus === 'checking'}
-                      className="px-4 py-2 rounded-xl text-xs font-bold bg-indigo-600 text-white hover:bg-indigo-700 transition disabled:bg-slate-300 dark:disabled:bg-slate-700 disabled:cursor-not-allowed"
+                      className="px-4 py-2 rounded-xl text-xs font-bold bg-violet-600 text-white hover:bg-violet-700 transition disabled:bg-slate-300 dark:disabled:bg-zinc-700 disabled:cursor-not-allowed cursor-pointer"
                     >
                       {t.applyCodeBtn}
                     </button>
@@ -642,7 +642,7 @@ export default function Step3Calendar({
                     <button
                       type="button"
                       onClick={handleRemoveDiscountCode}
-                      className="text-[10px] underline text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                      className="text-[10px] underline text-slate-400 hover:text-slate-600 dark:hover:text-zinc-200 cursor-pointer"
                     >
                       {t.removeCodeBtn}
                     </button>
@@ -652,28 +652,28 @@ export default function Step3Calendar({
             </div>
 
             {(selectedDiscountPercent > 0 || appliedCodePercent > 0 || isVipUpgradeApplied) && (
-              <div className="flex justify-between items-center text-base font-extrabold text-slate-800 dark:text-slate-100 pt-2 border-t border-slate-200 dark:border-slate-700">
+              <div className="flex justify-between items-center text-base font-extrabold text-slate-800 dark:text-zinc-100 pt-2 border-t border-slate-200 dark:border-zinc-700">
                 <span>{t.finalPriceLabel}</span>
-                <span className="text-indigo-600 dark:text-indigo-400">{finalPrice} €</span>
+                <span className="text-violet-600 dark:text-violet-400">{finalPrice} €</span>
               </div>
             )}
           </div>
 
-          <div className="space-y-3 bg-slate-50/80 dark:bg-slate-800/40 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800">
+          <div className="space-y-3 bg-slate-50/80 dark:bg-zinc-700/40 p-3.5 rounded-2xl border border-slate-200 dark:border-zinc-700/80">
             <input
               type="text"
               placeholder={t.name}
               required
               value={clientName}
               onChange={(e) => setClientName(e.target.value)}
-              className="w-full p-3 border border-slate-200 dark:border-slate-700 rounded-xl text-sm bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800 dark:text-slate-100 placeholder-slate-400"
+              className="w-full p-3 border border-slate-200 dark:border-zinc-700 rounded-xl text-sm bg-white dark:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-violet-500 text-slate-800 dark:text-zinc-100 placeholder-slate-400"
             />
 
-            <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">{t.contactNotice}</p>
+            <p className="text-[11px] text-slate-500 dark:text-zinc-400 font-medium">{t.contactNotice}</p>
 
             <div className="space-y-1.5">
-              <label className="flex items-center space-x-2 text-xs font-semibold cursor-pointer text-slate-700 dark:text-slate-200">
-                <input type="checkbox" checked={activeContacts.phone} onChange={() => handleContactCheckboxChange('phone')} className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
+              <label className="flex items-center space-x-2 text-xs font-semibold cursor-pointer text-slate-700 dark:text-zinc-200">
+                <input type="checkbox" checked={activeContacts.phone} onChange={() => handleContactCheckboxChange('phone')} className="rounded border-slate-300 text-violet-600 focus:ring-violet-500" />
                 <span>{t.phone}</span>
               </label>
               {activeContacts.phone && (
@@ -681,7 +681,7 @@ export default function Step3Calendar({
                   <select
                     value={phonePrefix}
                     onChange={(e) => setPhonePrefix(e.target.value)}
-                    className="p-2 border border-slate-200 dark:border-slate-700 rounded-xl text-xs bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 font-sans focus:outline-none"
+                    className="p-2 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs bg-white dark:bg-zinc-800 text-slate-800 dark:text-zinc-100 font-sans focus:outline-none"
                   >
                     <option value="+421">🇸🇰 +421</option>
                     <option value="+420">🇨🇿 +420</option>
@@ -692,15 +692,15 @@ export default function Step3Calendar({
                     placeholder="905 123 456"
                     value={contactValues.phone}
                     onChange={(e) => handlePhoneChange(e.target.value)}
-                    className="flex-grow p-2 border border-slate-200 dark:border-slate-700 rounded-xl text-xs bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 tracking-wider placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="flex-grow p-2 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs bg-white dark:bg-zinc-800 text-slate-800 dark:text-zinc-100 tracking-wider placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500"
                   />
                 </div>
               )}
             </div>
 
             <div className="space-y-1.5 pt-1">
-              <label className="flex items-center space-x-2 text-xs font-semibold cursor-pointer text-slate-700 dark:text-slate-200">
-                <input type="checkbox" checked={activeContacts.instagram} onChange={() => handleContactCheckboxChange('instagram')} className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
+              <label className="flex items-center space-x-2 text-xs font-semibold cursor-pointer text-slate-700 dark:text-zinc-200">
+                <input type="checkbox" checked={activeContacts.instagram} onChange={() => handleContactCheckboxChange('instagram')} className="rounded border-slate-300 text-violet-600 focus:ring-violet-500" />
                 <span>{t.instagram}</span>
               </label>
               {activeContacts.instagram && (
@@ -710,14 +710,14 @@ export default function Step3Calendar({
                   placeholder="@uzivatel"
                   value={contactValues.instagram}
                   onChange={(e) => setContactValues((prev) => ({ ...prev, instagram: e.target.value }))}
-                  className="w-full p-2 border border-slate-200 dark:border-slate-700 rounded-xl text-xs bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full p-2 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs bg-white dark:bg-zinc-800 text-slate-800 dark:text-zinc-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500"
                 />
               )}
             </div>
 
             <div className="space-y-1.5 pt-1">
-              <label className="flex items-center space-x-2 text-xs font-semibold cursor-pointer text-slate-700 dark:text-slate-200">
-                <input type="checkbox" checked={activeContacts.email} onChange={() => handleContactCheckboxChange('email')} className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
+              <label className="flex items-center space-x-2 text-xs font-semibold cursor-pointer text-slate-700 dark:text-zinc-200">
+                <input type="checkbox" checked={activeContacts.email} onChange={() => handleContactCheckboxChange('email')} className="rounded border-slate-300 text-violet-600 focus:ring-violet-500" />
                 <span>{t.email}</span>
               </label>
               {activeContacts.email && (
@@ -727,19 +727,19 @@ export default function Step3Calendar({
                   placeholder="meno@domena.com"
                   value={contactValues.email}
                   onChange={(e) => setContactValues((prev) => ({ ...prev, email: e.target.value }))}
-                  className="w-full p-2 border border-slate-200 dark:border-slate-700 rounded-xl text-xs bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full p-2 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs bg-white dark:bg-zinc-800 text-slate-800 dark:text-zinc-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500"
                 />
               )}
             </div>
           </div>
 
-          <div className="space-y-1.5 bg-slate-50/80 dark:bg-slate-800/40 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800">
-            <label className="flex items-center space-x-2 text-xs font-semibold cursor-pointer text-slate-700 dark:text-slate-200">
+          <div className="space-y-1.5 bg-slate-50/80 dark:bg-zinc-700/40 p-3.5 rounded-2xl border border-slate-200 dark:border-zinc-700/80">
+            <label className="flex items-center space-x-2 text-xs font-semibold cursor-pointer text-slate-700 dark:text-zinc-200">
               <input
                 type="checkbox"
                 checked={wantsNote}
                 onChange={() => setWantsNote((prev) => !prev)}
-                className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                className="rounded border-slate-300 text-violet-600 focus:ring-violet-500"
               />
               <span>{t.noteCheckboxLabel}</span>
             </label>
@@ -749,7 +749,7 @@ export default function Step3Calendar({
                 value={customerNote}
                 onChange={(e) => setCustomerNote(e.target.value)}
                 placeholder={t.notePlaceholder}
-                className="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-xs bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full p-2.5 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs bg-white dark:bg-zinc-800 text-slate-800 dark:text-zinc-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500"
               />
             )}
           </div>
@@ -757,8 +757,8 @@ export default function Step3Calendar({
           <button
             type="submit"
             disabled={!isContactValid()}
-            className={`w-full py-3.5 rounded-xl font-bold transition text-sm shadow-md active:scale-95 ${
-              isContactValid() ? 'bg-indigo-600 text-white hover:bg-indigo-700' : 'bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-600 cursor-not-allowed'
+            className={`w-full py-3.5 rounded-xl font-bold transition text-sm shadow-md active:scale-95 cursor-pointer ${
+              isContactValid() ? 'bg-violet-600 text-white hover:bg-violet-700 shadow-violet-500/20' : 'bg-slate-200 dark:bg-zinc-700 text-slate-400 dark:text-zinc-500 cursor-not-allowed'
             }`}
           >
             {t.bookBtn}
@@ -769,7 +769,7 @@ export default function Step3Calendar({
       <button
         type="button"
         onClick={onBack}
-        className="mx-auto mt-6 flex items-center justify-center px-6 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs tracking-wider uppercase hover:bg-slate-100 dark:hover:bg-slate-700 transition shadow-sm active:scale-95"
+        className="mx-auto mt-6 flex items-center justify-center px-6 py-3 rounded-xl border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 font-bold text-xs tracking-wider uppercase hover:bg-slate-100 dark:hover:bg-zinc-700 transition shadow-sm active:scale-95 cursor-pointer"
       >
         {t.backToPackages}
       </button>
