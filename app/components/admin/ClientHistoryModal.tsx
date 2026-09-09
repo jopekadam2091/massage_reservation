@@ -28,28 +28,28 @@ export default function ClientHistoryModal({
   if (!profile) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-6 animate-in fade-in duration-200 font-sans">
-      <div className="w-full max-w-md max-h-[80vh] flex flex-col p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-2xl relative">
+    <div className="fixed inset-0 z-50 bg-[#0B0D22]/60 dark:bg-[#010314]/80 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-200 font-sans text-[#1E293B] dark:text-[#DDE0F2]">
+      <div className="w-full max-w-md max-h-[85vh] flex flex-col p-5 sm:p-6 rounded-2xl bg-white dark:bg-[#0B0D22] border border-[#E2E8F0] dark:border-[#2B2F49] shadow-2xl relative">
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition"
+          className="absolute top-4 right-4 text-[#64748B] dark:text-[#C7CAE0] hover:text-[#0B0D22] dark:hover:text-white transition cursor-pointer p-1"
         >
-          <X size={20} />
+          <X size={18} />
         </button>
 
         <div className="flex flex-col items-center gap-1.5 mb-4 shrink-0">
-          <div className="w-12 h-12 rounded-2xl bg-slate-700 text-white flex items-center justify-center shadow">
-            <History size={22} />
+          <div className="w-11 h-11 rounded-2xl bg-[#6633EE]/15 text-[#6633EE] dark:text-[#A78BFA] border border-[#6633EE]/30 flex items-center justify-center shadow-xs">
+            <History size={20} />
           </div>
-          <h3 className="font-bold text-base text-slate-800 dark:text-slate-100">
-            {language === 'sk' ? 'História klienta' : 'Client History'}
+          <h3 className="font-semibold text-base text-[#0B0D22] dark:text-[#FFFFFF]">
+            {language === 'sk' ? 'História masáží a pečiatok klienta' : 'Client Massage & Stamp History'}
           </h3>
-          <p className="text-xs text-slate-400 dark:text-slate-500">
+          <p className="text-xs text-[#64748B] dark:text-[#C7CAE0]/60 font-normal">
             {profile.full_name || profile.email}
           </p>
         </div>
 
-        <div className="overflow-y-auto space-y-2 pr-1">
+        <div className="overflow-y-auto no-scrollbar space-y-2 pr-1">
           {(() => {
             type TimelineItem = { key: string; date: string; node: React.ReactNode };
             const items: TimelineItem[] = [];

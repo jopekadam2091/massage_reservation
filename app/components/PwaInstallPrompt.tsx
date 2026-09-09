@@ -124,39 +124,39 @@ export default function PwaInstallPrompt() {
   if (!showPrompt) return null;
 
   return (
-    <div className="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-6 sm:max-w-sm z-50 animate-in fade-in slide-in-from-bottom-5 duration-300 font-sans">
-      <div className="p-4 rounded-3xl bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-indigo-200 dark:border-indigo-900/50 shadow-2xl space-y-3 relative text-left">
+    <div className="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-6 sm:max-w-sm z-50 animate-in fade-in slide-in-from-bottom-5 duration-300 font-sans text-[#DDE0F2]">
+      <div className="p-4 sm:p-5 rounded-2xl bg-[#0B0D22] border border-[#2B2F49] shadow-2xl space-y-3 relative text-left">
         <button
           type="button"
           onClick={handleDismiss}
-          className="absolute top-3 right-3 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition cursor-pointer"
+          className="absolute top-3 right-3 text-[#C7CAE0] hover:text-white transition cursor-pointer"
         >
           <X size={18} />
         </button>
 
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shrink-0 shadow-md">
-            <Smartphone size={20} />
+          <div className="w-10 h-10 rounded-full bg-[#6633EE] text-white flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(102,51,238,0.5)]">
+            <Smartphone size={18} />
           </div>
           <div className="min-w-0 flex-1">
-            <h4 className="font-extrabold text-xs text-slate-800 dark:text-slate-100 leading-tight">
+            <h4 className="font-semibold text-xs text-[#FFFFFF] leading-tight">
               {language === 'sk' ? 'Aplikácia na plochu' : 'App on Home Screen'}
             </h4>
-            <p className="text-[11px] text-slate-500 dark:text-slate-400">
+            <p className="text-[11px] text-[#C7CAE0]/60 font-normal">
               {language === 'sk' ? 'Pridajte si Masáže na plochu mobilu / PC' : 'Add Massage app to home screen / PC'}
             </p>
           </div>
         </div>
 
         {isIos ? (
-          <p className="text-[11px] text-slate-600 dark:text-slate-300 bg-indigo-50/80 dark:bg-indigo-950/30 p-2.5 rounded-xl border border-indigo-100 dark:border-indigo-900/40 leading-snug">
+          <p className="text-[11px] text-[#C7CAE0] bg-[#010314] p-3 rounded-xl border border-[#2B2F49] leading-snug font-normal">
             {language === 'sk' ? (
               <>
-                Na iPhone kliknite na ikonu <strong>Zdieľať</strong> <Share size={12} className="inline mx-0.5" /> a zvoľte <strong>Pridať na plochu ⊕</strong>.
+                Na iPhone kliknite na ikonu <strong>Zdieľať</strong> <Share size={12} className="inline mx-0.5 text-[#A78BFA]" /> a zvoľte <strong>Pridať na plochu ⊕</strong>.
               </>
             ) : (
               <>
-                On iPhone tap <strong>Share</strong> <Share size={12} className="inline mx-0.5" /> then <strong>Add to Home Screen ⊕</strong>.
+                On iPhone tap <strong>Share</strong> <Share size={12} className="inline mx-0.5 text-[#A78BFA]" /> then <strong>Add to Home Screen ⊕</strong>.
               </>
             )}
           </p>
@@ -164,7 +164,7 @@ export default function PwaInstallPrompt() {
           <button
             type="button"
             onClick={handleInstallClick}
-            className="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-md transition active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
+            className="w-full btn-primary text-xs uppercase tracking-wider flex items-center justify-center gap-2"
           >
             <Download size={14} />
             <span>{language === 'sk' ? 'Nainštalovať aplikáciu' : 'Install App'}</span>

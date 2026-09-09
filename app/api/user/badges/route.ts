@@ -108,23 +108,39 @@ export async function GET(req: Request) {
       }
     }
 
-    // Ak má darček VIP upgrade alebo zľavové kódy pre lávové kamene
+    // Ak má darček VIP upgrade alebo zľavové kódy
     if (allGifts.some((g) => g.gift_type === 'vip_upgrade' || g.gift_type === 'discount_code')) {
       hasHotTrail = true;
     }
+
+    // Kontrola 18+ veku a absolvovania 18+ VIP procedúry
+    let isAdult = true;
+    if (profileData?.birth_date) {
+      const bDate = new Date(profileData.birth_date);
+      const ageDiffMs = Date.now() - bDate.getTime();
+      const ageDate = new Date(ageDiffMs);
+      const age = Math.abs(ageDate.getUTCFullYear() - 1970);
+      isAdult = age >= 18;
+    }
+    const hasVip18Session = isAdult && (hasHotTrail || totalStampsCount >= 1 || allGifts.some((g) => g.gift_type === 'vip_upgrade'));
 
     // Ak má aspoň 1 masáž, považujeme Explorer za čiastočne rozbehnutý
     const distinctTypesCount = totalStampsCount >= 3 ? 3 : (totalStampsCount >= 1 ? 2 : 0);
     if (totalStampsCount >= 2) hasLongSession = true;
     if (totalStampsCount >= 5) hasHotTrail = true;
 
-    // 3. Vyhodnotenie všetkých 13 odznakov
+    // 3. Vyhodnotenie všetkých odznakov
     const badgeStatuses = BadgeRegistry.BADGES.map((b) => {
       let isUnlocked = false;
       let currentProgress = 0;
       let unlockedAt: string | null = null;
 
       switch (b.id) {
+        case 'vip_18plus':
+          currentProgress = hasVip18Session ? 1 : 0;
+          isUnlocked = hasVip18Session;
+          break;
+
         case 'collector':
           currentProgress = Math.min(totalStampsCount, 10);
           isUnlocked = totalStampsCount >= 10;

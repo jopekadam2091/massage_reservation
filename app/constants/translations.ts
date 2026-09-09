@@ -11,7 +11,7 @@ export const translations = {
     klasikTitle: 'MASÁŽ CLASSIC',
     klasikDesc: 'Dôkladné uvoľnenie svalového napätia, regenerácia tela.',
     vipTitle: 'MASÁŽ VIP PREMIUM',
-    vipDesc: 'Exkluzívny rituál vrátane aromaterapie, senzuálnej masáže a maximálneho pokoja.',
+    vipDesc: 'Exkluzívny rituál vrátane senzuálnej masáže a maximálneho pokoja.',
     step2Title: '2. Krok: Vyberte si optimálny balíček',
     step3Title: '3. Krok: Vyberte si exkluzívny voľný termín z kalendára',
     selected: 'Vybrané',
@@ -62,7 +62,7 @@ export const translations = {
     klasikTitle: 'CLASSIC MASSAGE',
     klasikDesc: 'Thorough release of muscle tension, body regeneration.',
     vipTitle: 'VIP PREMIUM MASSAGE',
-    vipDesc: 'Exclusive ritual including aromatherapy, head massage and ultimate peace.',
+    vipDesc: 'Exclusive ritual including head massage and ultimate peace.',
     step2Title: '2. Step: Choose your package',
     step3Title: '3. Step: Choose an exclusive available slot from the calendar',
     selected: 'Selected',
@@ -113,8 +113,7 @@ export const packagesTranslations: Record<'SK' | 'EN', PackagesData> = {
         badge: 'Lite',
         desc: 'Vhodný pre rýchlu masáž konkrétnejšej oblasti tela.',
         features: [
-          { text: 'Masáž vybranej časti tela' },
-          { text: 'Aromaterapia' }
+          { text: 'Masáž vybranej časti tela' }
         ]
       },
       {
@@ -123,8 +122,7 @@ export const packagesTranslations: Record<'SK' | 'EN', PackagesData> = {
         desc: 'Vhodný pre rýchly relax celého tela.',
         features: [
           { text: 'Masáž celého tela' },
-          { text: 'Možnosť vybrať extra čas na vybranú partiu' },
-          { text: 'Aromaterapia' }
+          { text: 'Možnosť vybrať extra čas na vybranú partiu' }
         ]
       },
       {
@@ -133,8 +131,7 @@ export const packagesTranslations: Record<'SK' | 'EN', PackagesData> = {
         desc: 'Dokonalý zážitok s extra časom.',
         features: [
           { text: 'Stimulujúca masáž celého tela' },
-          { text: 'Možnosť vybrať extra čas na vybranú partiu' },
-          { text: 'Aromaterapia' }
+          { text: 'Možnosť vybrať extra čas na vybranú partiu' }
         ]
       }
     ],
@@ -147,8 +144,7 @@ export const packagesTranslations: Record<'SK' | 'EN', PackagesData> = {
           { text: 'Hĺbková masáž chrbta a šije' },
           { text: 'Masáž rúk a dlaní' },
           { text: 'Relaxačná masáž nôh' },
-          { text: 'Aplikovanie intímnych olejov', icon: 'chili' },
-          { text: 'Aromaterapia' }
+          { text: 'Aplikovanie intímnych olejov', icon: 'chili' }
         ]
       },
       {
@@ -161,7 +157,6 @@ export const packagesTranslations: Record<'SK' | 'EN', PackagesData> = {
           { text: 'Aplikovanie intímnych olejov', icon: 'chili' },
           { text: 'Terapeutická masáž prostaty', icon: 'chili' },
           { text: 'Senzuálna masáž slabín', icon: 'chili' },
-          { text: 'Aromaterapia' },
           { text: 'Dynamická perkusívna terapia (vibračná pištoľ)' }
         ]
       },
@@ -176,7 +171,6 @@ export const packagesTranslations: Record<'SK' | 'EN', PackagesData> = {
           { text: 'Aplikovanie intímnych olejov', icon: 'chili' },
           { text: 'Terapeutická masáž prostaty', icon: 'chili' },
           { text: 'Senzuálna masáž slabín', icon: 'chili' },
-          { text: 'Aromaterapia' },
           { text: 'Dynamická perkusívna terapia' },
           { text: 'Nealko drink v cene' },
           { text: '+ Darček' }
@@ -191,8 +185,7 @@ export const packagesTranslations: Record<'SK' | 'EN', PackagesData> = {
         badge: 'Lite',
         desc: 'Great for a quick massage of a specific body area.',
         features: [
-          { text: 'Massage of a selected body part' },
-          { text: 'Aromatherapy' }
+          { text: 'Massage of a selected body part' }
         ]
       },
       {
@@ -201,8 +194,7 @@ export const packagesTranslations: Record<'SK' | 'EN', PackagesData> = {
         desc: 'Great for a quick full-body relax.',
         features: [
           { text: 'Full body massage' },
-          { text: 'Option to add extra time on a chosen area' },
-          { text: 'Aromatherapy' }
+          { text: 'Option to add extra time on a chosen area' }
         ]
       },
       {
@@ -211,8 +203,7 @@ export const packagesTranslations: Record<'SK' | 'EN', PackagesData> = {
         desc: 'A perfect experience with extra time.',
         features: [
           { text: 'Stimulated full body massage' },
-          { text: 'Option to add extra time on a chosen area' },
-          { text: 'Aromatherapy' }
+          { text: 'Option to add extra time on a chosen area' }
         ]
       }
     ],
@@ -223,10 +214,9 @@ export const packagesTranslations: Record<'SK' | 'EN', PackagesData> = {
         desc: 'A quick taste of the VIP treatments.',
         features: [
           { text: 'Deep back and neck massage' },
-          { text: 'Hand massage' },
+          { text: 'Hand and palm massage' },
           { text: 'Relaxing foot massage' },
-          { text: 'Intime oil application', icon: 'chili' },
-          { text: 'Aromatherapy' }
+          { text: 'Intimate oil application', icon: 'chili' }
         ]
       },
       {
@@ -235,11 +225,10 @@ export const packagesTranslations: Record<'SK' | 'EN', PackagesData> = {
         desc: 'A complete premium relaxation ritual in full scope.',
         features: [
           { text: 'Deep full body massage' },
-          { text: 'Hand massage' },
-          { text: 'Intime oil application', icon: 'chili' },
+          { text: 'Hand and palm massage' },
+          { text: 'Intimate oil application', icon: 'chili' },
           { text: 'Therapeutic prostate massage', icon: 'chili' },
-          { text: 'Intense frontal senzual massage', icon: 'chili' },
-          { text: 'Aromatherapy' },
+          { text: 'Sensual groin massage', icon: 'chili' },
           { text: 'Dynamic percussive therapy (massage gun)' }
         ]
       },
@@ -250,14 +239,13 @@ export const packagesTranslations: Record<'SK' | 'EN', PackagesData> = {
         features: [
           { text: 'Maximum relaxation' },
           { text: 'Deep full body massage' },
-          { text: 'Hand massage' },
-          { text: 'Intime oil application', icon: 'chili' },
+          { text: 'Hand and palm massage' },
+          { text: 'Intimate oil application', icon: 'chili' },
           { text: 'Therapeutic prostate massage', icon: 'chili' },
-          { text: 'Intense frontal senzual massage', icon: 'chili' },
-          { text: 'Aromatherapy' },
+          { text: 'Sensual groin massage', icon: 'chili' },
           { text: 'Dynamic percussive therapy' },
           { text: 'Complimentary soft drink' },
-          { text: '+ Gift' }
+          { text: '+ Complimentary Gift' }
         ]
       }
     ]

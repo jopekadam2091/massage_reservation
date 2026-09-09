@@ -158,13 +158,30 @@ export class BadgeRegistry {
       unit: { sk: 'dlhá masáž', en: 'long session' }
     },
     {
+      id: 'vip_18plus',
+      category: 'services',
+      categoryLabel: { sk: 'VIP 18+ Zážitky', en: 'VIP 18+ Experiences' },
+      title: { sk: 'VIP 18+ Znalec', en: 'VIP 18+ Connoisseur' },
+      description: { 
+        sk: 'Odomkni špeciálny odznak za vek 18+ a absolvovanie prémiovej VIP 18+ masážnej procedúry.', 
+        en: 'Unlock this special badge for being 18+ and completing a premium VIP 18+ massage procedure.' 
+      },
+      iconName: 'Adult18BadgeIcon',
+      unlockedBg: 'from-[#E11D48] via-[#BE123C] to-[#881337]',
+      unlockedBorder: 'border-[#FDA4AF]/80 shadow-[0_0_15px_rgba(225,29,72,0.6)]',
+      glowColor: 'rgba(225, 29, 72, 0.5)',
+      lockedBg: 'from-slate-700 via-slate-800 to-slate-900',
+      targetValue: 1,
+      unit: { sk: '18+ masáž', en: '18+ massage' }
+    },
+    {
       id: 'hot_trail',
       category: 'services',
       categoryLabel: { sk: 'Skúšanie služieb', en: 'Trying Services' },
       title: { sk: 'Horúca stopa', en: 'Hot Trail' },
       description: { 
-        sk: 'Vychutnaj si špeciálnu prémiovú procedúru (napr. lávové kamene alebo VIP masáž).', 
-        en: 'Enjoy a special premium procedure (e.g. hot stones or VIP massage).' 
+        sk: 'Vychutnaj si špeciálnu prémiovú procedúru (napr. aromaterapiu alebo VIP masáž).', 
+        en: 'Enjoy a special premium procedure (e.g. aromatherapy or VIP massage).' 
       },
       iconName: 'GiFlame',
       unlockedBg: 'from-orange-600 via-red-600 to-amber-600',

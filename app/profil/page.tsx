@@ -2,45 +2,60 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { supabase } from '../lib/supabase';
-import Card from '../components/Card';
-import BadgesGrid from '../components/BadgesGrid';
-import QrCodeGenerator from '../components/QrCodeGenerator';
+import SettingsModal from '../components/SettingsModal';
+import CancelRequestModal from '../components/admin/CancelRequestModal';
 import { useLanguage } from '../lib/LanguageContext';
+import { useTheme } from '../lib/ThemeContext';
 import { useAvatar } from '../lib/AvatarContext';
+import { ProfilePageSkeleton } from '../components/ui/Skeleton';
+import LuckyWheelModal from '../components/LuckyWheelModal';
 import { 
-  QrCode, X, Gift, Sparkles, CheckCircle2, AlertCircle,
   User, Flower2, Leaf, Sparkles as SparklesIcon, Sun, Moon, 
   Heart, Feather, Droplets, Coffee, Cat, Star,
-  Percent, Calendar, Clock, Tag, RotateCw
+  Settings, LogOut, History, Calendar, Clock, Tag, Plus,
+  CalendarX, CheckCircle2, AlertCircle, Sparkles, ChevronRight, ShieldCheck
 } from 'lucide-react';
 
 interface Profile {
   id: string;
   full_name: string | null;
   email: string;
-  program_type: '5_stamps' | '10_stamps';
+  role?: string;
   avatar_icon: string | null;
   avatar_color: string | null;
   referral_code: string | null;
   referred_by: string | null;
-  hide_pwa_prompt?: boolean;
   is_banned?: boolean;
 }
 
-interface ActiveGift {
+interface Stamp {
+  id: string;
+  price: number;
+  claimed: boolean;
+  created_at: string;
+  claimed_at: string | null;
+}
+
+interface GiftRecord {
   id: string;
   gift_type: string;
-  custom_code?: string | null;
-  referred_user_id?: string | null;
+  custom_code: string | null;
+  used: boolean;
   created_at: string;
 }
 
-interface ReferredPerson {
+interface ClientRankingItem {
   id: string;
   full_name: string | null;
   email: string;
-  hasMassage: boolean;
+  role?: string;
+  program_type?: string;
+  visitsCount: number;
+  totalSpent: number;
+  averageSpent: number;
+  claimedRewardsCount: number;
 }
 
 const ICON_MAP: Record<string, React.ElementType> = {
@@ -48,27 +63,26 @@ const ICON_MAP: Record<string, React.ElementType> = {
   Heart, Feather, Droplets, Coffee, Cat, Star
 };
 
-const GIFT_LABELS: Record<string, { sk: string; en: string }> = {
-  discount_code: { sk: 'Zľavový kód', en: 'Discount Code' },
-  next_visit_gift: { sk: 'Darček pri ďalšej návšteve', en: 'Gift on your next visit' },
-  vip_upgrade: { sk: 'VIP masáž za cenu Klasickej', en: 'VIP Massage for the price of Classic' }
-};
-
 export default function ProfilPage() {
   const router = useRouter();
-  const { language, t } = useLanguage();
-  const { avatarIcon, avatarColor } = useAvatar();
+  const { language, toggleLanguage, t } = useLanguage();
+  const { theme, toggleTheme } = useTheme();
+  const { avatarIcon } = useAvatar();
 
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [activePrices, setActivePrices] = useState<number[]>([]);
-  const [activeGifts, setActiveGifts] = useState<ActiveGift[]>([]);
   const [userBookings, setUserBookings] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false); // 🚀 STAV PRE ANIMÁCIU REFRESHU
-  const [isQrOpen, setIsQrOpen] = useState(false);
+  const [stamps, setStamps] = useState<Stamp[]>([]);
+  const [gifts, setGifts] = useState<GiftRecord[]>([]);
 
-  const [referredPeople, setReferredPeople] = useState<ReferredPerson[]>([]);
-  const [revealedGiftStates, setRevealedGiftStates] = useState<Record<string, { status: 'ineligible' | 'revealed'; code?: string; name?: string }>>({});
+  // Admin špecifické stavy (Ranking)
+  const [clientRankings, setClientRankings] = useState<ClientRankingItem[]>([]);
+  const [rankingSortBy, setRankingSortBy] = useState<'visits' | 'spent'>('visits');
+
+  const [loading, setLoading] = useState(true);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isWheelOpen, setIsWheelOpen] = useState(false);
+  const [selectedCancelBooking, setSelectedCancelBooking] = useState<any>(null);
+  const [showCancelModal, setShowCancelModal] = useState(false);
 
   const formatFullDateText = (isoString: string) => {
     const d = new Date(isoString);
@@ -84,27 +98,26 @@ export default function ProfilPage() {
     return d.toLocaleTimeString('sk-SK', { hour: '2-digit', minute: '2-digit', hour12: false });
   };
 
-  const loadProfile = async () => {
+  const loadProfileData = async () => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) {
       router.push('/login');
       return;
     }
 
-    let { data: profileData, error: profileErr } = await supabase
+    let { data: profileData } = await supabase
       .from('profiles')
-      .select('id, full_name, email, program_type, avatar_icon, avatar_color, referral_code, referred_by, hide_pwa_prompt, is_banned')
+      .select('id, full_name, email, role, avatar_icon, avatar_color, referral_code, referred_by, is_banned')
       .eq('id', session.user.id)
       .maybeSingle();
 
-    if (profileErr || !profileData) {
-      // Náhradný dotaz bez is_banned pre prípad, že stĺpec zatiaľ v DB neexistuje
-      const { data: fallbackData } = await supabase
+    if (!profileData) {
+      const { data: fallback } = await supabase
         .from('profiles')
-        .select('id, full_name, email, program_type, avatar_icon, avatar_color, referral_code, referred_by, hide_pwa_prompt')
+        .select('id, full_name, email, role, avatar_icon, avatar_color, referral_code, referred_by')
         .eq('id', session.user.id)
         .maybeSingle();
-      profileData = fallbackData ? { ...fallbackData, is_banned: false } : null;
+      profileData = fallback ? { ...fallback, is_banned: false } : null;
     }
 
     if (!profileData) {
@@ -113,398 +126,586 @@ export default function ProfilPage() {
     }
     setProfile(profileData);
 
-    const { data: stampsData } = await supabase
-      .from('stamps')
-      .select('price')
-      .eq('user_id', session.user.id)
-      .eq('claimed', false)
-      .is('removed_at', null)
-      .order('created_at', { ascending: true });
+    const isAdmin = profileData.role === 'admin';
 
-    setActivePrices((stampsData || []).map((s) => Number(s.price)));
+    if (isAdmin) {
+      // 🚀 AK JE ADMIN: Načítame všetkých klientov pre štatistický Ranking & Leaderboard
+      try {
+        const res = await fetch('/api/admin/users');
+        const data = await res.json();
+        if (res.ok && data.users) {
+          const formattedRankings: ClientRankingItem[] = data.users
+            .filter((u: any) => u.role !== 'admin') // nezaradzujeme admin účet do rebríčka klientov
+            .map((u: any) => {
+              const activeStamps = (u.stamps || []).filter((s: any) => !s.removed_at);
+              const visits = activeStamps.length;
+              const spent = activeStamps.reduce((sum: number, s: any) => sum + (Number(s.price) || 0), 0);
+              const avg = visits > 0 ? spent / visits : 0;
+              const claimed = (u.stamps || []).filter((s: any) => s.claimed).length;
 
-    const { data: giftsData } = await supabase
-      .from('gifts')
-      .select('id, gift_type, custom_code, referred_user_id, created_at')
-      .eq('user_id', session.user.id)
-      .eq('used', false)
-      .order('created_at', { ascending: false });
+              return {
+                id: u.id,
+                full_name: u.full_name,
+                email: u.email,
+                role: u.role,
+                program_type: u.program_type,
+                visitsCount: visits,
+                totalSpent: spent,
+                averageSpent: avg,
+                claimedRewardsCount: claimed,
+              };
+            });
 
-    if (giftsData) {
-      setActiveGifts(giftsData);
-    }
-
-    const { data: referredRaw } = await supabase
-      .from('profiles')
-      .select('id, full_name, email')
-      .eq('referred_by', session.user.id);
-
-    if (referredRaw && referredRaw.length > 0) {
-      const ids = referredRaw.map((r) => r.id);
-      const { data: massageChecks } = await supabase.rpc('check_referred_massages', {
-        user_ids: ids,
-      });
-      const withMassage = new Set(
-        (massageChecks || []).filter((m: any) => m.has_massage).map((m: any) => m.user_id)
-      );
-
-      setReferredPeople(
-        referredRaw.map((r) => ({
-          ...r,
-          hasMassage: withMassage.has(r.id),
-        }))
-      );
-    }
-
-    try {
-      const res = await fetch(`/api/user/appointments?email=${encodeURIComponent(profileData.email)}`);
-      const data = await res.json();
-      if (res.ok && data.bookings) {
-        setUserBookings(data.bookings);
+          setClientRankings(formattedRankings);
+        }
+      } catch (err) {
+        console.error('Chyba načítania rebríčka klientov pre admina:', err);
       }
-    } catch (err) {
-      console.error('Chyba pri načítaní rezervácií na profile:', err);
+    } else {
+      // 🚀 AK JE KLIENT: Načítame jeho vlastné rezervácie a históriu masáží
+      try {
+        const res = await fetch(`/api/user/appointments?email=${encodeURIComponent(profileData.email)}`);
+        const data = await res.json();
+        if (res.ok && data.bookings) {
+          setUserBookings(data.bookings);
+        }
+      } catch (err) {
+        console.error('Chyba načítania rezervácií:', err);
+      }
+
+      try {
+        const { data: stampsData } = await supabase
+          .from('stamps')
+          .select('id, price, claimed, created_at, claimed_at')
+          .eq('user_id', session.user.id)
+          .is('removed_at', null)
+          .order('created_at', { ascending: false });
+
+        if (stampsData) setStamps(stampsData);
+
+        const { data: giftsData } = await supabase
+          .from('gifts')
+          .select('id, gift_type, custom_code, used, created_at')
+          .eq('user_id', session.user.id)
+          .order('created_at', { ascending: false });
+
+        if (giftsData) setGifts(giftsData);
+      } catch (err) {
+        console.error('Chyba načítania histórie:', err);
+      }
     }
 
     setLoading(false);
   };
 
-  // 🚀 MANUÁLNE OBNOVENIE PEČIATOK A PROFILU
-  const handleManualRefresh = async () => {
-    setRefreshing(true);
-    await loadProfile();
-    setTimeout(() => setRefreshing(false), 500);
-  };
-
   useEffect(() => {
-    loadProfile();
+    loadProfileData();
 
-    const handleProfileUpdate = () => {
-      loadProfile();
-    };
-
-    window.addEventListener('profileUpdated', handleProfileUpdate);
-    return () => {
-      window.removeEventListener('profileUpdated', handleProfileUpdate);
-    };
-  }, [router]);
+    const handleUpdate = () => loadProfileData();
+    window.addEventListener('profileUpdated', handleUpdate);
+    return () => window.removeEventListener('profileUpdated', handleUpdate);
+  }, []);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
     router.push('/login');
   };
 
-  const handleClaimReferralGift = (gift: ActiveGift) => {
-    const referredPerson = referredPeople.find((r) => r.id === gift.referred_user_id);
-
-    if (referredPerson && referredPerson.hasMassage) {
-      setRevealedGiftStates((prev) => ({
-        ...prev,
-        [gift.id]: { status: 'revealed', code: gift.custom_code || '' },
-      }));
-    } else {
-      setRevealedGiftStates((prev) => ({
-        ...prev,
-        [gift.id]: {
-          status: 'ineligible',
-          name: referredPerson?.full_name || referredPerson?.email,
-        },
-      }));
-    }
-  };
-
-  const getGiftLabel = (gift: ActiveGift) => {
-    if (gift.gift_type === 'discount_code' && gift.custom_code) {
-      return `${language === 'sk' ? 'Váš zľavový kód' : 'Your discount code'}: ${gift.custom_code}`;
-    }
-    const label = GIFT_LABELS[gift.gift_type];
-    if (!label) return gift.gift_type;
-    return language === 'sk' ? label.sk : label.en;
-  };
-
   if (loading || !profile) {
-    return (
-      <main className="flex min-h-[calc(100vh-65px)] items-center justify-center bg-slate-50 dark:bg-slate-950 font-sans">
-        <p className="text-slate-500 dark:text-slate-400">{t.loading}</p>
-      </main>
-    );
-  }
-
-  if (profile.is_banned) {
-    return (
-      <main className="flex min-h-[calc(100vh-65px)] flex-col items-center justify-center p-6 bg-slate-50 dark:bg-slate-950 font-sans text-center">
-        <div className="w-full max-w-md p-8 rounded-3xl bg-white dark:bg-slate-900 border border-rose-200 dark:border-rose-900/50 shadow-2xl space-y-5 animate-in fade-in duration-300">
-          <div className="w-16 h-16 rounded-3xl bg-rose-100 dark:bg-rose-950/80 text-rose-600 mx-auto flex items-center justify-center shadow-lg shadow-rose-500/20">
-            <AlertCircle size={36} />
-          </div>
-
-          <div className="space-y-2">
-            <h2 className="font-extrabold text-xl text-slate-800 dark:text-slate-100">
-              {language === 'sk' ? 'Účet bol zablokovaný' : 'Account Suspended'}
-            </h2>
-            <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-              {language === 'sk'
-                ? 'Váš účet bol pozastavený. Z tohto dôvodu nemôžete využívať rezervačný systém ani vernostnú kartu.'
-                : 'Your account has been suspended. You cannot use the reservation system or loyalty card.'}
-            </p>
-            <p className="text-xs font-semibold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 p-3 rounded-2xl border border-rose-200/60 dark:border-rose-900/40">
-              {language === 'sk'
-                ? 'Pre viac informácií kontaktujte prosím podporu (support).'
-                : 'For more information, please contact support.'}
-            </p>
-          </div>
-
-          <button
-            type="button"
-            onClick={handleLogout}
-            className="w-full py-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold text-xs hover:bg-slate-200 dark:hover:bg-slate-700 transition cursor-pointer"
-          >
-            {t.logout}
-          </button>
-        </div>
-      </main>
-    );
+    return <ProfilePageSkeleton />;
   }
 
   const CurrentIconComponent = ICON_MAP[avatarIcon] || ICON_MAP['User'];
-  const currentColor = avatarColor || '#10b981';
+  const isAdmin = profile.role === 'admin';
 
-  const targetStampsCount = profile.program_type === '5_stamps' ? 5 : 10;
-  const shouldShowDisclaimer = activePrices.length >= targetStampsCount;
+  // Zoradenie rebríčka pre admina
+  const sortedRankings = [...clientRankings].sort((a, b) => {
+    if (rankingSortBy === 'spent') {
+      return b.totalSpent - a.totalSpent || b.visitsCount - a.visitsCount;
+    }
+    return b.visitsCount - a.visitsCount || b.totalSpent - a.totalSpent;
+  });
+
+  // Salónne metriky pre admina
+  const totalSaloonMassages = clientRankings.reduce((sum, c) => sum + c.visitsCount, 0);
+  const totalSaloonRevenue = clientRankings.reduce((sum, c) => sum + c.totalSpent, 0);
+  const avgSaloonSpend = clientRankings.length > 0 ? (totalSaloonRevenue / clientRankings.length).toFixed(1) : '0';
+
+  // Zoradenie záznamov histórie pre klienta (pečiatky + darčeky)
+  type HistoryItem = { id: string; date: string; type: 'stamp' | 'gift'; data: any };
+  const historyItems: HistoryItem[] = [];
+  stamps.forEach((s) => historyItems.push({ id: `stamp-${s.id}`, date: s.created_at, type: 'stamp', data: s }));
+  gifts.forEach((g) => historyItems.push({ id: `gift-${g.id}`, date: g.created_at, type: 'gift', data: g }));
+  historyItems.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   return (
-    <main className="flex min-h-[calc(100vh-65px)] flex-col items-center justify-start p-4 sm:p-6 pt-3 sm:pt-4 gap-4 bg-slate-50 dark:bg-zinc-900 transition-colors duration-300 font-sans">
-      
-      <div className="w-full max-w-sm flex flex-col gap-4">
+    <main className="relative min-h-screen w-full flex flex-col items-center justify-start p-4 sm:p-6 pt-4 sm:pt-6 lg:pt-8 pb-28 gap-4 bg-transparent transition-colors duration-300 font-sans overflow-hidden text-[#1E293B] dark:text-[#DDE0F2]">
+      <div className="relative z-10 w-full max-w-sm sm:max-w-xl flex flex-col gap-4">
 
-        {/* KARTA AKTÍVNEJ NADCHÁDZAJÚCEJ REZERVÁCIE */}
-        {userBookings.length > 0 && (
-          <div className="p-4 rounded-3xl bg-violet-50/80 dark:bg-zinc-800/80 border border-violet-200/80 dark:border-violet-900/50 shadow-sm text-left space-y-3 animate-in fade-in slide-in-from-top-3 duration-300">
-            <div className="flex items-center gap-2 text-violet-700 dark:text-violet-300 font-bold text-xs uppercase tracking-wider">
-              <Calendar size={16} />
-              <span>{language === 'sk' ? 'Vaša nadchádzajúca rezervácia' : 'Your upcoming appointment'}</span>
-            </div>
-
-            <div className="space-y-2">
-              {userBookings.map((b) => (
-                <div key={b.id} className="p-3.5 rounded-2xl bg-white dark:bg-zinc-800 border border-violet-100 dark:border-violet-900/60 shadow-sm space-y-1.5">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="font-extrabold text-xs text-violet-600 dark:text-violet-400 flex items-center gap-1">
-                      <Tag size={13} />
-                      <span>{b.bookingRef ? `#${b.bookingRef}` : 'Rezervácia'}</span>
-                    </span>
-                    <span className="px-2.5 py-1 rounded-xl bg-violet-600 text-white text-[10px] font-black flex items-center gap-1">
-                      <Clock size={12} />
-                      <span>{format24hTimeText(b.start)}</span>
-                    </span>
-                  </div>
-
-                  <p className="font-bold text-slate-800 dark:text-zinc-100 text-sm">
-                    {formatFullDateText(b.start)}
-                  </p>
-
-                  <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-                    {b.summary.replace(/^REZERVÁCIA:\s*/i, '')}
-                  </p>
-                </div>
-              ))}
+        {/* ================================================================ */}
+        {/* 1. HLAVIČKA PROFILU: AVATAR, MENO, EMAIL A TLAČIDLÁ              */}
+        {/* ================================================================ */}
+        <div className="p-5 rounded-2xl bg-white dark:bg-[#0B0D22] border border-[#E2E8F0] dark:border-[#2B2F49] shadow-sm dark:shadow-md flex items-center justify-between gap-3 text-left">
+          <div className="flex items-center gap-3.5 min-w-0">
+            <button 
+              type="button"
+              onClick={() => setIsSettingsOpen(true)}
+              className="w-14 h-14 rounded-full flex items-center justify-center bg-slate-50 dark:bg-[#010314] text-[#6633EE] dark:text-[#A78BFA] shrink-0 border border-[#E2E8F0] dark:border-[#2B2F49] hover:border-[#6633EE] transition cursor-pointer shadow-sm relative group"
+              title={language === 'sk' ? 'Upraviť profil' : 'Edit profile'}
+            >
+              <CurrentIconComponent size={28} strokeWidth={1.8} />
+              <span className="absolute -bottom-0.5 -right-0.5 w-4.5 h-4.5 rounded-full bg-[#6633EE] text-white flex items-center justify-center shadow-xs">
+                <Settings size={10} />
+              </span>
+            </button>
+            
+            <div className="min-w-0">
+              <h2 className="font-semibold text-base sm:text-lg text-[#0B0D22] dark:text-[#FFFFFF] truncate tracking-tight">
+                {profile.full_name || (isAdmin ? 'Administrátor salónu' : 'Vážený klient')}
+              </h2>
+              <p className="text-xs text-[#64748B] dark:text-[#C7CAE0]/80 truncate font-normal">
+                {profile.email}
+              </p>
+              <div className="flex items-center gap-2 mt-1">
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#6633EE]/15 border border-[#6633EE]/30 text-[#6633EE] dark:text-[#A78BFA] text-[10px] font-medium uppercase tracking-wider">
+                  <ShieldCheck size={11} />
+                  <span>{isAdmin ? 'Administrátor' : (language === 'sk' ? 'Overený účet' : 'Verified')}</span>
+                </span>
+              </div>
             </div>
           </div>
-        )}
 
-        {/* DYNAMICKÁ SEKCIA S AKTÍVNYMI DARČEKMI */}
-        {activeGifts.length > 0 && (
-          <div className="relative overflow-hidden rounded-3xl border border-purple-200 dark:border-purple-900/40 bg-gradient-to-br from-purple-500/10 via-purple-500/5 to-transparent p-4 backdrop-blur-md shadow-sm text-left animate-in fade-in zoom-in-95 duration-300">
-            <div className="absolute -right-4 -top-4 text-purple-500/10 pointer-events-none select-none">
-              <Gift size={90} />
+          <div className="flex flex-col gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={() => setIsSettingsOpen(true)}
+              className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-50 dark:bg-[#010314] text-[#0B0D22] dark:text-[#FFFFFF] hover:border-[#6633EE] border border-[#E2E8F0] dark:border-[#2B2F49] text-xs font-medium transition cursor-pointer shadow-xs"
+            >
+              <Settings size={13} className="text-[#6633EE] dark:text-[#A78BFA]" />
+              <span>{language === 'sk' ? 'Nastavenia' : 'Settings'}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full bg-[#FF5A7A]/10 hover:bg-[#FF5A7A]/20 text-[#FF5A7A] border border-[#FF5A7A]/30 text-xs font-medium transition cursor-pointer"
+            >
+              <LogOut size={13} />
+              <span>{language === 'sk' ? 'Odhlásiť' : 'Logout'}</span>
+            </button>
+          </div>
+        </div>
+
+        {/* ================================================================ */}
+        {/* A. ADMIN MÓD: REBRÍČEK VERNOSTI A NAJČASTEJŠÍ NÁVŠTEVNÍCI        */}
+        {/* ================================================================ */}
+        {isAdmin ? (
+          <div className="space-y-4">
+            
+            {/* Salónne Štatistiky */}
+            <div className="grid grid-cols-3 gap-2.5">
+              <div className="p-3.5 rounded-2xl bg-white dark:bg-[#0B0D22] border border-[#E2E8F0] dark:border-[#2B2F49] text-center space-y-1 shadow-xs">
+                <span className="text-xl font-bold text-[#6633EE] dark:text-[#A78BFA] tabular-nums">{totalSaloonMassages}</span>
+                <p className="text-[10px] font-semibold text-[#64748B] dark:text-[#C7CAE0]/60 uppercase tracking-wider">
+                  {language === 'sk' ? 'Masáží celkovo' : 'Total Sessions'}
+                </p>
+              </div>
+
+              <div className="p-3.5 rounded-2xl bg-white dark:bg-[#0B0D22] border border-[#E2E8F0] dark:border-[#2B2F49] text-center space-y-1 shadow-xs">
+                <span className="text-xl font-bold text-[#10B981] tabular-nums">{totalSaloonRevenue} €</span>
+                <p className="text-[10px] font-semibold text-[#64748B] dark:text-[#C7CAE0]/60 uppercase tracking-wider">
+                  {language === 'sk' ? 'Obrat pečiatok' : 'Stamp Revenue'}
+                </p>
+              </div>
+
+              <div className="p-3.5 rounded-2xl bg-white dark:bg-[#0B0D22] border border-[#E2E8F0] dark:border-[#2B2F49] text-center space-y-1 shadow-xs">
+                <span className="text-xl font-bold text-[#0B0D22] dark:text-[#FFFFFF] tabular-nums">{avgSaloonSpend} €</span>
+                <p className="text-[10px] font-semibold text-[#64748B] dark:text-[#C7CAE0]/60 uppercase tracking-wider">
+                  {language === 'sk' ? 'Priemer / klient' : 'Avg / Client'}
+                </p>
+              </div>
             </div>
 
-            <div className="flex items-center gap-2 text-purple-600 dark:text-purple-400 mb-2.5">
-              <Sparkles size={16} className="animate-pulse" />
-              <h3 className="font-bold text-xs uppercase tracking-wider">
-                {language === 'sk' ? 'Máte prekvapenie!' : 'You have a surprise!'}
-              </h3>
-            </div>
+            {/* Rebríček / Leaderboard Box */}
+            <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#0B0D22] border border-[#E2E8F0] dark:border-[#2B2F49] shadow-sm dark:shadow-md space-y-4 text-left">
+              
+              {/* Prepínač triedenia */}
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5">
+                <div>
+                  <h3 className="font-semibold text-sm text-[#0B0D22] dark:text-[#FFFFFF] flex items-center gap-2">
+                    <Sparkles size={16} className="text-[#6633EE] dark:text-[#A78BFA]" />
+                    <span>{language === 'sk' ? 'Rebríček najvernejších klientov' : 'Client Loyalty Leaderboard'}</span>
+                  </h3>
+                  <p className="text-[11px] text-[#64748B] dark:text-[#C7CAE0]/60">
+                    {language === 'sk' ? 'Zoznam klientov zoradený podľa návštevnosti a minutých prostriedkov' : 'Ranked by massage visits and spend'}
+                  </p>
+                </div>
 
-            <div className="space-y-2 relative z-10">
-              {activeGifts.map((gift) => {
-                if (gift.gift_type === 'referral_reward') {
-                  const revealState = revealedGiftStates[gift.id];
-                  const referredPerson = referredPeople.find((r) => r.id === gift.referred_user_id);
+                <div className="flex items-center gap-1 p-1 rounded-xl bg-slate-100 dark:bg-[#010314] border border-[#E2E8F0] dark:border-[#2B2F49]">
+                  <button
+                    type="button"
+                    onClick={() => setRankingSortBy('visits')}
+                    className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition cursor-pointer ${
+                      rankingSortBy === 'visits'
+                        ? 'bg-white dark:bg-[#0B0D22] text-[#6633EE] dark:text-[#FFFFFF] shadow-xs'
+                        : 'text-[#64748B] dark:text-[#C7CAE0]/60 hover:text-[#0B0D22] dark:hover:text-white'
+                    }`}
+                  >
+                    {language === 'sk' ? 'Podľa návštev' : 'By Visits'}
+                  </button>
 
-                  return (
-                    <div
-                      key={gift.id}
-                      className="p-3 rounded-2xl bg-white/90 dark:bg-slate-900/90 border border-purple-100/50 dark:border-purple-950 shadow-sm text-left space-y-2"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-xl bg-purple-500 text-white flex items-center justify-center shrink-0 shadow-sm">
-                          <Percent size={16} />
+                  <button
+                    type="button"
+                    onClick={() => setRankingSortBy('spent')}
+                    className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition cursor-pointer ${
+                      rankingSortBy === 'spent'
+                        ? 'bg-white dark:bg-[#0B0D22] text-[#6633EE] dark:text-[#FFFFFF] shadow-xs'
+                        : 'text-[#64748B] dark:text-[#C7CAE0]/60 hover:text-[#0B0D22] dark:hover:text-white'
+                    }`}
+                  >
+                    {language === 'sk' ? 'Podľa útraty (€)' : 'By Spend (€)'}
+                  </button>
+                </div>
+              </div>
+
+              {/* PODIUM TOP 3 KLIENTOV (AK SÚ ASPOŇ 1) */}
+              {sortedRankings.length > 0 && (
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1 pb-2">
+                  {sortedRankings.slice(0, 3).map((client, idx) => {
+                    const medals = ['🥇 1. Miesto', '🥈 2. Miesto', '🥉 3. Miesto'];
+                    const borderGradients = [
+                      'border-amber-400/60 bg-amber-500/5',
+                      'border-slate-300 dark:border-slate-600 bg-slate-500/5',
+                      'border-amber-700/50 bg-amber-700/5',
+                    ];
+
+                    return (
+                      <div
+                        key={client.id}
+                        className={`p-3 rounded-xl border ${borderGradients[idx]} flex flex-col justify-between space-y-2 relative overflow-hidden`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-[#0B0D22] dark:text-[#FFFFFF]">
+                            {medals[idx]}
+                          </span>
+                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-[#010314] text-[#6633EE] dark:text-[#A78BFA] border border-[#E2E8F0] dark:border-[#2B2F49]">
+                            {client.program_type === '5_stamps' ? '5p' : '10p'}
+                          </span>
                         </div>
-                        <div className="min-w-0 flex-1">
-                          <p className="font-bold text-slate-800 dark:text-slate-100 text-xs sm:text-sm">
-                            {language === 'sk' ? 'Referall zľava 10%' : 'Referral discount 10%'}
+
+                        <div className="min-w-0 text-left">
+                          <p className="font-semibold text-xs text-[#0B0D22] dark:text-[#FFFFFF] truncate">
+                            {client.full_name || 'Hosť bez mena'}
                           </p>
-                          {referredPerson && (
-                            <p className="text-[10px] text-slate-400 dark:text-slate-500 truncate">
-                              {language === 'sk' ? 'Za odporučenie: ' : 'For referring: '}
-                              {referredPerson.full_name || referredPerson.email}
-                            </p>
-                          )}
+                          <p className="text-[10px] text-[#64748B] dark:text-[#C7CAE0]/60 truncate font-normal">
+                            {client.email}
+                          </p>
+                        </div>
+
+                        <div className="flex items-center justify-between pt-1 border-t border-[#E2E8F0] dark:border-[#2B2F49]/60 text-xs">
+                          <span className="font-bold text-[#6633EE] dark:text-[#A78BFA] tabular-nums">
+                            {client.visitsCount} {language === 'sk' ? 'masáží' : 'visits'}
+                          </span>
+                          <span className="font-bold text-[#10B981] tabular-nums">
+                            {client.totalSpent} €
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* CELÝ ZOZNAM RANKINGU */}
+              <div className="divide-y divide-[#E2E8F0] dark:divide-[#2B2F49] rounded-xl border border-[#E2E8F0] dark:border-[#2B2F49] overflow-hidden">
+                {sortedRankings.length > 0 ? (
+                  sortedRankings.map((client, rankIdx) => (
+                    <div
+                      key={client.id}
+                      className="p-3 sm:p-3.5 flex items-center justify-between gap-3 bg-slate-50/50 dark:bg-[#010314]/30 hover:bg-slate-100/50 dark:hover:bg-[#010314] transition-colors text-left"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <span className="w-6 text-center font-bold text-xs text-[#64748B] dark:text-[#C7CAE0]/70 tabular-nums">
+                          #{rankIdx + 1}
+                        </span>
+
+                        <div className="min-w-0">
+                          <p className="font-semibold text-xs text-[#0B0D22] dark:text-[#FFFFFF] truncate">
+                            {client.full_name || (language === 'sk' ? 'Hosť bez mena' : 'Unnamed Guest')}
+                          </p>
+                          <p className="text-[10px] text-[#64748B] dark:text-[#C7CAE0]/60 truncate font-normal">
+                            {client.email}
+                          </p>
                         </div>
                       </div>
 
-                      {!revealState && (
-                        <button
-                          onClick={() => handleClaimReferralGift(gift)}
-                          className="w-full py-2 rounded-xl bg-purple-600 text-white text-xs font-semibold hover:bg-purple-700 transition active:scale-95 cursor-pointer"
-                        >
-                          {language === 'sk' ? 'Uplatniť zľavu' : 'Claim discount'}
-                        </button>
-                      )}
-
-                      {revealState?.status === 'ineligible' && (
-                        <p className="text-[11px] text-amber-700 dark:text-amber-400 font-medium bg-amber-50 dark:bg-amber-950/20 rounded-lg p-2 leading-relaxed">
-                          {language === 'sk'
-                            ? `Zľavu zatiaľ nie je možné uplatniť — ${revealState.name || 'odporučaný klient'} ešte nemal prvú masáž.`
-                            : `Discount not available yet — ${revealState.name || 'the referred client'} hasn't had their first massage yet.`}
-                        </p>
-                      )}
-
-                      {revealState?.status === 'revealed' && (
-                        <div className="text-center p-2 rounded-lg bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/40">
-                          <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold uppercase tracking-wide mb-0.5">
-                            {language === 'sk' ? 'Tvoj kód' : 'Your code'}
-                          </p>
-                          <p className="font-mono font-bold text-sm text-emerald-700 dark:text-emerald-300 tracking-widest">
-                            {revealState.code}
-                          </p>
+                      <div className="flex items-center gap-3 shrink-0 text-right">
+                        <div className="text-right">
+                          <span className="block text-xs font-bold text-[#0B0D22] dark:text-[#FFFFFF] tabular-nums">
+                            {client.visitsCount} {language === 'sk' ? 'masáží' : 'visits'}
+                          </span>
+                          <span className="block text-[10px] text-[#64748B] dark:text-[#C7CAE0]/60 tabular-nums">
+                            {language === 'sk' ? 'priemer' : 'avg'}: {client.averageSpent.toFixed(0)} €
+                          </span>
                         </div>
-                      )}
-                    </div>
-                  );
-                }
 
-                return (
-                  <div 
-                    key={gift.id}
-                    className="flex items-center gap-3 p-3 rounded-2xl bg-white/90 dark:bg-slate-900/90 border border-purple-100/50 dark:border-purple-950 shadow-sm"
+                        <span className="text-xs font-bold text-[#10B981] bg-[#10B981]/10 px-2.5 py-1 rounded-full border border-[#10B981]/30 tabular-nums">
+                          {client.totalSpent} €
+                        </span>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-xs text-[#64748B] dark:text-[#C7CAE0]/60 text-center py-6 font-normal">
+                    {language === 'sk' ? 'Zatiaľ nie sú evidované žiadne návštevy klientov.' : 'No client visit history recorded yet.'}
+                  </p>
+                )}
+              </div>
+
+              {/* Rýchly odkaz na administráciu */}
+              <div className="pt-2 flex justify-end">
+                <Link
+                  href="/admin"
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#6633EE] dark:text-[#A78BFA] hover:underline"
+                >
+                  <span>{language === 'sk' ? 'Prejsť do Administrácie salónu' : 'Go to Salon Admin'}</span>
+                  <ChevronRight size={14} />
+                </Link>
+              </div>
+
+            </div>
+
+          </div>
+        ) : (
+          /* ================================================================ */
+          /* B. KLIENTSKÝ MÓD: KONTROLA REZERVÁCIÍ A HISTÓRIA NÁVŠTEV         */
+          /* ================================================================ */
+          <>
+            {/* 2. KONTROLA REZERVÁCIÍ (AKTÍVNE A NADCHÁDZAJÚCE TERMÍNY) */}
+            <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#0B0D22] border border-[#E2E8F0] dark:border-[#2B2F49] shadow-sm dark:shadow-md space-y-3 text-left">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Calendar size={16} className="text-[#6633EE] dark:text-[#A78BFA]" />
+                  <h3 className="font-semibold text-xs text-[#0B0D22] dark:text-[#FFFFFF] uppercase tracking-wider">
+                    {language === 'sk' ? 'Kontrola rezervácií' : 'Booking Management'}
+                  </h3>
+                </div>
+                {userBookings.length > 0 && (
+                  <span className="px-2.5 py-0.5 rounded-full bg-[#6633EE]/15 border border-[#6633EE]/30 text-[#6633EE] dark:text-[#A78BFA] text-[10px] font-bold">
+                    {userBookings.length} {language === 'sk' ? 'aktívne' : 'active'}
+                  </span>
+                )}
+              </div>
+
+              {userBookings.length > 0 ? (
+                <div className="space-y-2.5">
+                  {userBookings.map((b, idx) => (
+                    <div 
+                      key={b.id || idx}
+                      className="p-3.5 rounded-xl bg-slate-50 dark:bg-[#010314] border border-[#E2E8F0] dark:border-[#2B2F49] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3"
+                    >
+                      <div className="space-y-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold text-xs text-[#0B0D22] dark:text-[#FFFFFF] truncate">
+                            {b.type || 'Masáž'}
+                          </span>
+                          {b.bookingRef && (
+                            <span className="font-mono text-[10px] text-[#6633EE] dark:text-[#A78BFA] bg-[#6633EE]/10 dark:bg-[#6633EE]/15 px-2 py-0.5 rounded-md border border-[#6633EE]/30">
+                              #{b.bookingRef}
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-3 text-[11px] text-[#64748B] dark:text-[#C7CAE0]">
+                          <span className="flex items-center gap-1">
+                            <Calendar size={12} className="text-[#6633EE] dark:text-[#A78BFA]" />
+                            {b.slot ? formatFullDateText(b.slot) : 'Termín'}
+                          </span>
+                          <span className="flex items-center gap-1 font-semibold text-[#0B0D22] dark:text-[#FFFFFF]">
+                            <Clock size={12} className="text-[#6633EE] dark:text-[#A78BFA]" />
+                            {b.slot ? format24hTimeText(b.slot) : ''}
+                          </span>
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedCancelBooking(b);
+                          setShowCancelModal(true);
+                        }}
+                        className="w-full sm:w-auto px-3.5 py-1.5 rounded-full bg-[#FF5A7A]/15 hover:bg-[#FF5A7A]/25 border border-[#FF5A7A]/30 text-[#FF5A7A] text-xs font-medium transition cursor-pointer flex items-center justify-center gap-1.5 shrink-0"
+                      >
+                        <CalendarX size={13} />
+                        <span>{language === 'sk' ? 'Požiadať o storno' : 'Request Cancel'}</span>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="p-5 rounded-xl bg-slate-50 dark:bg-[#010314] border border-[#E2E8F0] dark:border-[#2B2F49] text-center space-y-2.5">
+                  <p className="text-xs text-[#64748B] dark:text-[#C7CAE0]/70 font-normal">
+                    {language === 'sk' 
+                      ? 'Momentálne nemáte žiadne aktívne nadchádzajúce rezervácie.' 
+                      : 'You have no active upcoming bookings at this moment.'}
+                  </p>
+                  <Link
+                    href="/"
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full btn-primary text-xs font-semibold uppercase tracking-wider shadow-sm"
                   >
-                    <div className="w-9 h-9 rounded-xl bg-purple-500 text-white flex items-center justify-center shrink-0 shadow-sm">
-                      <Gift size={16} />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="font-bold text-slate-800 dark:text-slate-100 text-xs sm:text-sm truncate">
-                        {getGiftLabel(gift)}
-                      </p>
-                      <span className="inline-flex items-center gap-1 text-[10px] font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 px-1.5 py-0.5 rounded-full mt-0.5">
-                        <CheckCircle2 size={10} />
-                        {language === 'sk' ? 'Aktívne na salóne' : 'Active at salon'}
-                      </span>
-                    </div>
-                  </div>
-                );
-              })}
+                    <Plus size={13} />
+                    <span>{language === 'sk' ? 'Rezervovať novú masáž' : 'Book a Massage'}</span>
+                  </Link>
+                </div>
+              )}
             </div>
-          </div>
+
+            {/* 3. HISTÓRIA MASÁŽÍ A PREHĽAD NÁVŠTEV */}
+            <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#0B0D22] border border-[#E2E8F0] dark:border-[#2B2F49] shadow-sm dark:shadow-md space-y-4 text-left">
+              
+              {/* Hlavička histórie & Štatistiky */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <History size={16} className="text-[#6633EE] dark:text-[#A78BFA]" />
+                  <h3 className="font-semibold text-xs text-[#0B0D22] dark:text-[#FFFFFF] uppercase tracking-wider">
+                    {language === 'sk' ? 'História návštev a procedúr' : 'Visit & Procedure History'}
+                  </h3>
+                </div>
+                <span className="text-xs font-medium text-[#6633EE] dark:text-[#A78BFA]">
+                  {stamps.length} {language === 'sk' ? 'návštev' : 'visits'}
+                </span>
+              </div>
+
+              {/* Súhrnné štatistické boxy */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="p-3 rounded-xl bg-slate-50 dark:bg-[#010314] border border-[#E2E8F0] dark:border-[#2B2F49] text-center space-y-0.5">
+                  <span className="text-xl font-bold text-[#0B0D22] dark:text-[#FFFFFF]">{stamps.length}</span>
+                  <p className="text-[10px] font-medium text-[#6633EE] dark:text-[#A78BFA] uppercase tracking-wider">
+                    {language === 'sk' ? 'Absolvovaných masáží' : 'Massages Completed'}
+                  </p>
+                </div>
+
+                <div className="p-3 rounded-xl bg-slate-50 dark:bg-[#010314] border border-[#E2E8F0] dark:border-[#2B2F49] text-center space-y-0.5">
+                  <span className="text-xl font-bold text-[#0B0D22] dark:text-[#FFFFFF]">{gifts.length}</span>
+                  <p className="text-[10px] font-medium text-[#6633EE] dark:text-[#A78BFA] uppercase tracking-wider">
+                    {language === 'sk' ? 'Uplatnených odmien' : 'Rewards Claimed'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Timeline záznamov */}
+              {historyItems.length > 0 ? (
+                <div className="relative pl-4 sm:pl-6 border-l border-[#E2E8F0] dark:border-[#2B2F49] space-y-3.5 my-2">
+                  {historyItems.map((item) => {
+                    const isStamp = item.type === 'stamp';
+                    const dateObj = new Date(item.date);
+                    const formattedDate = dateObj.toLocaleDateString(language === 'sk' ? 'sk-SK' : 'en-US', {
+                      day: 'numeric',
+                      month: 'short',
+                      year: 'numeric',
+                    });
+                    const formattedTime = dateObj.toLocaleTimeString(language === 'sk' ? 'sk-SK' : 'en-US', {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    });
+
+                    return (
+                      <div key={item.id} className="relative group">
+                        <div 
+                          className={`absolute -left-[21px] sm:-left-[29px] top-1.5 w-3 h-3 rounded-full border-2 transition-all ${
+                            isStamp 
+                              ? 'bg-[#6633EE] border-white dark:border-[#0B0D22] ring-2 ring-[#6633EE]/40' 
+                              : 'bg-[#A78BFA] border-white dark:border-[#0B0D22] ring-2 ring-[#A78BFA]/40'
+                          }`} 
+                        />
+
+                        <div className="p-3 rounded-xl bg-slate-50 dark:bg-[#010314] border border-[#E2E8F0] dark:border-[#2B2F49] hover:border-[#6633EE]/40 transition-colors flex items-center justify-between gap-3 shadow-xs">
+                          <div className="space-y-0.5 min-w-0">
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-xs font-semibold text-[#0B0D22] dark:text-[#FFFFFF] truncate">
+                                {isStamp 
+                                  ? (language === 'sk' ? 'Absolvovaná masáž' : 'Massage Session')
+                                  : (language === 'sk' ? 'Vernostná odmena' : 'Loyalty Reward')}
+                              </span>
+                              {isStamp && item.data.claimed && (
+                                <span className="px-1.5 py-0.2 rounded-full bg-[#10b981]/15 text-[#10b981] text-[9px] font-bold border border-[#10b981]/30">
+                                  {language === 'sk' ? 'Uplatnená' : 'Claimed'}
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-[11px] text-[#64748B] dark:text-[#C7CAE0]/60 font-mono">
+                              {formattedDate} • {formattedTime}
+                            </p>
+                          </div>
+
+                          <div className="text-right shrink-0">
+                            {isStamp ? (
+                              <span className="text-xs font-bold text-[#0B0D22] dark:text-[#FFFFFF] bg-white dark:bg-[#0B0D22] px-2.5 py-1 rounded-full border border-[#E2E8F0] dark:border-[#2B2F49] shadow-xs">
+                                {item.data.price} €
+                              </span>
+                            ) : (
+                              <span className="text-xs font-bold text-[#6633EE] dark:text-[#A78BFA] bg-[#6633EE]/10 dark:bg-[#6633EE]/15 px-2.5 py-1 rounded-full border border-[#6633EE]/30">
+                                {item.data.custom_code || (language === 'sk' ? 'Darček' : 'Gift')}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <p className="text-xs text-[#64748B] dark:text-[#C7CAE0]/60 text-center py-4">
+                  {language === 'sk' ? 'Zatiaľ nemáte žiadnu históriu masáží.' : 'No massage history yet.'}
+                </p>
+              )}
+
+            </div>
+          </>
         )}
-        
-        {/* --- PANEL POUŽÍVATEĽA WITH REFRESH BUTTON --- */}
-        <div className="w-full flex items-center justify-between px-1">
-          <button 
-            onClick={() => setIsQrOpen(true)}
-            className="active:scale-95 transition-all p-2 bg-transparent shrink-0 hover:opacity-80 cursor-pointer"
-            style={{ color: currentColor }}
-            aria-label="Zobraziť QR kód"
-          >
-            <QrCode size={24} className="transition-colors duration-300" />
-          </button>
 
-          <div className="flex items-center gap-3 overflow-hidden">
-            <div 
-              className="w-12 h-12 rounded-full flex items-center justify-center bg-white dark:bg-slate-800 shrink-0 shadow-sm border border-slate-200 dark:border-slate-700 transition-all duration-300"
-              style={{ color: currentColor }}
-            >
-              <CurrentIconComponent size={26} strokeWidth={1.8} />
-            </div>
-            
-            <div className="text-left min-w-0 flex flex-col justify-center">
-              <h2 className="font-bold text-slate-800 dark:text-slate-100 text-sm truncate leading-tight">
-                {profile.full_name || t.guest}
-              </h2>
-              <p className="text-[11px] text-slate-400 dark:text-slate-500 truncate mt-0.5">
-                {profile.email}
-              </p>
-            </div>
-          </div>
-
-          {/* 🚀 NOVÉ TLAČIDLO PRE REFRESH PEČIATOK A PROFILU */}
-          <button
-            type="button"
-            onClick={handleManualRefresh}
-            disabled={refreshing}
-            className="p-2.5 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-indigo-600 hover:text-white dark:hover:bg-indigo-600 transition active:scale-95 cursor-pointer shadow-xs disabled:opacity-50"
-            title={language === 'sk' ? 'Obnoviť pečiatky' : 'Refresh stamps'}
-          >
-            <RotateCw size={18} className={refreshing ? 'animate-spin text-indigo-600 dark:text-indigo-400' : ''} />
-          </button>
-        </div>
-
-        {/* VERNOSTNÁ KARTA S PEČIATKAMI */}
-        <Card
-          fullName={profile.full_name || t.guest}
-          programType={profile.program_type}
-          activeStampsPrices={activePrices}
-          avatarColor={currentColor}
-        />
-
-        {/* SEKCIA ODZNAKOV A ÚSPECHOV */}
-        <BadgesGrid userId={profile.id} language={language} />
-
-        {shouldShowDisclaimer && (
-          <div className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200/60 dark:border-amber-900/40 text-xs text-amber-900 dark:text-amber-400 shadow-sm text-left space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
-            <p className="font-semibold text-center">{t.discountDisclaimer}</p>
-            <ul className="list-disc pl-4 space-y-1.5 leading-relaxed opacity-90">
-              <li>{t.discountRule1}</li>
-              <li>{t.discountRule2}</li>
-              <li>{t.discountRule3}</li>
-            </ul>
-          </div>
-        )}
-        
       </div>
-      
-      <button onClick={handleLogout} className="text-sm text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 hover:underline transition mt-2 cursor-pointer">
-        {t.logout}
-      </button>
 
-      {/* MODAL 1: Zväčšený QR kód */}
-      {isQrOpen && (
-        <div 
-          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-md flex items-center justify-center p-6 transition-opacity duration-300"
-          onClick={() => setIsQrOpen(false)}
-        >
-          <div 
-            className="w-full max-w-xs p-6 rounded-3xl bg-white dark:bg-slate-900 shadow-2xl flex flex-col items-center justify-center text-center space-y-4 animate-in fade-in zoom-in-75 duration-200"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="w-full flex justify-between items-center border-b border-slate-100 dark:border-slate-800 pb-2">
-              <span className="text-sm font-bold text-slate-700 dark:text-slate-200">{t.loyaltyCode}</span>
-              <button onClick={() => setIsQrOpen(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition cursor-pointer">
-                <X size={20} />
-              </button>
-            </div>
-            
-            <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-inner">
-              <QrCodeGenerator profileId={profile.id} />
-            </div>
+      {/* MODAL PRE NASTAVENIA */}
+      <SettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => {
+          setIsSettingsOpen(false);
+          loadProfileData();
+        }}
+        userId={profile.id}
+        language={language}
+        toggleLanguage={toggleLanguage}
+        theme={theme}
+        toggleTheme={toggleTheme}
+        t={t}
+      />
 
-            <p className="text-xs text-slate-400 dark:text-slate-500 px-2">
-              {t.scanHint}
-            </p>
-          </div>
-        </div>
+      {/* MODAL PRE STORNO ŽIADOSŤ */}
+      {selectedCancelBooking && (
+        <CancelRequestModal
+          isOpen={showCancelModal}
+          onClose={() => {
+            setShowCancelModal(false);
+            setSelectedCancelBooking(null);
+            loadProfileData();
+          }}
+          booking={selectedCancelBooking}
+          userId={profile.id}
+          language={language}
+        />
       )}
+
+      {/* LUCKY WHEEL MODAL */}
+      <LuckyWheelModal
+        isOpen={isWheelOpen}
+        onClose={() => setIsWheelOpen(false)}
+        userId={profile.id}
+        language={language}
+        onRewardClaimed={() => {
+          loadProfileData();
+        }}
+      />
+
     </main>
   );
 }

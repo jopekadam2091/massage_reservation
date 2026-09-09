@@ -58,43 +58,45 @@ export default function AppInfoBanner({ language, userId }: Props) {
   if (!visible) return null;
 
   return (
-    <div className="p-4 rounded-3xl bg-gradient-to-r from-sky-500/10 via-indigo-500/10 to-purple-500/10 border border-sky-200 dark:border-sky-900/50 shadow-sm relative space-y-3 font-sans">
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex items-center gap-2.5">
-          <div className="p-2 rounded-xl bg-sky-500 text-white shadow-xs">
-            <Sparkles size={18} />
+    <div className="rounded-2xl border border-[#2B2F49] bg-[#0B0D22] shadow-xl mb-6 text-[#DDE0F2]">
+      <div className="p-4 sm:p-5 flex flex-col justify-between gap-3 font-sans">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-full bg-[#6633EE] text-white shadow-[0_0_15px_rgba(102,51,238,0.5)]">
+              <Sparkles size={16} />
+            </div>
+            <div>
+              <h4 className="font-semibold text-sm text-[#FFFFFF] tracking-tight">
+                {language === 'sk' ? 'Vítajte v aplikácii!' : 'Welcome to the App!'}
+              </h4>
+              <p className="text-xs text-[#C7CAE0] font-normal leading-relaxed mt-0.5">
+                {language === 'sk'
+                  ? 'Rezervácie môžete spravovať priamo cez prehľadný kalendár alebo rýchly generátor.'
+                  : 'Manage bookings easily via our interactive calendar or smart generator.'}
+              </p>
+            </div>
           </div>
-          <div>
-            <h4 className="font-extrabold text-xs text-slate-800 dark:text-slate-100">
-              {language === 'sk' ? 'Vítajte v aplikácii!' : 'Welcome to the App!'}
-            </h4>
-            <p className="text-[11px] text-slate-500 dark:text-slate-400">
-              {language === 'sk'
-                ? 'Rezervácie môžete spravovať priamo cez prehľadný kalendár alebo rýchly generátor.'
-                : 'Manage bookings easily via our interactive calendar or smart generator.'}
-            </p>
-          </div>
+
+          <button
+            type="button"
+            onClick={() => setVisible(false)}
+            className="text-[#C7CAE0] hover:text-white p-1 cursor-pointer transition active:scale-95"
+            title={language === 'sk' ? 'Zatvoriť' : 'Close'}
+          >
+            <X size={16} />
+          </button>
         </div>
 
-        <button
-          type="button"
-          onClick={() => setVisible(false)}
-          className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 cursor-pointer"
-          title={language === 'sk' ? 'Zavrieť' : 'Close'}
-        >
-          <X size={16} />
-        </button>
-      </div>
-
-      <div className="flex items-center justify-end gap-2 pt-1 border-t border-sky-200/50 dark:border-sky-900/30">
-        <button
-          type="button"
-          onClick={handleDisableForever}
-          className="text-[11px] font-bold text-sky-700 dark:text-sky-300 hover:underline flex items-center gap-1 cursor-pointer"
-        >
-          <Check size={13} />
-          <span>{language === 'sk' ? 'Už nezobrazovať po prihlásení' : 'Don\'t show again after login'}</span>
-        </button>
+        <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#2B2F49]">
+          <button
+            type="button"
+            onClick={handleDisableForever}
+            className="text-xs font-medium text-[#A78BFA] hover:text-[#FFFFFF] flex items-center gap-1 cursor-pointer"
+          >
+            <Check size={14} />
+            <span>{language === 'sk' ? 'Už nezobrazovať po prihlásení' : 'Don\'t show again after login'}</span>
+          </button>
+        </div>
       </div>
     </div>
   );

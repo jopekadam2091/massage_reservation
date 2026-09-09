@@ -4,12 +4,14 @@ import React, { useEffect, useState } from 'react';
 import { BadgeRegistry, BadgeDefinition } from '@/app/constants/badges';
 import { UserBadge } from '@/app/types';
 import BadgeModal from './BadgeModal';
+import { BadgesGridSkeleton } from './ui/Skeleton';
 import { Award, Lock, Check, Loader2 } from 'lucide-react';
 import { 
   GiLaurelCrown, GiCrown, GiWingedShield, GiLotus, 
   GiShieldReflect, GiLightningHelix, GiCompass, GiStopwatch, 
   GiFlame, GiSun, GiOwl, GiPartyFlags, GiCakeSlice, GiTrophy 
 } from 'react-icons/gi';
+import { Adult18BadgeIcon } from '@/app/components/icons/AdultSensualIcons';
 
 const ICON_MAP: Record<string, React.ElementType> = {
   GiLaurelCrown,
@@ -26,6 +28,7 @@ const ICON_MAP: Record<string, React.ElementType> = {
   GiPartyFlags,
   GiCakeSlice,
   GiTrophy,
+  Adult18BadgeIcon,
 };
 
 type Props = {
@@ -68,36 +71,33 @@ export default function BadgesGrid({ userId, language }: Props) {
   const totalCount = BadgeRegistry.BADGES.length;
 
   return (
-    <div className="w-full space-y-4 font-sans text-left">
+    <div className="w-full space-y-4 font-sans text-left text-[#334155] dark:text-[#DDE0F2]">
       
       {/* Hlavička sekcie */}
       <div className="flex items-center justify-between px-1">
         <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold shadow-xs">
-            <Award size={20} />
+          <div className="w-9 h-9 rounded-full bg-[#6633EE]/15 dark:bg-[#6633EE]/20 text-[#6633EE] dark:text-[#A78BFA] flex items-center justify-center font-medium shadow-xs">
+            <Award size={18} />
           </div>
           <div>
-            <h3 className="font-extrabold text-sm text-slate-800 dark:text-slate-100 leading-tight">
+            <h3 className="font-semibold text-sm text-[#0B0D22] dark:text-[#FFFFFF] leading-tight">
               {language === 'sk' ? 'Odznaky a Úspechy' : 'Badges & Achievements'}
             </h3>
-            <p className="text-[11px] text-slate-400 dark:text-slate-500">
+            <p className="text-[11px] text-[#64748B] dark:text-[#C7CAE0]/60 font-normal">
               {language === 'sk' ? 'Získavaj medaily za svoje masáže' : 'Earn medals for completed sessions'}
             </p>
           </div>
         </div>
 
-        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/50 text-amber-700 dark:text-amber-300 text-xs font-black shadow-xs">
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-50 dark:bg-[#0B0D22] border border-[#E2E8F0] dark:border-[#2B2F49] text-[#6633EE] dark:text-[#A78BFA] text-xs font-semibold shadow-xs tracking-wide tabular-nums">
           <span>🏆 {unlockedCount} / {totalCount}</span>
         </span>
       </div>
 
-      {/* KRUHOVÁ MEDAILÓNOVÁ MRIEŽKA (Dizajn presne podľa screenshotu) */}
-      <div className="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden">
+      {/* KRUHOVÁ MEDAILÓNOVÁ MRIEŽKA */}
+      <div className="p-5 sm:p-6 rounded-2xl bg-white dark:bg-[#0B0D22] border border-[#E2E8F0] dark:border-[#2B2F49] shadow-md dark:shadow-2xl relative overflow-hidden">
         {loading ? (
-          <div className="py-12 flex flex-col items-center justify-center gap-2 text-slate-400">
-            <Loader2 size={24} className="animate-spin text-amber-500" />
-            <p className="text-xs">{language === 'sk' ? 'Načítavam odznaky...' : 'Loading badges...'}</p>
-          </div>
+          <BadgesGridSkeleton />
         ) : (
           <div className="grid grid-cols-3 sm:grid-cols-4 gap-y-6 gap-x-3">
             {BadgeRegistry.BADGES.map((badge) => {
@@ -118,56 +118,52 @@ export default function BadgesGrid({ userId, language }: Props) {
                   <div className="relative flex items-center justify-center">
                     <div
                       className={`w-16 h-16 sm:w-18 sm:h-18 rounded-full bg-gradient-to-br ${
-                        isUnlocked ? badge.unlockedBg : 'from-slate-700 via-slate-800 to-slate-900'
-                      } text-white flex items-center justify-center shadow-lg border-4 relative overflow-hidden transition-all duration-300 ${
+                        isUnlocked ? badge.unlockedBg : 'from-slate-100 via-slate-200 to-slate-300 dark:from-[#010314] dark:via-[#0B0D22] dark:to-[#1a1d36]'
+                      } text-white flex items-center justify-center shadow-lg border-2 relative overflow-hidden transition-all duration-300 ${
                         isUnlocked
-                          ? `${badge.unlockedBorder} group-hover:scale-105`
-                          : 'border-slate-600/60 shadow-inner opacity-65 group-hover:opacity-85'
+                          ? `${badge.unlockedBorder} group-hover:scale-105 shadow-[0_0_15px_rgba(102,51,238,0.5)]`
+                          : 'border-slate-300 dark:border-[#2B2F49] opacity-60 group-hover:opacity-85'
                       }`}
-                      style={{
-                        boxShadow: isUnlocked
-                          ? `0 6px 18px ${badge.glowColor}`
-                          : 'inset 0 2px 6px rgba(0,0,0,0.6)',
-                      }}
                     >
                       {/* Glossy lesklý pásik na vrchu mince (odlesk skla) */}
-                      <div className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/30 via-white/10 to-transparent pointer-events-none rounded-t-full" />
+                      <div className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/25 via-white/5 to-transparent pointer-events-none rounded-t-full" />
 
                       {/* Ikona v strede mince */}
                       <IconComp
-                        size={30}
-                        className={`transition-all duration-300 drop-shadow-sm relative z-10 ${
-                          isUnlocked ? 'text-white scale-100' : 'text-slate-400/50 scale-90'
+                        size={28}
+                        className={`transition-all duration-300 relative z-10 ${
+                          isUnlocked ? 'text-white scale-100' : 'text-slate-400 dark:text-[#C7CAE0]/30 scale-90'
                         }`}
                       />
                     </div>
 
                     {/* Odznak kolesa: Zelený Check vs Tmavý Zámok */}
-                    {isUnlocked ? (
-                      <span className="absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center shadow-md border-2 border-white dark:border-slate-900 z-20">
-                        <Check size={11} strokeWidth={3.5} />
-                      </span>
-                    ) : (
-                      <span className="absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full bg-slate-800 text-slate-400 flex items-center justify-center border-2 border-white dark:border-slate-900 z-20">
-                        <Lock size={10} />
-                      </span>
-                    )}
+                    <div className="absolute -bottom-1 -right-1 z-20">
+                      {isUnlocked ? (
+                        <div className="w-5 h-5 rounded-full bg-[#10b981] text-white flex items-center justify-center shadow-sm border border-white dark:border-[#0B0D22]">
+                          <Check size={11} strokeWidth={3} />
+                        </div>
+                      ) : (
+                        <div className="w-5 h-5 rounded-full bg-slate-200 dark:bg-[#010314] text-slate-500 dark:text-[#C7CAE0]/60 flex items-center justify-center border border-slate-300 dark:border-[#2B2F49]">
+                          <Lock size={10} />
+                        </div>
+                      )}
+                    </div>
                   </div>
 
-                  {/* MENO ODZNAKU POD MINCOU */}
-                  <div className="w-full px-0.5">
-                    <p className={`font-extrabold text-[11px] sm:text-xs truncate leading-tight ${
-                      isUnlocked 
-                        ? 'text-slate-800 dark:text-slate-100' 
-                        : 'text-slate-400 dark:text-slate-500 font-semibold'
+                  {/* Názov odznaku */}
+                  <div className="space-y-0.5">
+                    <p className={`text-[11px] font-semibold leading-tight line-clamp-2 ${
+                      isUnlocked ? 'text-[#0B0D22] dark:text-[#FFFFFF]' : 'text-[#64748B] dark:text-[#C7CAE0]/60'
                     }`}>
                       {badge.title[langKey]}
                     </p>
-                    <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 truncate mt-0.5">
-                      {isUnlocked ? (language === 'sk' ? 'Odomknutý' : 'Unlocked') : `${progress}/${max}`}
-                    </p>
+                    {!isUnlocked && (
+                      <p className="text-[11px] font-semibold text-[#6633EE] dark:text-[#A78BFA] tracking-wide tabular-nums">
+                        {progress} / {max}
+                      </p>
+                    )}
                   </div>
-
                 </button>
               );
             })}
@@ -175,7 +171,7 @@ export default function BadgesGrid({ userId, language }: Props) {
         )}
       </div>
 
-      {/* Modal s detailom odznaku */}
+      {/* DETAILNÝ DIALÓG S ODZNAKOM */}
       <BadgeModal
         badge={selectedBadge?.badge || null}
         userBadge={selectedBadge?.userBadge || null}

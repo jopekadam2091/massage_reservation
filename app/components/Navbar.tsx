@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { useLanguage } from '../lib/LanguageContext';
 import { useTheme } from '../lib/ThemeContext';
@@ -12,8 +12,8 @@ import UserHistoryModal from './UserHistoryModal';
 import AdminUserManagementModal from './admin/AdminUserManagementModal';
 
 import { 
-  Calendar, CreditCard, ShieldCheck, User, Sun, Moon, LogOut, Settings,
-  Flower2, Leaf, Sparkles, Heart, Feather, Droplets, Coffee, Cat, Star, Menu, X
+  Calendar, CreditCard, ShieldCheck, User, Sun, Moon, Settings,
+  Flower2, Leaf, Sparkles, Heart, Feather, Droplets, Coffee, Cat, Star
 } from 'lucide-react';
 
 const ICON_MAP: Record<string, React.ElementType> = {
@@ -31,6 +31,36 @@ const ICON_MAP: Record<string, React.ElementType> = {
   Star,
 };
 
+// 💧 SVG PATH GENERATOR FOR SMOOTH CIRCULAR NOTCHED NAVBAR BACKGROUND
+function getNavbarSvgPath(activeIdx: number, totalTabs: number) {
+  const width = 400;
+  const height = 64;
+  const tabWidth = width / totalTabs;
+  const xc = (activeIdx + 0.5) * tabWidth;
+  const notchR = 32; // Cutout half-width
+  const notchDepth = 25; // Circular socket dip depth
+  const topY = 14;
+
+  const leftX = xc - notchR;
+  const rightX = xc + notchR;
+
+  return `
+    M 16 ${topY}
+    L ${leftX} ${topY}
+    C ${xc - 20} ${topY}, ${xc - 16} ${topY + notchDepth}, ${xc} ${topY + notchDepth}
+    C ${xc + 16} ${topY + notchDepth}, ${xc + 20} ${topY}, ${rightX} ${topY}
+    L ${width - 16} ${topY}
+    A 16 16 0 0 1 ${width} ${topY + 16}
+    L ${width} ${height - 16}
+    A 16 16 0 0 1 ${width - 16} ${height}
+    L 16 ${height}
+    A 16 16 0 0 1 0 ${height - 16}
+    L 0 ${topY + 16}
+    A 16 16 0 0 1 16 ${topY}
+    Z
+  `;
+}
+
 export default function Navbar() {
   const pathname = usePathname();
   const { language, toggleLanguage, t } = useLanguage();
@@ -44,26 +74,6 @@ export default function Navbar() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isAdminUserMgmtOpen, setIsAdminUserMgmtOpen] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); // 🚀 HAMBURGER MENU STATE
-  const [isMenuClosing, setIsMenuClosing] = useState(false); // 🚀 HAMBURGER MENU EXIT ANIMATION STATE
-
-  const closeMenuWithAnimation = useCallback(() => {
-    if (isMenuClosing || !isMobileMenuOpen) return;
-    setIsMenuClosing(true);
-    setTimeout(() => {
-      setIsMobileMenuOpen(false);
-      setIsMenuClosing(false);
-    }, 280);
-  }, [isMenuClosing, isMobileMenuOpen]);
-
-  const toggleMobileMenu = useCallback(() => {
-    if (isMobileMenuOpen) {
-      closeMenuWithAnimation();
-    } else {
-      setIsMenuClosing(false);
-      setIsMobileMenuOpen(true);
-    }
-  }, [isMobileMenuOpen, closeMenuWithAnimation]);
 
   useEffect(() => {
     const checkUser = async () => {
@@ -113,255 +123,208 @@ export default function Navbar() {
     return () => subscription.unsubscribe();
   }, []);
 
+  // Total tabs count: 3 for logged in, 2 for logged out
+  const totalTabs = sessionUser ? 3 : 2;
+
+  // Active Tab Index
+  const getActiveTabIdx = () => {
+    if (!sessionUser) {
+      if (pathname === '/login') return 1;
+      return 0;
+    }
+    if (pathname === '/') return 0;
+    if (pathname === '/vernost' || pathname === '/admin') return 1;
+    if (pathname === '/profil' || pathname === '/historie' || pathname === '/login') return 2;
+    return 0;
+  };
+
+  const activeTabIdx = getActiveTabIdx();
+
+  // Active Icon Renderer inside the elevated circle ball (Gulička)
+  const renderActiveBallIcon = () => {
+    if (!sessionUser) {
+      if (activeTabIdx === 0) return <Calendar size={18} strokeWidth={2.5} className="text-white" />;
+      return <User size={18} strokeWidth={2.5} className="text-white" />;
+    }
+
+    switch (activeTabIdx) {
+      case 0:
+        return <Calendar size={18} strokeWidth={2.5} className="text-white" />;
+      case 1:
+        return isAdmin ? (
+          <ShieldCheck size={18} strokeWidth={2.5} className="text-white" />
+        ) : (
+          <CreditCard size={18} strokeWidth={2.5} className="text-white" />
+        );
+      case 2: {
+        const IconComp = ICON_MAP[avatarIcon || 'User'] || ICON_MAP['User'];
+        return <IconComp size={18} strokeWidth={2.5} className="text-white" />;
+      }
+      default:
+        return <Calendar size={18} strokeWidth={2.5} className="text-white" />;
+    }
+  };
+
   return (
     <>
-      <nav className="sticky top-0 z-40 w-full bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl border-b border-slate-200/80 dark:border-zinc-800/80 transition-colors duration-300 font-sans shadow-xs">
-        <div className="max-w-5xl mx-auto px-4 py-2.5 flex flex-col gap-2.5">
+      {/* ==========================================================================
+         EVERVAULT NOTCHED NAVBAR WITH ELEVATED FLOATING ELECTRIC PURPLE CIRCLE
+         ========================================================================== */}
+      <nav 
+        suppressHydrationWarning 
+        className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2.5 font-sans"
+        style={{ bottom: 'calc(1rem + env(safe-area-inset-bottom, 0px))' }}
+      >
+        
+        {/* ================================================================== */}
+        {/* NOTCHED TAB BAR CONTAINER (CONTAINS ONLY TABS + SVG CUTOUT NOTCH)  */}
+        {/* ================================================================== */}
+        <div className={`relative h-16 ${sessionUser ? 'w-[290px] sm:w-[360px]' : 'w-[260px] sm:w-[320px]'}`}>
           
-          {/* 🚀 RIADOK 1: PROFIL VĽAVO + HAMBURGER VPRÁVO */}
-          <div className="flex items-center justify-between gap-2 relative">
+          {/* 1. DYNAMIC SVG BACKGROUND WITH TEARDROP CUTOUT NOTCH */}
+          <svg 
+            viewBox="0 0 400 64" 
+            className="absolute inset-0 w-full h-full pointer-events-none drop-shadow-2xl overflow-visible"
+            preserveAspectRatio="none"
+          >
+            <path
+              d={getNavbarSvgPath(activeTabIdx, totalTabs)}
+              className="fill-white/95 dark:fill-[#0B0D22]/95 stroke-[#E2E8F0] dark:stroke-[#2B2F49] transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
+              strokeWidth="1.5"
+            />
+          </svg>
 
-            {/* VĽAVO: PROFIL S MENOM ALEBO HOSŤ */}
-            <button
-              type="button"
-              onClick={() => {
-                if (isAdmin) {
-                  setIsAdminUserMgmtOpen(true);
-                } else {
-                  setIsProfileModalOpen(true);
-                }
-              }}
-              className="flex items-center gap-2.5 font-bold text-slate-800 dark:text-zinc-100 text-sm tracking-tight min-w-0 hover:opacity-90 transition-all duration-200 active:scale-95 text-left cursor-pointer group"
-              title={sessionUser ? (language === 'sk' ? 'Kliknite pre zobrazenie profilu / histórie' : 'Click to view profile / history') : (language === 'sk' ? 'Prihlásiť sa' : 'Sign in')}
+          {/* ⚡ 2. FLOATING ACTIVE ELEVATED CIRCLE BALL & TABS CONTAINER */}
+          <div suppressHydrationWarning className="relative z-10 w-full h-full flex items-center justify-around">
+            
+            {/* Sliding Ball Container */}
+            <div 
+              className={`absolute top-0 bottom-0 left-0 flex items-center justify-center pointer-events-none transition-transform duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${
+                sessionUser ? 'w-1/3' : 'w-1/2'
+              }`}
+              style={{ transform: `translateX(${activeTabIdx * 100}%)` }}
             >
-              {sessionUser ? (
-                <>
-                  <div 
-                    className="w-9 h-9 rounded-xl flex items-center justify-center bg-white dark:bg-zinc-800 border border-slate-200/80 dark:border-zinc-700 shadow-sm shrink-0 transition-all duration-300 group-hover:scale-105"
-                    style={{ color: avatarColor || '#10b981' }}
-                  >
-                    {(() => {
-                      const IconComp = ICON_MAP[avatarIcon || 'User'] || ICON_MAP['User'];
-                      return <IconComp size={20} strokeWidth={2} />;
-                    })()}
-                  </div>
-                  <div className="flex flex-col min-w-0 text-left">
-                    <span className="font-extrabold text-xs text-slate-800 dark:text-zinc-100 truncate max-w-[160px] sm:max-w-[240px] leading-tight group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
-                      {userProfile?.full_name || sessionUser.email}
-                    </span>
-                    <span className="text-[10px] font-semibold text-slate-400 dark:text-zinc-500">
-                      {isAdmin ? (language === 'sk' ? 'Administrátor' : 'Administrator') : (language === 'sk' ? 'Klient' : 'Client')}
-                    </span>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-slate-100 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 text-slate-400 shrink-0 shadow-sm group-hover:text-slate-600 dark:group-hover:text-zinc-200 transition-colors">
-                    <User size={18} />
-                  </div>
-                  <span className="font-extrabold text-xs text-slate-700 dark:text-zinc-200 tracking-tight truncate max-w-[180px] sm:max-w-none">
-                    {language === 'sk' ? 'Hosť Rezervačný systém' : 'Guest Reservation System'}
-                  </span>
-                </>
-              )}
-            </button>
+              {/* Elevated Floating Ball with Electric Violet Glow */}
+              <div className="absolute -top-3.5 w-11 h-11 rounded-full bg-gradient-to-tr from-[#6633EE] via-[#7C3AED] to-[#A78BFA] shadow-[0_0_22px_rgba(102,51,238,0.75)] flex items-center justify-center border-2 border-white dark:border-[#0B0D22] transition-all duration-300 animate-in zoom-in-75 ring-1 ring-[#A78BFA]/40">
+                {renderActiveBallIcon()}
+              </div>
+            </div>
 
-            {/* VPRÁVO: HAMBURGER TLAČIDLO */}
-            <button
-              type="button"
-              onClick={toggleMobileMenu}
-              className="p-2 rounded-xl border border-slate-200/80 dark:border-zinc-700 bg-slate-50/80 dark:bg-zinc-800/80 text-slate-700 dark:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-700 transition-all duration-200 active:scale-95 shadow-xs cursor-pointer"
-              aria-label="Toggle menu"
-            >
-              {isMobileMenuOpen && !isMenuClosing ? <X size={20} /> : <Menu size={20} />}
-            </button>
-
-            {/* 🚀 BOČNÉ/KONTANERNÉ HAMBURGER POPOVER MENU (S JEMNOU REVERNOM ANIMÁCIOU ZASÚVANIA) */}
-            {isMobileMenuOpen && (
+            {/* ================================================================== */}
+            {/* 3. LOGGED OUT TABS (2 Tabs: Rezervácia, Prihlásenie)             */}
+            {/* ================================================================== */}
+            {!sessionUser ? (
               <>
-                {/* Klikacie pozadie na zatvorenie menu s plynulým fade-out */}
-                <div 
-                  className={`fixed inset-0 z-40 bg-black/20 dark:bg-black/40 backdrop-blur-xs ${
-                    isMenuClosing ? 'animate-backdropFadeOut' : 'animate-backdropFadeIn'
-                  }`}
-                  onClick={closeMenuWithAnimation}
-                />
-
-                {/* Kompaktné plávajúce menu pod tlačidlom s plynulou animáciou vysúvania a zasúvania */}
-                <div className={`absolute right-0 top-12 z-50 w-64 sm:w-72 p-3 space-y-2.5 rounded-3xl bg-white/95 dark:bg-zinc-800/95 backdrop-blur-2xl border border-slate-200/80 dark:border-zinc-700/80 shadow-2xl shadow-slate-900/15 dark:shadow-black/60 font-sans text-left ${
-                  isMenuClosing ? 'animate-popoverOut' : 'animate-popoverIn'
-                }`}>
-                  
-                  {/* 1. JAZYK (SK / EN) */}
-                  <div className="flex items-center justify-between p-2 rounded-2xl bg-slate-50 dark:bg-zinc-700/50 border border-slate-200/60 dark:border-zinc-600/60">
-                    <span className="text-xs font-bold text-slate-700 dark:text-zinc-200">
-                      {language === 'sk' ? 'Jazyk / Language' : 'Language'}
-                    </span>
-                    
-                    <button
-                      type="button"
-                      onClick={toggleLanguage}
-                      className="w-13 h-7 rounded-full bg-slate-200 dark:bg-zinc-700 p-0.5 border border-slate-300 dark:border-zinc-600 relative transition-colors duration-300 flex items-center justify-between px-1.5 text-[10px] font-black select-none cursor-pointer"
-                    >
-                      <span className={language === 'sk' ? 'opacity-0' : 'opacity-60 text-slate-500'}>SK</span>
-                      <span className={language === 'en' ? 'opacity-0' : 'opacity-60 text-slate-500'}>EN</span>
-                      <div
-                        className={`absolute top-0.5 left-0.5 w-6 h-6 rounded-full bg-indigo-600 text-white shadow-md flex items-center justify-center text-[10px] font-extrabold transition-transform duration-300 ${
-                          language === 'en' ? 'translate-x-6 bg-purple-600' : 'translate-x-0'
-                        }`}
-                      >
-                        {language.toUpperCase()}
-                      </div>
-                    </button>
-                  </div>
-
-                  {/* 2. TMAVÝ / SVETLÝ REŽIM */}
-                  <div className="flex items-center justify-between p-2 rounded-2xl bg-slate-50 dark:bg-zinc-700/50 border border-slate-200/60 dark:border-zinc-600/60">
-                    <span className="text-xs font-bold text-slate-700 dark:text-zinc-200">
-                      {language === 'sk' ? 'Tmavý režim' : 'Dark Mode'}
-                    </span>
-
-                    <button
-                      type="button"
-                      onClick={toggleTheme}
-                      className="w-13 h-7 rounded-full bg-slate-200 dark:bg-zinc-700 p-0.5 border border-slate-300 dark:border-zinc-600 relative transition-colors duration-300 flex items-center justify-between px-1.5 select-none cursor-pointer"
-                      aria-label="Toggle theme"
-                    >
-                      <Sun size={12} className="text-amber-500" />
-                      <Moon size={12} className="text-indigo-400" />
-                      <div
-                        className={`absolute top-0.5 left-0.5 w-6 h-6 rounded-full bg-white dark:bg-zinc-800 shadow-md flex items-center justify-center transition-transform duration-300 ${
-                          theme === 'dark' ? 'translate-x-6 border border-zinc-600' : 'translate-x-0 border border-slate-200'
-                        }`}
-                      >
-                        {theme === 'dark' ? (
-                          <Moon size={12} className="text-indigo-400 fill-indigo-400" />
-                        ) : (
-                          <Sun size={12} className="text-amber-500 fill-amber-400" />
-                        )}
-                      </div>
-                    </button>
-                  </div>
-
-                  {/* 3. NASTAVENIA (LEN PO PRIHLÁSENÍ) */}
-                  {sessionUser && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        closeMenuWithAnimation();
-                        setTimeout(() => setIsSettingsOpen(true), 150);
-                      }}
-                      className="w-full p-2 rounded-2xl bg-slate-50 dark:bg-zinc-700/50 border border-slate-200/60 dark:border-zinc-600/60 text-slate-700 dark:text-zinc-200 font-bold text-xs flex items-center justify-between hover:bg-slate-100 dark:hover:bg-zinc-700 transition cursor-pointer"
-                    >
-                      <span className="flex items-center gap-2">
-                        <Settings size={16} className="text-violet-600 dark:text-violet-400" />
-                        <span>{language === 'sk' ? 'Nastavenia účtu' : 'Account Settings'}</span>
-                      </span>
-                      <span className="text-[10px] text-slate-400">➔</span>
-                    </button>
+                <Link
+                  href="/"
+                  className="z-20 w-1/2 h-full flex flex-col items-center justify-end pb-2 text-[10px] font-medium active:scale-95 transition-all duration-300"
+                >
+                  {activeTabIdx !== 0 && (
+                    <Calendar size={18} strokeWidth={1.8} className="text-[#64748B] dark:text-[#C7CAE0]/60 mb-0.5" />
                   )}
+                  <span className={activeTabIdx === 0 ? 'text-[#0B0D22] dark:text-[#FFFFFF] font-semibold text-[11px]' : 'text-[#64748B] dark:text-[#C7CAE0]/60'}>
+                    {t.navReservation}
+                  </span>
+                </Link>
 
-                  {/* 4. PRIHLÁSENIE / ODHLÁSENIE */}
-                  {!sessionUser ? (
-                    <Link
-                      href="/login"
-                      onClick={() => closeMenuWithAnimation()}
-                      className="w-full py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs uppercase tracking-wider shadow-md transition active:scale-95 flex items-center justify-center gap-2"
-                    >
-                      <User size={16} />
-                      <span>{t.navLogin}</span>
-                    </Link>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={async () => {
-                        closeMenuWithAnimation();
-                        await supabase.auth.signOut();
-                        window.location.href = '/';
-                      }}
-                      className="w-full py-2.5 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 text-rose-600 dark:text-rose-400 font-bold text-xs transition active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
-                    >
-                      <LogOut size={16} />
-                      <span>{t.navLogout}</span>
-                    </button>
+                <Link
+                  href="/login"
+                  className="z-20 w-1/2 h-full flex flex-col items-center justify-end pb-2 text-[10px] font-medium active:scale-95 transition-all duration-300"
+                >
+                  {activeTabIdx !== 1 && (
+                    <User size={18} strokeWidth={1.8} className="text-[#64748B] dark:text-[#C7CAE0]/60 mb-0.5" />
                   )}
+                  <span className={activeTabIdx === 1 ? 'text-[#0B0D22] dark:text-[#FFFFFF] font-semibold text-[11px]' : 'text-[#64748B] dark:text-[#C7CAE0]/60'}>
+                    {t.navLogin}
+                  </span>
+                </Link>
+              </>
+            ) : (
+              /* ================================================================== */
+              /* 4. LOGGED IN TABS (3 Tabs: Rezervácia, Vernosť/Admin, Profil)      */
+              /* ================================================================== */
+              <>
+                {/* TAB 1: REZERVAČNÝ KALENDÁR / BOOKING SLOTS PRE ADMINA */}
+                <Link
+                  href="/"
+                  className="z-20 w-1/3 h-full flex flex-col items-center justify-end pb-2 text-[10px] font-medium active:scale-95 transition-all duration-300"
+                >
+                  {activeTabIdx !== 0 && (
+                    <Calendar size={18} strokeWidth={1.8} className="text-[#64748B] dark:text-[#C7CAE0]/60 mb-0.5" />
+                  )}
+                  <span className={activeTabIdx === 0 ? 'text-[#0B0D22] dark:text-[#FFFFFF] font-semibold text-[11px]' : 'text-[#64748B] dark:text-[#C7CAE0]/60'}>
+                    {isAdmin ? 'Booking Slots' : t.navReservation}
+                  </span>
+                </Link>
 
-                </div>
+                {/* TAB 2: VERNOSTNÝ PROGRAM / ADMIN */}
+                {isAdmin ? (
+                  <Link
+                    href="/admin"
+                    className="z-20 w-1/3 h-full flex flex-col items-center justify-end pb-2 text-[10px] font-medium active:scale-95 transition-all duration-300"
+                  >
+                    {activeTabIdx !== 1 && (
+                      <ShieldCheck size={18} strokeWidth={1.8} className="text-[#64748B] dark:text-[#C7CAE0]/60 mb-0.5" />
+                    )}
+                    <span className={activeTabIdx === 1 ? 'text-[#0B0D22] dark:text-[#FFFFFF] font-semibold text-[11px]' : 'text-[#64748B] dark:text-[#C7CAE0]/60'}>
+                      Admin
+                    </span>
+                  </Link>
+                ) : (
+                  <Link
+                    href="/vernost"
+                    className="z-20 w-1/3 h-full flex flex-col items-center justify-end pb-2 text-[10px] font-medium active:scale-95 transition-all duration-300"
+                  >
+                    {activeTabIdx !== 1 && (
+                      <CreditCard size={18} strokeWidth={1.8} className="text-[#64748B] dark:text-[#C7CAE0]/60 mb-0.5" />
+                    )}
+                    <span className={activeTabIdx === 1 ? 'text-[#0B0D22] dark:text-[#FFFFFF] font-semibold text-[11px]' : 'text-[#64748B] dark:text-[#C7CAE0]/60'}>
+                      {language === 'sk' ? 'Vernosť' : 'Loyalty'}
+                    </span>
+                  </Link>
+                )}
+
+                {/* TAB 3: PROFIL / RANKING */}
+                <Link
+                  href="/profil"
+                  className="z-20 w-1/3 h-full flex flex-col items-center justify-end pb-2 text-[10px] font-medium active:scale-95 cursor-pointer transition-all duration-300"
+                >
+                  {activeTabIdx !== 2 && (
+                    (() => {
+                      const IconComp = ICON_MAP[avatarIcon || 'User'] || ICON_MAP['User'];
+                      return <IconComp size={18} strokeWidth={1.8} className="text-[#64748B] dark:text-[#C7CAE0]/60 mb-0.5" />;
+                    })()
+                  )}
+                  <span className={activeTabIdx === 2 ? 'text-[#0B0D22] dark:text-[#FFFFFF] font-semibold text-[11px]' : 'text-[#64748B] dark:text-[#C7CAE0]/60'}>
+                    {isAdmin ? (language === 'sk' ? 'Ranking & Profil' : 'Ranking') : (language === 'sk' ? 'Profil' : 'Profile')}
+                  </span>
+                </Link>
               </>
             )}
-
           </div>
-
-          {/* 🚀 RIADOK 2: SEGMENETOVÝ PREPÍNAČ SEKIÍ */}
-          <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-slate-100/90 dark:bg-zinc-800/90 border border-slate-200/80 dark:border-zinc-700/80 shadow-inner">
-            <Link
-              href="/"
-              className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition-all duration-200 text-center flex items-center justify-center gap-1.5 active:scale-95 ${
-                pathname === '/'
-                  ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/20'
-                  : 'text-slate-600 dark:text-zinc-300 hover:bg-slate-200/60 dark:hover:bg-zinc-700/60'
-              }`}
-            >
-              <Calendar size={14} />
-              <span>{t.navReservation}</span>
-            </Link>
-
-            {isAdmin ? (
-              <Link
-                href="/admin"
-                className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition-all duration-200 text-center flex items-center justify-center gap-1.5 active:scale-95 ${
-                  pathname === '/admin'
-                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/20'
-                    : 'text-slate-600 dark:text-zinc-300 hover:bg-slate-200/60 dark:hover:bg-zinc-700/60'
-                }`}
-              >
-                <ShieldCheck size={14} />
-                <span>{language === 'sk' ? 'Admin Panel' : 'Admin Panel'}</span>
-              </Link>
-            ) : (
-              <Link
-                href="/profil"
-                className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition-all duration-200 text-center flex items-center justify-center gap-1.5 active:scale-95 ${
-                  pathname === '/profil'
-                    ? 'bg-purple-600 text-white shadow-md shadow-purple-500/20'
-                    : 'text-slate-600 dark:text-zinc-300 hover:bg-slate-200/60 dark:hover:bg-zinc-700/60'
-                }`}
-              >
-                <CreditCard size={14} />
-                <span>{t.navLoyaltyCard}</span>
-              </Link>
-            )}
-          </div>
-
         </div>
+
+        {/* ================================================================== */}
+        {/* QUICK THEME & LANG SWITCHER PILL (DESKTOP ONLY)                     */}
+        {/* ================================================================== */}
+        <div suppressHydrationWarning className="hidden sm:flex items-center gap-1.5 h-12 px-3 rounded-full bg-white/90 dark:bg-[#0B0D22]/90 border border-[#E2E8F0] dark:border-[#2B2F49] backdrop-blur-2xl shadow-xl">
+          <button
+            type="button"
+            onClick={toggleLanguage}
+            className="px-2.5 py-1 rounded-full bg-slate-50 dark:bg-[#010314] text-[#0B0D22] dark:text-[#FFFFFF] text-[10px] font-medium border border-[#E2E8F0] dark:border-[#2B2F49] hover:border-[#6633EE]/60 transition cursor-pointer"
+          >
+            {language.toUpperCase()}
+          </button>
+          <button
+            type="button"
+            onClick={toggleTheme}
+            className="p-1.5 rounded-full bg-slate-50 dark:bg-[#010314] text-[#6633EE] dark:text-[#A78BFA] border border-[#E2E8F0] dark:border-[#2B2F49] hover:border-[#6633EE]/60 transition cursor-pointer"
+          >
+            {theme === 'dark' ? <Moon size={14} /> : <Sun size={14} />}
+          </button>
+        </div>
+
       </nav>
-
-      {/* MODALY */}
-      {sessionUser && isSettingsOpen && (
-        <SettingsModal
-          isOpen={isSettingsOpen}
-          onClose={() => setIsSettingsOpen(false)}
-          userId={sessionUser.id}
-          language={language}
-          toggleLanguage={toggleLanguage}
-          theme={theme}
-          toggleTheme={toggleTheme}
-          t={t}
-        />
-      )}
-
-      <UserHistoryModal
-        isOpen={isProfileModalOpen}
-        onClose={() => setIsProfileModalOpen(false)}
-        sessionUser={sessionUser}
-        language={language}
-      />
-
-      <AdminUserManagementModal
-        isOpen={isAdminUserMgmtOpen}
-        onClose={() => setIsAdminUserMgmtOpen(false)}
-        language={language}
-      />
     </>
   );
 }

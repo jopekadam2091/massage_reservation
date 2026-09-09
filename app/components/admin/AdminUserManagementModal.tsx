@@ -240,7 +240,7 @@ export default function AdminUserManagementModal({ isOpen, onClose, language }: 
         </div>
 
         {/* Zoznam používateľov */}
-        <div className="overflow-y-auto space-y-3 pr-1 flex-1">
+        <div className="overflow-y-auto no-scrollbar space-y-3 pr-1 flex-1">
           {loading ? (
             <div className="py-12 flex flex-col items-center justify-center gap-2 text-slate-400">
               <Loader2 size={24} className="animate-spin text-indigo-600" />

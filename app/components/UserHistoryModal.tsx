@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '../lib/supabase';
+import { UserHistorySkeleton } from './ui/Skeleton';
 import { 
   X, Gift, Sparkles, LogIn, History, PlusCircle, Tag, Loader2 
 } from 'lucide-react';
@@ -143,11 +144,10 @@ export default function UserHistoryModal({ isOpen, onClose, sessionUser, languag
           </p>
         </div>
 
-        <div className="overflow-y-auto space-y-2.5 pr-1 flex-1">
+        <div className="overflow-y-auto no-scrollbar space-y-2.5 pr-1 flex-1">
           {loading ? (
-            <div className="py-12 flex flex-col items-center justify-center gap-2 text-slate-400">
-              <Loader2 size={24} className="animate-spin text-indigo-600" />
-              <p className="text-xs">{language === 'sk' ? 'Načítavam históriu...' : 'Loading history...'}</p>
+            <div className="py-2">
+              <UserHistorySkeleton count={5} />
             </div>
           ) : (
             (() => {
@@ -169,7 +169,7 @@ export default function UserHistoryModal({ isOpen, onClose, sessionUser, languag
                           {language === 'sk' ? 'Absolvovaná masáž' : 'Massage completed'} — {Number(s.price).toFixed(2)} €
                         </p>
                         <p className="text-[10px] text-slate-400 dark:text-slate-500 font-medium">
-                          {new Date(s.created_at).toLocaleDateString('sk-SK')} o {new Date(s.created_at).toLocaleTimeString('sk-SK', { hour: '2-digit', minute: '2-digit' })}
+                          {new Date(s.created_at).toLocaleDateString(language === 'sk' ? 'sk-SK' : 'en-US')} {language === 'sk' ? 'o' : 'at'} {new Date(s.created_at).toLocaleTimeString(language === 'sk' ? 'sk-SK' : 'en-US', { hour: '2-digit', minute: '2-digit' })}
                         </p>
                       </div>
                       {s.claimed && (

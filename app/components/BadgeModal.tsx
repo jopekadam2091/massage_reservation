@@ -9,6 +9,7 @@ import {
   GiShieldReflect, GiLightningHelix, GiCompass, GiStopwatch, 
   GiFlame, GiSun, GiOwl, GiPartyFlags, GiCakeSlice, GiTrophy 
 } from 'react-icons/gi';
+import { Adult18BadgeIcon } from '@/app/components/icons/AdultSensualIcons';
 
 const ICON_MAP: Record<string, React.ElementType> = {
   GiLaurelCrown,
@@ -25,6 +26,7 @@ const ICON_MAP: Record<string, React.ElementType> = {
   GiPartyFlags,
   GiCakeSlice,
   GiTrophy,
+  Adult18BadgeIcon,
 };
 
 type Props = {
@@ -47,14 +49,14 @@ export default function BadgeModal({ badge, userBadge, isOpen, onClose, language
   const langKey = language === 'sk' ? 'sk' : 'en';
 
   return (
-    <div className="fixed inset-0 z-[110] bg-black/75 backdrop-blur-md flex items-center justify-center p-4 font-sans animate-in fade-in duration-200">
-      <div className="w-full max-w-sm p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl relative text-center space-y-5">
+    <div className="fixed inset-0 z-[110] bg-[#0B0D22]/60 dark:bg-[#010314]/80 backdrop-blur-md flex items-center justify-center p-4 font-sans animate-in fade-in duration-200 text-[#1E293B] dark:text-[#DDE0F2]">
+      <div className="w-full max-w-sm p-6 sm:p-7 rounded-2xl bg-white dark:bg-[#0B0D22] border border-[#E2E8F0] dark:border-[#2B2F49] shadow-2xl relative text-center space-y-5">
         
         {/* Zavrieť */}
         <button
           type="button"
           onClick={onClose}
-          className="absolute top-4 right-4 p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+          className="absolute top-4 right-4 p-1.5 rounded-full text-[#64748B] dark:text-[#C7CAE0] hover:text-[#0B0D22] dark:hover:text-white transition cursor-pointer"
         >
           <X size={18} />
         </button>
@@ -63,91 +65,73 @@ export default function BadgeModal({ badge, userBadge, isOpen, onClose, language
         <div className="relative mx-auto w-24 h-24 flex items-center justify-center pt-1">
           <div
             className={`w-24 h-24 rounded-full bg-gradient-to-br ${
-              isUnlocked ? badge.unlockedBg : 'from-slate-700 via-slate-800 to-slate-900'
-            } text-white flex items-center justify-center shadow-xl border-4 relative overflow-hidden transition-all duration-300 ${
+              isUnlocked ? badge.unlockedBg : 'from-slate-100 via-slate-200 to-slate-300 dark:from-[#010314] dark:via-[#0B0D22] dark:to-[#1a1d36]'
+            } text-white flex items-center justify-center shadow-xl border-2 relative overflow-hidden transition-all duration-300 ${
               isUnlocked
-                ? `${badge.unlockedBorder}`
-                : 'border-slate-600/60 shadow-inner opacity-75'
+                ? `${badge.unlockedBorder} shadow-[0_0_20px_rgba(102,51,238,0.6)]`
+                : 'border-slate-300 dark:border-[#2B2F49] opacity-60'
             }`}
-            style={{
-              boxShadow: isUnlocked ? `0 10px 25px ${badge.glowColor}` : 'inset 0 2px 8px rgba(0,0,0,0.6)',
-            }}
           >
             {/* Glossy Odlesk (Svetelný pásik na vrchu kruhu) */}
-            <div className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/30 via-white/10 to-transparent pointer-events-none rounded-t-full" />
+            <div className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/30 via-white/5 to-transparent pointer-events-none rounded-t-full" />
             
             <IconComp
-              size={44}
-              className={`transition-all duration-300 drop-shadow-md relative z-10 ${
-                isUnlocked ? 'text-white scale-100' : 'text-slate-400/50 scale-90'
+              size={40}
+              className={`transition-all duration-300 relative z-10 ${
+                isUnlocked ? 'text-white scale-100' : 'text-slate-400 dark:text-[#C7CAE0]/30 scale-90'
               }`}
             />
           </div>
 
           {!isUnlocked && (
-            <div className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-slate-800 text-slate-300 border-2 border-white dark:border-slate-900 flex items-center justify-center shadow-md z-20">
-              <Lock size={14} />
+            <div className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-slate-100 dark:bg-[#010314] text-slate-500 dark:text-[#C7CAE0]/60 border border-slate-300 dark:border-[#2B2F49] flex items-center justify-center shadow-md z-20">
+              <Lock size={12} />
             </div>
           )}
         </div>
 
         {/* Názov a kategória */}
         <div className="space-y-1">
-          <span className="inline-flex items-center text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400">
+          <span className="inline-flex items-center text-[10px] font-medium uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-[#6633EE]/15 dark:bg-[#6633EE]/20 text-[#6633EE] dark:text-[#A78BFA] border border-[#6633EE]/30">
             {badge.categoryLabel[langKey]}
           </span>
-          <h3 className="font-extrabold text-lg text-slate-800 dark:text-slate-100 pt-1">
+          <h3 className="font-semibold text-lg text-[#0B0D22] dark:text-[#FFFFFF] pt-1">
             {badge.title[langKey]}
           </h3>
-          <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed px-2">
+          <p className="text-xs text-[#64748B] dark:text-[#C7CAE0] leading-relaxed px-2 font-normal">
             {badge.description[langKey]}
           </p>
         </div>
 
-        {/* Stav a Progres */}
-        <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700/60 space-y-2 text-left">
-          <div className="flex items-center justify-between text-xs font-bold">
-            <span className="text-slate-600 dark:text-slate-300">
-              {language === 'sk' ? 'Stav odznaku:' : 'Badge Status:'}
-            </span>
-            {isUnlocked ? (
-              <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
-                <CheckCircle2 size={13} />
-                <span>{language === 'sk' ? 'Odomknutý 🎉' : 'Unlocked 🎉'}</span>
+        {/* Informácia o stave / Progres - zobrazujeme len keď ešte NIE JE odomknutý */}
+        {!isUnlocked && (
+          <div className="p-4 rounded-xl bg-slate-50 dark:bg-[#010314] border border-[#E2E8F0] dark:border-[#2B2F49] text-left space-y-2">
+            <div className="flex items-center justify-between text-xs font-medium">
+              <span className="text-[#64748B] dark:text-[#C7CAE0]/70">
+                {language === 'sk' ? 'Postup k odomknutiu' : 'Progress to unlock'}
               </span>
-            ) : (
-              <span className="flex items-center gap-1 text-slate-400">
-                <Lock size={13} />
-                <span>{language === 'sk' ? 'Zamknutý' : 'Locked'}</span>
-              </span>
-            )}
-          </div>
-
-          {/* Progres lišta */}
-          <div className="space-y-1">
-            <div className="flex justify-between text-[11px] font-bold text-slate-500 dark:text-slate-400">
-              <span>{language === 'sk' ? 'Postup:' : 'Progress:'}</span>
-              <span>
-                {currentProgress} / {maxProgress} {badge.unit ? badge.unit[langKey] : ''}
+              <span className="text-[#6633EE] dark:text-[#A78BFA] font-semibold tracking-wide text-xs tabular-nums">
+                {currentProgress} / {maxProgress}
               </span>
             </div>
-            <div className="w-full h-2.5 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
+
+            {/* Progres Bar */}
+            <div className="w-full bg-slate-200 dark:bg-[#0B0D22] rounded-full h-2 overflow-hidden border border-[#E2E8F0] dark:border-[#2B2F49]">
               <div
-                className={`h-full rounded-full transition-all duration-500 bg-gradient-to-r ${
-                  isUnlocked ? badge.unlockedBg : 'from-slate-500 to-slate-600'
-                }`}
+                className="bg-gradient-to-r from-[#6633EE] to-[#A78BFA] h-full rounded-full transition-all duration-500 shadow-[0_0_8px_rgba(102,51,238,0.8)]"
                 style={{ width: `${progressPercent}%` }}
               />
             </div>
           </div>
-        </div>
+        )}
 
+        {/* Tlačidlo OK */}
         <button
           type="button"
           onClick={onClose}
-          className="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-md transition active:scale-95 cursor-pointer"
+          className="w-full btn-primary text-xs uppercase tracking-wider font-semibold"
         >
-          {language === 'sk' ? 'Zavrieť' : 'Close'}
+          {language === 'sk' ? 'Zatvoriť' : 'Close'}
         </button>
 
       </div>

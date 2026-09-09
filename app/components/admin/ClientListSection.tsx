@@ -58,24 +58,24 @@ export default function ClientListSection({
   language,
 }: Props) {
   return (
-    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-sm overflow-hidden text-left font-sans">
+    <div className="bg-white dark:bg-[#0B0D22] border border-[#E2E8F0] dark:border-[#2B2F49] rounded-2xl shadow-sm overflow-hidden text-left font-sans text-[#1E293B] dark:text-[#DDE0F2]">
       <button
         type="button"
         onClick={() => setIsClientsCollapsed(!isClientsCollapsed)}
-        className="w-full p-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 flex items-center justify-between text-left hover:bg-slate-100/50 dark:hover:bg-slate-800/50 transition cursor-pointer"
+        className="w-full p-4 border-b border-[#E2E8F0] dark:border-[#2B2F49] bg-slate-50/50 dark:bg-[#010314]/50 flex items-center justify-between text-left hover:bg-slate-100/50 dark:hover:bg-[#010314] transition cursor-pointer"
       >
-        <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-2">
-          <Users size={14} />
-          <span>{language === 'sk' ? `Nájdení klienti (${filteredProfiles.length})` : `Found clients (${filteredProfiles.length})`}</span>
+        <h2 className="text-xs font-bold uppercase tracking-wider text-[#6633EE] dark:text-[#A78BFA] flex items-center gap-2">
+          <Users size={15} />
+          <span>{language === 'sk' ? `Zoznam klientov a vernostné karty (${filteredProfiles.length})` : `Client list & loyalty cards (${filteredProfiles.length})`}</span>
         </h2>
-        <div className="text-slate-400 flex items-center gap-1 text-xs">
+        <div className="text-[#64748B] dark:text-[#C7CAE0]/60 flex items-center gap-1 text-xs">
           <span>{isClientsCollapsed ? (language === 'sk' ? 'Rozbaliť' : 'Expand') : (language === 'sk' ? 'Schovať' : 'Collapse')}</span>
           {isClientsCollapsed ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
         </div>
       </button>
 
       {!isClientsCollapsed && (
-        <div className="divide-y divide-slate-100 dark:divide-slate-800">
+        <div className="divide-y divide-[#E2E8F0] dark:divide-[#2B2F49]">
           {filteredProfiles.length > 0 ? (
             filteredProfiles.map((profile) => {
               const activeStamps = getActiveStamps(profile);
@@ -88,31 +88,38 @@ export default function ClientListSection({
               return (
                 <div 
                   key={profile.id} 
-                  className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-slate-50/60 dark:hover:bg-slate-800/20 transition-colors"
+                  className="p-4 sm:p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-4 hover:bg-slate-50/60 dark:hover:bg-[#010314]/40 transition-colors"
                 >
-                  <div className="text-left space-y-1 min-w-0 flex-1">
-                    <h3 className="font-bold text-slate-800 dark:text-slate-100 text-sm truncate">
-                      {profile.full_name || (language === 'sk' ? 'Hosť bez mena' : 'Unnamed Guest')}
-                    </h3>
-                    <p className="text-xs text-slate-400 dark:text-slate-500 truncate">{profile.email}</p>
+                  <div className="text-left space-y-1.5 min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-semibold text-[#0B0D22] dark:text-[#FFFFFF] text-sm truncate">
+                        {profile.full_name || (language === 'sk' ? 'Hosť bez mena' : 'Unnamed Guest')}
+                      </h3>
+                      {profile.role === 'admin' && (
+                        <span className="text-[10px] font-bold px-2 py-0.2 rounded-full bg-[#6633EE]/15 text-[#6633EE] dark:text-[#A78BFA] border border-[#6633EE]/30">
+                          Admin
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-[#64748B] dark:text-[#C7CAE0]/60 truncate font-normal">{profile.email}</p>
                     
-                    <div className="flex flex-wrap items-center gap-2 mt-1">
-                      <span className="inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400">
+                    <div className="flex flex-wrap items-center gap-2 pt-0.5">
+                      <span className="inline-flex items-center text-[10px] font-semibold px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-[#010314] text-[#6633EE] dark:text-[#A78BFA] border border-[#E2E8F0] dark:border-[#2B2F49]">
                         {profile.program_type === '5_stamps' ? (language === 'sk' ? '5-pečiatkový program' : '5-stamp program') : (language === 'sk' ? '10-pečiatkový program' : '10-stamp program')}
                       </span>
 
-                      <span className={`inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                      <span className={`inline-flex items-center text-[10px] font-bold px-2.5 py-0.5 rounded-full ${
                         isCardFull 
-                          ? 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 animate-pulse border border-emerald-200 dark:border-emerald-800' 
-                          : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
+                          ? 'bg-[#10B981]/15 text-[#10B981] animate-pulse border border-[#10B981]/40' 
+                          : 'bg-slate-100 dark:bg-[#010314] text-[#1E293B] dark:text-[#DDE0F2] border border-[#E2E8F0] dark:border-[#2B2F49]'
                       }`}>
-                        {language === 'sk' ? 'Stav' : 'Status'}: {currentStamps} / {maxStamps} {isCardFull && '🎉'}
+                        {language === 'sk' ? 'Pečiatky' : 'Stamps'}: {currentStamps} / {maxStamps} {isCardFull && '🎉'}
                       </span>
 
                       {activeGift && ActiveGiftIcon && (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-bold pl-2 pr-1 py-0.5 rounded-full bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400 border border-purple-200 dark:border-purple-900/50">
-                          <ActiveGiftIcon size={10} />
-                          <span className="max-w-[110px] truncate">{getGiftLabel(activeGift.gift_type, activeGift.custom_code)}</span>
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold pl-2.5 pr-1.5 py-0.5 rounded-full bg-[#6633EE]/15 text-[#6633EE] dark:text-[#A78BFA] border border-[#6633EE]/30">
+                          <ActiveGiftIcon size={11} />
+                          <span className="max-w-[120px] truncate">{getGiftLabel(activeGift.gift_type, activeGift.custom_code)}</span>
                           <button
                             type="button"
                             onClick={() => handleRevokeGift(profile)}
@@ -125,19 +132,20 @@ export default function ClientListSection({
                       )}
 
                       {profile.referred_by && (
-                        <span className="inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-full bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400 border border-sky-200 dark:border-sky-900/50">
+                        <span className="inline-flex items-center text-[10px] font-medium px-2 py-0.5 rounded-full bg-slate-100 dark:bg-[#010314] text-[#64748B] dark:text-[#C7CAE0]/60 border border-[#E2E8F0] dark:border-[#2B2F49]">
                           {language === 'sk' ? 'Odporučil: ' : 'Referred by: '}{getReferrerName(profile.referred_by) || '—'}
                         </span>
                       )}
 
                       {profile.referral_code && (
-                        <span className="inline-flex items-center text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400">
-                          {profile.referral_code}
+                        <span className="inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-[#010314] text-[#64748B] dark:text-[#C7CAE0]/60 border border-[#E2E8F0] dark:border-[#2B2F49]">
+                          Kód: {profile.referral_code}
                         </span>
                       )}
                     </div>
                   </div>
 
+                  {/* AKČNÉ TLAČIDLÁ PRE SPRÁVU KLIENTA */}
                   <div className="flex flex-wrap items-center gap-2 shrink-0">
                     <button
                       type="button"
@@ -147,20 +155,20 @@ export default function ClientListSection({
                         setStampPrice('');
                       }}
                       disabled={isCardFull}
-                      className="flex items-center gap-1.5 px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs rounded-xl shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none cursor-pointer"
+                      className="flex items-center gap-1.5 px-3 py-2 bg-[#6633EE] hover:bg-[#5324d6] text-white font-semibold text-xs rounded-xl shadow-xs transition-all duration-200 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
                     >
                       <PlusCircle size={14} />
-                      {language === 'sk' ? 'Pečiatka' : 'Stamp'}
+                      <span>{language === 'sk' ? '+ Pečiatka' : '+ Stamp'}</span>
                     </button>
 
                     {profile.referral_discount_status === 'eligible_for_10_percent_discount' && (
                       <button
                         type="button"
                         onClick={() => handleClaimReferralDiscount(profile)}
-                        className="flex items-center justify-center gap-1.5 px-3 py-2 bg-sky-600 hover:bg-sky-700 text-white font-semibold text-xs rounded-xl shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 active:scale-95 cursor-pointer"
+                        className="flex items-center justify-center gap-1.5 px-3 py-2 bg-sky-600 hover:bg-sky-700 text-white font-semibold text-xs rounded-xl shadow-xs transition-all duration-200 active:scale-95 cursor-pointer"
                       >
                         <Percent size={14} />
-                        {language === 'sk' ? 'Referal -10%' : 'Referral -10%'}
+                        <span>{language === 'sk' ? 'Referral -10%' : 'Referral -10%'}</span>
                       </button>
                     )}
 
@@ -172,39 +180,40 @@ export default function ClientListSection({
                         setCustomCode('');
                         setGiftError('');
                       }}
-                      className="flex items-center justify-center gap-1.5 px-3 py-2 min-w-[118px] bg-purple-600 hover:bg-purple-700 text-white font-semibold text-xs rounded-xl shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 active:scale-95 cursor-pointer"
+                      className="flex items-center justify-center gap-1.5 px-3 py-2 bg-slate-100 dark:bg-[#010314] hover:bg-slate-200 dark:hover:bg-[#0B0D22] text-[#6633EE] dark:text-[#A78BFA] border border-[#E2E8F0] dark:border-[#2B2F49] font-semibold text-xs rounded-xl shadow-xs transition-all duration-200 active:scale-95 cursor-pointer"
                     >
                       <Gift size={14} />
-                      {language === 'sk' ? 'Prekvapenie' : 'Surprise'}
+                      <span>{language === 'sk' ? 'Prekvapenie' : 'Surprise'}</span>
                     </button>
 
                     <button
                       type="button"
                       onClick={() => handleResetCard(profile)}
-                      className={`flex items-center justify-center gap-1.5 px-3 py-2 min-w-[92px] font-semibold text-xs rounded-xl transition-all duration-200 hover:-translate-y-0.5 active:scale-95 cursor-pointer ${
+                      className={`flex items-center justify-center gap-1.5 px-3 py-2 font-semibold text-xs rounded-xl transition-all duration-200 active:scale-95 cursor-pointer ${
                         isCardFull
-                          ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-md hover:shadow-lg shadow-emerald-500/20 ring-2 ring-emerald-300 dark:ring-emerald-800'
-                          : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 shadow-xs'
+                          ? 'bg-[#10B981] hover:bg-emerald-600 text-white shadow-sm ring-2 ring-emerald-300 dark:ring-emerald-800'
+                          : 'bg-slate-100 dark:bg-[#010314] hover:bg-slate-200 dark:hover:bg-[#0B0D22] text-[#64748B] dark:text-[#C7CAE0] border border-[#E2E8F0] dark:border-[#2B2F49]'
                       }`}
                     >
                       <RotateCcw size={14} />
-                      {isCardFull ? (language === 'sk' ? 'Uplatniť' : 'Claim') : (language === 'sk' ? 'Reset' : 'Reset')}
+                      <span>{isCardFull ? (language === 'sk' ? 'Uplatniť odmenu' : 'Claim reward') : (language === 'sk' ? 'Reset' : 'Reset')}</span>
                     </button>
 
                     <button
                       type="button"
                       onClick={() => setHistoryProfile(profile)}
-                      className="flex items-center gap-1.5 px-3 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 font-semibold text-xs rounded-xl shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 active:scale-95 cursor-pointer"
-                      title={language === 'sk' ? 'História klienta' : 'Client history'}
+                      className="flex items-center gap-1.5 px-3 py-2 bg-slate-100 dark:bg-[#010314] hover:bg-slate-200 dark:hover:bg-[#0B0D22] text-[#1E293B] dark:text-[#DDE0F2] border border-[#E2E8F0] dark:border-[#2B2F49] font-semibold text-xs rounded-xl shadow-xs transition-all duration-200 active:scale-95 cursor-pointer"
+                      title={language === 'sk' ? 'História masáží klienta' : 'Client history'}
                     >
                       <History size={14} />
+                      <span className="hidden sm:inline">{language === 'sk' ? 'História' : 'History'}</span>
                     </button>
                   </div>
                 </div>
               );
             })
           ) : (
-            <div className="p-8 text-center text-slate-400 dark:text-slate-500 text-sm">
+            <div className="p-8 text-center text-[#64748B] dark:text-[#C7CAE0]/60 text-xs font-normal">
               {language === 'sk' ? 'Nenašli sa žiadni klienti.' : 'No clients found.'}
             </div>
           )}

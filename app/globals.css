@@ -5,7 +5,7 @@
 @variant dark (&:where(.dark, .dark *));
 
 html {
-  color-scheme: light;
+  color-scheme: light dark;
 }
 
 html.dark {
@@ -13,8 +13,232 @@ html.dark {
 }
 
 /* ==========================================================================
-   🚀 HARDVÉROVO AKCELEROVANÉ PLYNULÉ ANIMÁCIE (BEZ SEKANIE)
+   🚫 DISABLE ACCIDENTAL TEXT SELECTION (NATIVE APP FEEL)
    ========================================================================== */
+
+*,
+*::before,
+*::after {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+/* Allow text selection in form inputs, textareas, contenteditable, and explicit copyable blocks */
+input,
+textarea,
+[contenteditable="true"],
+.selectable,
+.select-text,
+code,
+pre {
+  -webkit-user-select: text !important;
+  -moz-user-select: text !important;
+  -ms-user-select: text !important;
+  user-select: text !important;
+}
+
+::selection {
+  background-color: rgba(102, 51, 238, 0.3);
+  color: inherit;
+}
+
+/* ==========================================================================
+   EVERVAULT DARK PULSE - DESIGN TOKENS & TYPOGRAPHY
+   ========================================================================== */
+
+@theme {
+  --color-primary: #6633EE;
+  --color-secondary: #DDE0F2;
+  --color-tertiary: #A78BFA;
+  --color-neutral: #010314;
+  --color-surface: #0B0D22;
+  --color-on-surface: #FFFFFF;
+  --color-on-surface-muted: #C7CAE0;
+  --color-error: #FF5A7A;
+  --color-border: #2B2F49;
+
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Roobert', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Typography Utility Classes */
+.headline-display {
+  font-family: var(--font-display);
+  font-size: 56px;
+  font-weight: 600;
+  line-height: 56px;
+  letter-spacing: -0.84px;
+}
+
+.headline-lg {
+  font-family: var(--font-display);
+  font-size: 52px;
+  font-weight: 500;
+  line-height: 52px;
+  letter-spacing: -1.04px;
+}
+
+.headline-md {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 500;
+  line-height: 30px;
+  letter-spacing: 0px;
+}
+
+.headline-sm {
+  font-family: var(--font-display);
+  font-size: 17.6px;
+  font-weight: 500;
+  line-height: 22.88px;
+  letter-spacing: 0px;
+}
+
+.body-lg {
+  font-family: var(--font-sans);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 28px;
+  letter-spacing: 0px;
+}
+
+.body-md {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 24px;
+  letter-spacing: 0px;
+}
+
+.body-sm {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 20px;
+  letter-spacing: 0px;
+}
+
+.label-lg {
+  font-family: var(--font-sans);
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: 0px;
+}
+
+.label-md {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 18px;
+  letter-spacing: 0px;
+}
+
+.label-sm {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  letter-spacing: 0px;
+}
+
+.nav-sm {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 16px;
+  letter-spacing: 0px;
+}
+
+/* ==========================================================================
+   🚀 HARDWARE-ACCELERATED EVERVAULT ATMOSPHERIC ANIMATIONS
+   ========================================================================== */
+
+@keyframes pulseAura {
+  0%, 100% {
+    opacity: 0.35;
+    transform: scale(1) translate(0px, 0px);
+  }
+  50% {
+    opacity: 0.65;
+    transform: scale(1.18) translate(25px, -20px);
+  }
+}
+
+@keyframes floatScreenBlob1 {
+  0% {
+    transform: translate(0vw, 0vh) scale(1);
+    opacity: 0.35;
+  }
+  25% {
+    transform: translate(30vw, 20vh) scale(1.2);
+    opacity: 0.55;
+  }
+  50% {
+    transform: translate(50vw, -8vh) scale(0.9);
+    opacity: 0.4;
+  }
+  75% {
+    transform: translate(15vw, 40vh) scale(1.15);
+    opacity: 0.6;
+  }
+  100% {
+    transform: translate(0vw, 0vh) scale(1);
+    opacity: 0.35;
+  }
+}
+
+@keyframes floatScreenBlob2 {
+  0% {
+    transform: translate(0vw, 0vh) scale(1);
+    opacity: 0.3;
+  }
+  33% {
+    transform: translate(-30vw, -30vh) scale(1.25);
+    opacity: 0.5;
+  }
+  66% {
+    transform: translate(-45vw, 10vh) scale(0.85);
+    opacity: 0.35;
+  }
+  100% {
+    transform: translate(0vw, 0vh) scale(1);
+    opacity: 0.3;
+  }
+}
+
+@keyframes floatScreenBlob3 {
+  0% {
+    transform: translate(0vw, 0vh) scale(1);
+    opacity: 0.25;
+  }
+  50% {
+    transform: translate(-35vw, 35vh) scale(1.2);
+    opacity: 0.45;
+  }
+  100% {
+    transform: translate(0vw, 0vh) scale(1);
+    opacity: 0.25;
+  }
+}
+
+.animate-blob-flow-1 {
+  animation: floatScreenBlob1 35s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+.animate-blob-flow-2 {
+  animation: floatScreenBlob2 42s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+.animate-blob-flow-3 {
+  animation: floatScreenBlob3 48s ease-in-out infinite;
+  will-change: transform, opacity;
+}
 
 @keyframes fadeIn {
   0% {
@@ -89,7 +313,6 @@ html.dark {
   }
 }
 
-/* Plynulé triedy pre komponenty */
 .animate-fadeIn {
   animation: fadeIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   will-change: opacity, transform;
@@ -125,7 +348,6 @@ html.dark {
   animation: backdropFadeOut 0.28s ease-in forwards;
 }
 
-/* Cielené plynulé zmeny tém bez preťaženia CPU */
 body, 
 button, 
 input, 
@@ -136,23 +358,186 @@ textarea,
   transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out, color 0.2s ease-in-out;
 }
 
-@font-face {
-  font-family: 'Figtree';
-  src: url('/fonts/Figtree.ttf') format('truetype');
-  font-weight: 100 900;
-  font-style: normal;
-  font-display: swap;
+/* ==========================================================================
+   ⚡ ELECTRIC PURPLE CONIC GLOW BORDER & INNER CARD TREATMENT
+   ========================================================================== */
+
+@keyframes borderSpin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
-@font-face {
-  font-family: 'Chillax';
-  src: url('/fonts/Chillax.ttf') format('truetype');
-  font-weight: 100 900;
-  font-style: normal;
-  font-display: swap;
+.animate-border-spin {
+  animation: borderSpin 6s linear infinite;
 }
 
-@theme {
-  --font-figtree: 'Figtree', sans-serif;
-  --font-chillax: 'Chillax', sans-serif;
+/* Evervault Electric Glow Card Wrapper */
+.neon-glow-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 16px; /* lg rounded */
+  padding: 1px;
 }
+
+/* Outer Blurred Neon Aura */
+.neon-glow-card::before {
+  content: '';
+  position: absolute;
+  left: -75%;
+  top: -75%;
+  width: 250%;
+  height: 250%;
+  animation: borderSpin 6s linear infinite;
+  filter: blur(14px);
+  opacity: 0.85;
+  pointer-events: none;
+}
+
+/* Sharp Inner Line */
+.neon-glow-card::after {
+  content: '';
+  position: absolute;
+  left: -75%;
+  top: -75%;
+  width: 250%;
+  height: 250%;
+  animation: borderSpin 6s linear infinite;
+  opacity: 0.95;
+  pointer-events: none;
+}
+
+/* Electric Violet / Evervault Theme */
+.neon-gold::before,
+.neon-gold::after,
+.neon-violet::before,
+.neon-violet::after,
+.neon-purple::before,
+.neon-purple::after {
+  background: conic-gradient(
+    #6633EE 0deg,
+    #A78BFA 60deg,
+    #7C3AED 120deg,
+    #4F46E5 180deg,
+    #A78BFA 240deg,
+    #6633EE 360deg
+  );
+}
+
+.neon-emerald::before,
+.neon-emerald::after {
+  background: conic-gradient(
+    #6633EE 0deg,
+    #A78BFA 90deg,
+    #818CF8 180deg,
+    #6633EE 270deg,
+    #6633EE 360deg
+  );
+}
+
+.neon-rainbow::before,
+.neon-rainbow::after {
+  background: conic-gradient(
+    #6633EE 0deg,
+    #A78BFA 90deg,
+    #C7CAE0 180deg,
+    #7C3AED 270deg,
+    #6633EE 360deg
+  );
+}
+
+/* 🖊️ SVG PEN DRAWING LINE ANIMATION FOR LOGO */
+.path-draw-1,
+.path-draw-2 {
+  stroke-dasharray: 3000;
+  stroke-dashoffset: 3000;
+  fill-opacity: 0.2;
+  transition: stroke-dashoffset 1.2s cubic-bezier(0.4, 0, 0.2, 1), fill-opacity 0.6s ease-in 0.3s;
+}
+
+.path-draw-2 {
+  transition-delay: 0.2s;
+}
+
+.group:hover .path-draw-1,
+.group:hover .path-draw-2 {
+  stroke-dashoffset: 0;
+  fill-opacity: 1;
+}
+
+/* Inner content area inside surface */
+.neon-glow-inner {
+  position: relative;
+  z-index: 10;
+  border-radius: calc(16px - 1px);
+  height: 100%;
+  background-color: #FFFFFF;
+}
+
+html.dark .neon-glow-inner,
+.dark .neon-glow-inner {
+  background-color: #0B0D22;
+}
+
+/* ==========================================================================
+   ELEGANT SCROLLBAR HIDING & UTILITIES (No ugly default scrollbars)
+   ========================================================================== */
+
+/* Hide scrollbars globally on all elements while keeping smooth scrolling */
+html,
+body,
+* {
+  scrollbar-width: none !important; /* Firefox */
+  -ms-overflow-style: none !important; /* IE and Edge */
+}
+
+*::-webkit-scrollbar,
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  display: none !important; /* Chrome, Safari, Opera */
+  width: 0 !important;
+  height: 0 !important;
+}
+
+@utility no-scrollbar {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+  &::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+  }
+}
+
+.no-scrollbar {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+/* ==========================================================================
+   ✨ SKELETON SHIMMER KEYFRAMES
+   ========================================================================== */
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 1.8s infinite cubic-bezier(0.4, 0, 0.6, 1);
+}
+
+

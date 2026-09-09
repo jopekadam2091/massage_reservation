@@ -17,7 +17,7 @@ import ClientListSection from '../components/admin/ClientListSection';
 import AdminStatsSection from '../components/admin/AdminStatsSection';
 import CancellationRequestsSection from '../components/admin/CancellationRequestsSection';
 
-import { Users, Search, Camera, CheckCircle, CalendarX, RotateCw } from 'lucide-react';
+import { Users, Search, Camera, CheckCircle, Calendar, CalendarX, RotateCw, Coins } from 'lucide-react';
 
 export default function AdminPage() {
   const router = useRouter();
@@ -30,9 +30,12 @@ export default function AdminPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
 
+  // Aktívny admin tab
+  const [activeAdminTab, setActiveAdminTab] = useState<'clients' | 'bookings' | 'stats'>('clients');
+
   // Zabaľovanie panelov
   const [isBookingsCollapsed, setIsBookingsCollapsed] = useState(false);
-  const [isClientsCollapsed, setIsClientsCollapsed] = useState(true);
+  const [isClientsCollapsed, setIsClientsCollapsed] = useState(false);
 
   // Stavy pre modaly
   const [stampProfile, setStampProfile] = useState<Profile | null>(null);
@@ -419,7 +422,8 @@ export default function AdminPage() {
 
   const filteredProfiles = profiles.filter(p => 
     (p.full_name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-    p.email.toLowerCase().includes(searchQuery.toLowerCase())
+    p.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (p.referral_code || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const totalStampsCount = profiles.reduce((sum, p) => sum + p.stamps.length, 0);
@@ -430,55 +434,54 @@ export default function AdminPage() {
 
   if (loading) {
     return (
-      <main className="flex min-h-[calc(100vh-65px)] items-center justify-center bg-slate-50 dark:bg-slate-950 font-sans">
-        <p className="text-slate-500 dark:text-slate-400 font-medium animate-pulse">{t.loading}...</p>
+      <main className="flex min-h-screen pt-24 md:pt-28 items-center justify-center bg-[#F4F6FB] dark:bg-[#010314] text-[#0B0D22] dark:text-[#FFFFFF] font-sans">
+        <p className="text-xs text-[#64748B] dark:text-[#C7CAE0]/60 font-medium">{language === 'sk' ? 'Načítavam admin panel...' : 'Loading admin panel...'}</p>
       </main>
     );
   }
 
   return (
-    <main className="min-h-[calc(100vh-65px)] bg-slate-50 dark:bg-zinc-900 transition-colors duration-300 p-4 sm:p-8 font-sans">
+    <main className="min-h-screen pt-20 sm:pt-24 pb-28 bg-[#F4F6FB] dark:bg-[#010314] text-[#0B0D22] dark:text-[#FFFFFF] transition-colors duration-300 p-4 sm:p-6 font-sans">
       {scanSuccessMsg && (
-        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[60] flex items-center gap-2 px-4 py-3 rounded-2xl bg-emerald-600 text-white text-sm font-semibold shadow-2xl animate-in fade-in slide-in-from-top-4 duration-300">
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[60] flex items-center gap-2 px-4 py-3 rounded-2xl bg-[#10B981] text-white text-xs font-semibold shadow-2xl animate-in fade-in slide-in-from-top-4 duration-300">
           <CheckCircle size={16} />
           {scanSuccessMsg}
         </div>
       )}
 
-      <div className="max-w-4xl mx-auto space-y-6">
+      <div className="max-w-4xl mx-auto space-y-5">
         
         {/* Hlavička Admina */}
-        <div className="flex flex-col sm:flex-row justify-between items-center bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-3xl shadow-sm gap-4">
+        <div className="flex flex-col sm:flex-row justify-between items-center bg-white dark:bg-[#0B0D22] border border-[#E2E8F0] dark:border-[#2B2F49] p-4 sm:p-5 rounded-2xl shadow-sm gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shadow-md shadow-indigo-500/20">
+            <div className="w-11 h-11 rounded-2xl bg-[#6633EE]/15 border border-[#6633EE]/30 text-[#6633EE] dark:text-[#A78BFA] flex items-center justify-center shadow-sm">
               <Users size={20} />
             </div>
             <div className="text-left">
-              <h1 className="font-bold text-slate-800 dark:text-slate-100 text-base leading-tight">
+              <h1 className="font-semibold text-[#0B0D22] dark:text-[#FFFFFF] text-base leading-tight">
                 {language === 'sk' ? 'Administrácia salónu' : 'Salon Management'}
               </h1>
-              <p className="text-xs text-slate-400 dark:text-slate-500">
-                {language === 'sk' ? 'Správa vernostných kariet a rezervácií' : 'Loyalty cards & booking management'}
+              <p className="text-xs text-[#64748B] dark:text-[#C7CAE0]/60 font-normal">
+                {language === 'sk' ? 'Kompletná správa klientov, vernostných kariet a rezervácií' : 'Client loyalty cards & booking management'}
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            {/* 🚀 NOVÉ: TLAČIDLO OBNOVIŤ V HLAVIČKE ADMINA */}
+          <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
             <button
               type="button"
               onClick={refreshAllAdminData}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-semibold text-xs border border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 transition active:scale-95 shadow-sm cursor-pointer"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-100 dark:bg-[#010314] text-[#1E293B] dark:text-[#DDE0F2] font-semibold text-xs border border-[#E2E8F0] dark:border-[#2B2F49] hover:bg-slate-200 dark:hover:bg-[#0B0D22] transition active:scale-95 shadow-xs cursor-pointer"
               title={language === 'sk' ? 'Obnoviť dáta' : 'Refresh data'}
             >
-              <RotateCw size={14} className={loadingBookings ? 'animate-spin' : ''} />
+              <RotateCw size={14} className={loadingBookings ? 'animate-spin text-[#6633EE]' : ''} />
               <span>{language === 'sk' ? 'Obnoviť' : 'Refresh'}</span>
             </button>
 
             <button
               type="button"
               onClick={() => setShowCancelModal(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400 font-semibold text-xs border border-rose-200 dark:border-rose-900/50 hover:bg-rose-100 transition active:scale-95 shadow-sm cursor-pointer"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-rose-50 dark:bg-[#FF5A7A]/15 text-rose-600 dark:text-[#FF5A7A] font-semibold text-xs border border-rose-200 dark:border-[#FF5A7A]/30 hover:bg-rose-100 transition active:scale-95 shadow-xs cursor-pointer"
             >
               <CalendarX size={14} />
               <span>{language === 'sk' ? 'Storno' : 'Cancel'}</span>
@@ -491,81 +494,146 @@ export default function AdminPage() {
                 setScanFlowError('');
                 setShowScanPriceModal(true);
               }}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs shadow-sm transition active:scale-95 cursor-pointer"
+              className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[#6633EE] hover:bg-[#5324d6] text-white font-semibold text-xs shadow-sm transition active:scale-95 cursor-pointer"
             >
               <Camera size={14} />
-              {language === 'sk' ? 'Naskenovať' : 'Scan'}
+              <span>{language === 'sk' ? 'Naskenovať' : 'Scan'}</span>
             </button>
           </div>
         </div>
 
-        {/* ADMIN ŠTATISTIKY */}
-        <AdminStatsSection
-          totalClients={profiles.length}
-          activeBookingsCount={activeBookings.length}
-          totalStampsCount={totalStampsCount}
-          estimatedRevenue={estimatedRevenue}
-          language={language}
-        />
+        {/* 🚀 ADMIN TAB SWITCHER (Klienti, Rezervácie, Štatistiky) */}
+        <div className="grid grid-cols-3 gap-1.5 p-1.5 rounded-2xl bg-white dark:bg-[#0B0D22] border border-[#E2E8F0] dark:border-[#2B2F49] shadow-xs">
+          <button
+            type="button"
+            onClick={() => setActiveAdminTab('clients')}
+            className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-semibold transition cursor-pointer ${
+              activeAdminTab === 'clients'
+                ? 'bg-[#6633EE] text-white shadow-sm'
+                : 'text-[#64748B] dark:text-[#C7CAE0]/70 hover:text-[#0B0D22] dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#010314]'
+            }`}
+          >
+            <Users size={15} />
+            <span>{language === 'sk' ? `Klienti & Vernosť (${profiles.length})` : `Clients & Loyalty (${profiles.length})`}</span>
+          </button>
 
-        {/* NOTIFIKAČNÝ BANNER PRE SCHVAĽOVANIE / ZAMIETANIE STORNA */}
-        <CancellationRequestsSection
-          pendingRequests={pendingStornoRequests}
-          onApprove={(reqId, ref) => handleApproveStorno(reqId, ref)}
-          onReject={(reqId) => {
-            const req = pendingStornoRequests.find((r) => r.id === reqId);
-            handleRejectStorno(reqId, req?.booking_ref || '');
-          }}
-          language={language}
-        />
+          <button
+            type="button"
+            onClick={() => setActiveAdminTab('bookings')}
+            className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-semibold transition cursor-pointer relative ${
+              activeAdminTab === 'bookings'
+                ? 'bg-[#6633EE] text-white shadow-sm'
+                : 'text-[#64748B] dark:text-[#C7CAE0]/70 hover:text-[#0B0D22] dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#010314]'
+            }`}
+          >
+            <Calendar size={15} />
+            <span>{language === 'sk' ? `Rezervácie (${activeBookings.length})` : `Bookings (${activeBookings.length})`}</span>
+            {pendingStornoRequests.length > 0 && (
+              <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping absolute top-2 right-2" />
+            )}
+          </button>
 
-        {/* SEKCIA AKTÍVNYCH REZERVÁCIÍ */}
-        <ActiveBookingsSection
-          activeBookings={activeBookings}
-          loadingBookings={loadingBookings}
-          isBookingsCollapsed={isBookingsCollapsed}
-          setIsBookingsCollapsed={setIsBookingsCollapsed}
-          fetchActiveBookings={fetchActiveBookings}
-          handleCancelDirectBooking={handleCancelDirectBooking}
-          language={language}
-        />
-
-        {/* Vyhľadávanie v klientoch */}
-        <div className="relative w-full">
-          <span className="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400">
-            <Search size={18} />
-          </span>
-          <input
-            type="text"
-            placeholder={language === 'sk' ? 'Vyhľadať klienta podľa mena alebo e-mailu...' : 'Search client by name or email...'}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-11 pr-4 py-3.5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm transition"
-          />
+          <button
+            type="button"
+            onClick={() => setActiveAdminTab('stats')}
+            className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-semibold transition cursor-pointer ${
+              activeAdminTab === 'stats'
+                ? 'bg-[#6633EE] text-white shadow-sm'
+                : 'text-[#64748B] dark:text-[#C7CAE0]/70 hover:text-[#0B0D22] dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#010314]'
+            }`}
+          >
+            <Coins size={15} />
+            <span>{language === 'sk' ? 'Štatistiky' : 'Statistics'}</span>
+          </button>
         </div>
 
-        {/* SEKCIA NÁJDENÝCH KLIENTOV */}
-        <ClientListSection
-          filteredProfiles={filteredProfiles}
-          isClientsCollapsed={isClientsCollapsed}
-          setIsClientsCollapsed={setIsClientsCollapsed}
-          getActiveStamps={getActiveStamps}
-          getActiveGift={getActiveGift}
-          getReferrerName={getReferrerName}
-          getGiftLabel={getGiftLabel}
-          handleRevokeGift={handleRevokeGift}
-          handleClaimReferralDiscount={handleClaimReferralDiscount}
-          handleResetCard={handleResetCard}
-          setStampProfile={setStampProfile}
-          setStampError={setStampError}
-          setStampPrice={setStampPrice}
-          setGiftProfile={setGiftProfile}
-          setSelectedGift={setSelectedGift}
-          setCustomCode={setCustomCode}
-          setGiftError={setGiftError}
-          setHistoryProfile={setHistoryProfile}
-          language={language}
-        />
+        {/* ================================================================== */}
+        {/* TAB 1: KLIENTI A VERNOSTNÝ SYSTÉM (SEARCH + KLIENTI VŽDY OTVORENÍ) */}
+        {/* ================================================================== */}
+        {activeAdminTab === 'clients' && (
+          <div className="space-y-4 animate-in fade-in duration-200">
+            {/* Vyhľadávanie v klientoch */}
+            <div className="relative w-full">
+              <span className="absolute inset-y-0 left-0 flex items-center pl-4 text-[#64748B] dark:text-[#C7CAE0]/50">
+                <Search size={18} />
+              </span>
+              <input
+                type="text"
+                placeholder={language === 'sk' ? 'Vyhľadať klienta podľa mena, e-mailu alebo referral kódu...' : 'Search client by name, email or referral code...'}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-11 pr-4 py-3.5 rounded-2xl border border-[#E2E8F0] dark:border-[#2B2F49] bg-white dark:bg-[#0B0D22] text-[#0B0D22] dark:text-[#FFFFFF] placeholder-[#94A3B8] dark:placeholder-[#C7CAE0]/40 focus:outline-none focus:border-[#6633EE] focus:ring-2 focus:ring-[#6633EE]/20 shadow-xs transition text-xs font-medium"
+              />
+            </div>
+
+            {/* SEKCIA NÁJDENÝCH KLIENTOV */}
+            <ClientListSection
+              filteredProfiles={filteredProfiles}
+              isClientsCollapsed={isClientsCollapsed}
+              setIsClientsCollapsed={setIsClientsCollapsed}
+              getActiveStamps={getActiveStamps}
+              getActiveGift={getActiveGift}
+              getReferrerName={getReferrerName}
+              getGiftLabel={getGiftLabel}
+              handleRevokeGift={handleRevokeGift}
+              handleClaimReferralDiscount={handleClaimReferralDiscount}
+              handleResetCard={handleResetCard}
+              setStampProfile={setStampProfile}
+              setStampError={setStampError}
+              setStampPrice={setStampPrice}
+              setGiftProfile={setGiftProfile}
+              setSelectedGift={setSelectedGift}
+              setCustomCode={setCustomCode}
+              setGiftError={setGiftError}
+              setHistoryProfile={setHistoryProfile}
+              language={language}
+            />
+          </div>
+        )}
+
+        {/* ================================================================== */}
+        {/* TAB 2: REZERVÁCIE A STORNO ŽIADOSTI                                */}
+        {/* ================================================================== */}
+        {activeAdminTab === 'bookings' && (
+          <div className="space-y-4 animate-in fade-in duration-200">
+            {/* NOTIFIKAČNÝ BANNER PRE SCHVAĽOVANIE / ZAMIETANIE STORNA */}
+            <CancellationRequestsSection
+              pendingRequests={pendingStornoRequests}
+              onApprove={(reqId, ref) => handleApproveStorno(reqId, ref)}
+              onReject={(reqId) => {
+                const req = pendingStornoRequests.find((r) => r.id === reqId);
+                handleRejectStorno(reqId, req?.booking_ref || '');
+              }}
+              language={language}
+            />
+
+            {/* SEKCIA AKTÍVNYCH REZERVÁCIÍ */}
+            <ActiveBookingsSection
+              activeBookings={activeBookings}
+              loadingBookings={loadingBookings}
+              isBookingsCollapsed={isBookingsCollapsed}
+              setIsBookingsCollapsed={setIsBookingsCollapsed}
+              fetchActiveBookings={fetchActiveBookings}
+              handleCancelDirectBooking={handleCancelDirectBooking}
+              language={language}
+            />
+          </div>
+        )}
+
+        {/* ================================================================== */}
+        {/* TAB 3: ŠTATISTIKY                                                  */}
+        {/* ================================================================== */}
+        {activeAdminTab === 'stats' && (
+          <div className="space-y-4 animate-in fade-in duration-200">
+            <AdminStatsSection
+              totalClients={profiles.length}
+              activeBookingsCount={activeBookings.length}
+              totalStampsCount={totalStampsCount}
+              estimatedRevenue={estimatedRevenue}
+              language={language}
+            />
+          </div>
+        )}
       </div>
 
       <AddStampModal
