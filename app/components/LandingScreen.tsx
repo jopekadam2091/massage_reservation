@@ -339,14 +339,110 @@ export default function LandingScreen({ onEnter, sessionUser }: Props) {
     return () => el.removeEventListener('scroll', onScroll);
   }, [updateCardFocus]);
 
-  // Detekcia scrollu pre tichý okamžitý wrap-around bez viditeľného skoku späť
+  // Vráti index karty, ktorá je najbližšie k stredu viditeľnej oblasti
+  const getClosestCardIndex = () => {
+    const el = scrollContainerRef.current;
+    if (!el) return -1;
+    const containerRect = el.getBoundingClientRect();
+    const containerCenter = containerRect.left + containerRect.width / 2;
+    const cards = el.children;
+    if (cards.length === 0) return -1;
+
+    let closestIdx = 0;
+    let minDiff = Infinity;
+
+    for (let i = 0; i < cards.length; i++) {
+      const card = cards[i] as HTMLElement;
+      const cardRect = card.getBoundingClientRect();
+      const cardCenter = cardRect.left + cardRect.width / 2;
+      const diff = Math.abs(containerCenter - cardCenter);
+      if (diff < minDiff) {
+        minDiff = diff;
+        closestIdx = i;
+      }
+    }
+    return closestIdx;
+  };
+
+  // Posunie scroll kontajnera tak, aby daná karta bola presne vycentrovaná
+  const scrollToCardIndex = (targetIdx: number) => {
+    const el = scrollContainerRef.current;
+    if (!el) return;
+    const cards = el.children;
+    if (targetIdx < 0 || targetIdx >= cards.length) return;
+    const card = cards[targetIdx] as HTMLElement;
+    const targetScroll = card.offsetLeft - (el.clientWidth - card.offsetWidth) / 2;
+    el.scrollTo({ left: targetScroll, behavior: 'smooth' });
+  };
+
+  // Posun na ďalšiu recenziu (vždy vycentruje nasledujúcu celú kartu)
+  const scrollToNextCard = () => {
+    const el = scrollContainerRef.current;
+    if (!el) return;
+    const containerRect = el.getBoundingClientRect();
+    const containerCenter = containerRect.left + containerRect.width / 2;
+    const cards = el.children;
+    if (cards.length === 0) return;
+
+    // Hľadáme prvú kartu, ktorej stred je napravo od stredu kontajnera
+    let nextIdx = -1;
+    for (let i = 0; i < cards.length; i++) {
+      const card = cards[i] as HTMLElement;
+      const cardRect = card.getBoundingClientRect();
+      const cardCenter = cardRect.left + cardRect.width / 2;
+      if (cardCenter > containerCenter + 12) {
+        nextIdx = i;
+        break;
+      }
+    }
+
+    if (nextIdx === -1) {
+      const closest = getClosestCardIndex();
+      nextIdx = Math.min(closest + 1, cards.length - 1);
+    }
+
+    scrollToCardIndex(nextIdx);
+    resetAutoScroll();
+  };
+
+  // Posun na predchádzajúcu recenziu (vždy vycentruje predchádzajúcu celú kartu)
+  const scrollToPrevCard = () => {
+    const el = scrollContainerRef.current;
+    if (!el) return;
+    const containerRect = el.getBoundingClientRect();
+    const containerCenter = containerRect.left + containerRect.width / 2;
+    const cards = el.children;
+    if (cards.length === 0) return;
+
+    // Hľadáme poslednú kartu, ktorej stred je naľavo od stredu kontajnera
+    let prevIdx = -1;
+    for (let i = cards.length - 1; i >= 0; i--) {
+      const card = cards[i] as HTMLElement;
+      const cardRect = card.getBoundingClientRect();
+      const cardCenter = cardRect.left + cardRect.width / 2;
+      if (cardCenter < containerCenter - 12) {
+        prevIdx = i;
+        break;
+      }
+    }
+
+    if (prevIdx === -1) {
+      const closest = getClosestCardIndex();
+      prevIdx = Math.max(closest - 1, 0);
+    }
+
+    scrollToCardIndex(prevIdx);
+    resetAutoScroll();
+  };
+
+  // Detekcia scrollu pre tichý wrap-around a automatické docentrovanie karty po pustení prsta
   useEffect(() => {
     const el = scrollContainerRef.current;
     if (!el) return;
 
     let debounceTimer: ReturnType<typeof setTimeout> | null = null;
 
-    const handleWrap = () => {
+    const handleWrapAndSnap = () => {
       const singleSetWidth = getSingleSetWidth();
       const baseCenter = getBaseCenterScroll();
       if (singleSetWidth <= 0) return;
@@ -360,20 +456,35 @@ export default function LandingScreen({ onEnter, sessionUser }: Props) {
       else if (el.scrollLeft <= baseCenter - singleSetWidth * 0.5) {
         el.scrollLeft += singleSetWidth;
         updateCardFocus();
+      } else {
+        // Po zastavení manuálneho posunu overíme, či je karta vycentrovaná; ak nie, plynule docentrujeme
+        const closestIdx = getClosestCardIndex();
+        if (closestIdx >= 0 && closestIdx < el.children.length) {
+          const card = el.children[closestIdx] as HTMLElement;
+          const containerRect = el.getBoundingClientRect();
+          const cardRect = card.getBoundingClientRect();
+          const containerCenter = containerRect.left + containerRect.width / 2;
+          const cardCenter = cardRect.left + cardRect.width / 2;
+          const diff = Math.abs(containerCenter - cardCenter);
+          if (diff > 3) {
+            const targetScroll = card.offsetLeft - (el.clientWidth - card.offsetWidth) / 2;
+            el.scrollTo({ left: targetScroll, behavior: 'smooth' });
+          }
+        }
       }
     };
 
     const onScrollEnd = () => {
       if (debounceTimer) clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(handleWrap, 100);
+      debounceTimer = setTimeout(handleWrapAndSnap, 140);
     };
 
     el.addEventListener('scroll', onScrollEnd, { passive: true });
-    el.addEventListener('scrollend', handleWrap);
+    el.addEventListener('scrollend', handleWrapAndSnap);
 
     return () => {
       el.removeEventListener('scroll', onScrollEnd);
-      el.removeEventListener('scrollend', handleWrap);
+      el.removeEventListener('scrollend', handleWrapAndSnap);
       if (debounceTimer) clearTimeout(debounceTimer);
     };
   }, [reviewsList, updateCardFocus]);
@@ -389,9 +500,7 @@ export default function LandingScreen({ onEnter, sessionUser }: Props) {
 
     autoScrollTimerRef.current = setTimeout(() => {
       if (!scrollContainerRef.current) return;
-      const step = getCardStep();
-      scrollContainerRef.current.scrollBy({ left: step, behavior: 'smooth' });
-      resetAutoScroll();
+      scrollToNextCard();
     }, 6500);
   };
 
@@ -406,17 +515,11 @@ export default function LandingScreen({ onEnter, sessionUser }: Props) {
 
   // Ovládanie šípkami v hornej pravej časti
   const handleScrollLeft = () => {
-    if (!scrollContainerRef.current) return;
-    const step = getCardStep();
-    scrollContainerRef.current.scrollBy({ left: -step, behavior: 'smooth' });
-    resetAutoScroll();
+    scrollToPrevCard();
   };
 
   const handleScrollRight = () => {
-    if (!scrollContainerRef.current) return;
-    const step = getCardStep();
-    scrollContainerRef.current.scrollBy({ left: step, behavior: 'smooth' });
-    resetAutoScroll();
+    scrollToNextCard();
   };
 
 
@@ -588,13 +691,13 @@ export default function LandingScreen({ onEnter, sessionUser }: Props) {
             onMouseLeave={() => setIsAutoScrollPaused(false)}
             onTouchStart={() => setIsAutoScrollPaused(true)}
             onTouchEnd={() => setIsAutoScrollPaused(false)}
-            className="w-full overflow-x-auto no-scrollbar flex gap-3.5 sm:gap-5 py-2 px-4 sm:px-6 mt-3 sm:mt-4"
+            className="w-full overflow-x-auto no-scrollbar flex gap-3.5 sm:gap-5 py-2 px-4 sm:px-6 mt-3 sm:mt-4 snap-x snap-mandatory"
           >
             {infiniteReviews.map((review, idx) => (
               <div
                 key={`${review.id}-${idx}`}
                 style={{ height: '270px', minHeight: '270px' }}
-                className="w-[260px] sm:w-[320px] md:w-[340px] shrink-0 p-4 sm:p-5 rounded-3xl bg-white/90 dark:bg-[#0B0D22]/90 backdrop-blur-2xl border border-[#E2E8F0] dark:border-[#2B2F49] shadow-lg flex flex-col justify-between text-left hover:border-[#6633EE]/60 hover:shadow-2xl transition-[filter,opacity,transform,border-color,box-shadow] duration-300 will-change-[filter,opacity,transform]"
+                className="w-[260px] sm:w-[320px] md:w-[340px] shrink-0 p-4 sm:p-5 rounded-3xl bg-white/90 dark:bg-[#0B0D22]/90 backdrop-blur-2xl border border-[#E2E8F0] dark:border-[#2B2F49] shadow-lg flex flex-col justify-between text-left hover:border-[#6633EE]/60 hover:shadow-2xl transition-[filter,opacity,transform,border-color,box-shadow] duration-300 will-change-[filter,opacity,transform] snap-center"
               >
                 {/* Horný riadok: Meno človeka vľavo, luxury hviezdičky v pilulke vpravo */}
                 <div className="flex items-start justify-between gap-2">
