@@ -253,7 +253,7 @@ export default function AdminUserManagementModal({ isOpen, onClose, language }: 
           ) : (
             filteredProfiles.map((p) => {
               const activeStamps = p.stamps.filter((s) => !s.claimed && !s.removed_at).length;
-              const maxStamps = p.program_type === '5_stamps' ? 5 : 10;
+              const maxStamps = 10;
               const isBanned = !!p.is_banned;
               const isAdminRole = p.role === 'admin';
               const isLoadingThis = actionLoadingId === p.id;
@@ -301,10 +301,6 @@ export default function AdminUserManagementModal({ isOpen, onClose, language }: 
                       <div className="flex items-center gap-2 pt-0.5">
                         <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500">
                           {language === 'sk' ? 'Pečiatky:' : 'Stamps:'} <strong className="text-slate-700 dark:text-slate-200">{activeStamps}/{maxStamps}</strong>
-                        </span>
-                        <span className="text-[10px] text-slate-300 dark:text-slate-600">•</span>
-                        <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500">
-                          {p.program_type === '5_stamps' ? '5-pečiatkový' : '10-pečiatkový'}
                         </span>
                       </div>
                     </div>

@@ -80,7 +80,7 @@ export default function ClientListSection({
             filteredProfiles.map((profile) => {
               const activeStamps = getActiveStamps(profile);
               const currentStamps = activeStamps.length;
-              const maxStamps = profile.program_type === '5_stamps' ? 5 : 10;
+              const maxStamps = 10;
               const isCardFull = currentStamps >= maxStamps;
               const activeGift = getActiveGift(profile);
               const ActiveGiftIcon = activeGift ? (GIFT_ICON_MAP[activeGift.gift_type] || Gift) : null;
@@ -104,10 +104,6 @@ export default function ClientListSection({
                     <p className="text-xs text-[#64748B] dark:text-[#C7CAE0]/60 truncate font-normal">{profile.email}</p>
                     
                     <div className="flex flex-wrap items-center gap-2 pt-0.5">
-                      <span className="inline-flex items-center text-[10px] font-semibold px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-[#010314] text-[#6633EE] dark:text-[#A78BFA] border border-[#E2E8F0] dark:border-[#2B2F49]">
-                        {profile.program_type === '5_stamps' ? (language === 'sk' ? '5-pečiatkový program' : '5-stamp program') : (language === 'sk' ? '10-pečiatkový program' : '10-stamp program')}
-                      </span>
-
                       <span className={`inline-flex items-center text-[10px] font-bold px-2.5 py-0.5 rounded-full ${
                         isCardFull 
                           ? 'bg-[#10B981]/15 text-[#10B981] animate-pulse border border-[#10B981]/40' 

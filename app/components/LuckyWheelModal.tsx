@@ -5,7 +5,7 @@ import { supabase } from '../lib/supabase';
 import confetti from 'canvas-confetti';
 import { 
   X, Sparkles, Gift, Crown, Percent, Tag, Award, 
-  RotateCw, CheckCircle2, Copy, Check, Star, ShieldCheck
+  CheckCircle2, Copy, Check, Star, ShieldCheck
 } from 'lucide-react';
 
 export interface WheelPrize {
@@ -18,112 +18,112 @@ export interface WheelPrize {
   secondaryColor: string;
   textColor: string;
   giftType: 'discount_code' | 'vip_upgrade' | 'free_stamp' | 'next_visit_gift' | 'no_win';
+  discountPercent?: string;
   code?: string;
   stampPrice?: number;
   weight: number; // Váha pre pravdepodobnosť
 }
 
-// 🎯 8 Výsekov: Striedavo 4 výherné a 4 "Skús zajtra" (50% / 50% rozloženie na kolese s menšou pravdepodobnosťou výhry)
+// 🎯 8 Výsekov: 50/50 rozloženie (4x výhody: 1x 5%, 1x 10%, 1x 15%, 1x darček a 4x "Nevadí, nabudúce")
 export const WHEEL_PRIZES: WheelPrize[] = [
   {
-    id: 'prize_10percent',
+    id: 'prize_5pct',
+    labelSK: '5% Zľava',
+    labelEN: '5% Off',
+    descSK: 'Zľavový kód -5 % na vašu nasledujúcu masáž.',
+    descEN: '5% discount code applicable to your next massage.',
+    color: '#6633EE',
+    secondaryColor: '#4F25C7',
+    textColor: '#FFFFFF',
+    giftType: 'discount_code',
+    discountPercent: '5%',
+    weight: 20,
+  },
+  {
+    id: 'prize_nowin_1',
+    labelSK: 'Nevadí, nabudúce',
+    labelEN: 'Try next time',
+    descSK: 'Dnes to nevyšlo, ale zajtra máte nový voľný pokus!',
+    descEN: 'No luck today, but you have another free attempt tomorrow!',
+    color: '#0E122C',
+    secondaryColor: '#070919',
+    textColor: '#8C94B8',
+    giftType: 'no_win',
+    weight: 15,
+  },
+  {
+    id: 'prize_10pct',
     labelSK: '10% Zľava',
     labelEN: '10% Off',
     descSK: 'Zľavový kód -10 % na akúkoľvek vybranú masáž.',
     descEN: '10% discount code applicable to any massage session.',
-    color: '#2563EB',
-    secondaryColor: '#1E3A8A',
-    textColor: '#FFFFFF',
-    giftType: 'discount_code',
-    code: 'KOLO10PCT',
-    weight: 7, // 7% šanca
-  },
-  {
-    id: 'prize_try_again_1',
-    labelSK: 'Skús zajtra',
-    labelEN: 'Try Tomorrow',
-    descSK: 'Dnes to nevyšlo, ale nezúfajte! Zajtra máte ďalšie bezplatné točenie.',
-    descEN: 'No prize this time, but try again tomorrow for free!',
-    color: '#1E293B',
-    secondaryColor: '#0F172A',
-    textColor: '#94A3B8',
-    giftType: 'no_win',
-    weight: 18, // 18% šanca
-  },
-  {
-    id: 'prize_vip_upgrade',
-    labelSK: 'VIP Upgrade',
-    labelEN: 'VIP Upgrade',
-    descSK: 'Získajte VIP senzuálnu masáž za cenu Klasickej masáže.',
-    descEN: 'Get a VIP Sensual Massage for the price of a Classic session.',
-    color: '#DB2777',
-    secondaryColor: '#831843',
-    textColor: '#FFFFFF',
-    giftType: 'vip_upgrade',
-    code: 'VIP-UPGRADE',
-    weight: 5, // 5% šanca (veľmi vzácna)
-  },
-  {
-    id: 'prize_try_again_2',
-    labelSK: 'Skús zajtra',
-    labelEN: 'Try Tomorrow',
-    descSK: 'Tentoraz bez výhry. Vráťte sa zajtra pre novú šancu!',
-    descEN: 'No prize this time. Come back tomorrow for a new chance!',
-    color: '#1E293B',
-    secondaryColor: '#0F172A',
-    textColor: '#94A3B8',
-    giftType: 'no_win',
-    weight: 18, // 18% šanca
-  },
-  {
-    id: 'prize_5eur',
-    labelSK: '5 € Zľava',
-    labelEN: '5 € Off',
-    descSK: 'Zľavový kód v hodnote 5 € na vašu ďalšiu masáž.',
-    descEN: '5 € discount voucher for your next massage session.',
     color: '#7C3AED',
-    secondaryColor: '#4C1D95',
+    secondaryColor: '#5B21B6',
     textColor: '#FFFFFF',
     giftType: 'discount_code',
-    code: 'KOLO5EUR',
-    weight: 10, // 10% šanca
+    discountPercent: '10%',
+    weight: 10,
   },
   {
-    id: 'prize_try_again_3',
-    labelSK: 'Skús zajtra',
-    labelEN: 'Try Tomorrow',
-    descSK: 'Koleso sa zastavilo tesne vedľa. Vyskúšajte to znova zajtra!',
-    descEN: 'Wheel stopped just short. Try again tomorrow!',
-    color: '#1E293B',
-    secondaryColor: '#0F172A',
-    textColor: '#94A3B8',
+    id: 'prize_nowin_2',
+    labelSK: 'Nevadí, nabudúce',
+    labelEN: 'Try next time',
+    descSK: 'Dnes to nevyšlo, ale zajtra máte nový voľný pokus!',
+    descEN: 'No luck today, but you have another free attempt tomorrow!',
+    color: '#080A1A',
+    secondaryColor: '#050713',
+    textColor: '#8C94B8',
     giftType: 'no_win',
-    weight: 18, // 18% šanca
+    weight: 15,
   },
   {
-    id: 'prize_free_stamp',
-    labelSK: '+1 Pečiatka',
-    labelEN: '+1 Stamp',
-    descSK: 'Extra vernostná pečiatka pripísaná priamo do vašej karty.',
-    descEN: 'Extra loyalty stamp added directly to your stamp card.',
-    color: '#059669',
-    secondaryColor: '#064E3B',
+    id: 'prize_15pct',
+    labelSK: '15% Zľava',
+    labelEN: '15% Off',
+    descSK: 'Exkluzívny zľavový kód -15 % na vašu návštevu.',
+    descEN: 'Exclusive 15% discount code applicable to your visit.',
+    color: '#DB2777',
+    secondaryColor: '#9D174D',
     textColor: '#FFFFFF',
-    giftType: 'free_stamp',
-    stampPrice: 40,
-    weight: 6, // 6% šanca
+    giftType: 'discount_code',
+    discountPercent: '15%',
+    weight: 5,
   },
   {
-    id: 'prize_try_again_4',
-    labelSK: 'Skús zajtra',
-    labelEN: 'Try Tomorrow',
-    descSK: 'Dnes šťastie neprialo. Každý deň máte 1 nový pokus.',
-    descEN: 'No luck today. You get 1 new attempt every day.',
-    color: '#1E293B',
-    secondaryColor: '#0F172A',
-    textColor: '#94A3B8',
+    id: 'prize_nowin_3',
+    labelSK: 'Nevadí, nabudúce',
+    labelEN: 'Try next time',
+    descSK: 'Dnes to nevyšlo, ale zajtra máte nový voľný pokus!',
+    descEN: 'No luck today, but you have another free attempt tomorrow!',
+    color: '#0E122C',
+    secondaryColor: '#070919',
+    textColor: '#8C94B8',
     giftType: 'no_win',
-    weight: 18, // 18% šanca
+    weight: 15,
+  },
+  {
+    id: 'prize_gift',
+    labelSK: 'Darček k masáži',
+    labelEN: 'Massage Gift',
+    descSK: 'Kód na špeciálny darček pripravený k vašej nasledujúcej masáži.',
+    descEN: 'Code for a special gift prepared for your next massage session.',
+    color: '#D97706',
+    secondaryColor: '#B45309',
+    textColor: '#FFFFFF',
+    giftType: 'next_visit_gift',
+    weight: 5,
+  },
+  {
+    id: 'prize_nowin_4',
+    labelSK: 'Nevadí, nabudúce',
+    labelEN: 'Try next time',
+    descSK: 'Dnes to nevyšlo, ale zajtra máte nový voľný pokus!',
+    descEN: 'No luck today, but you have another free attempt tomorrow!',
+    color: '#080A1A',
+    secondaryColor: '#050713',
+    textColor: '#8C94B8',
+    giftType: 'no_win',
+    weight: 15,
   },
 ];
 
@@ -148,7 +148,6 @@ export default function LuckyWheelModal({
   const [canSpin, setCanSpin] = useState(true);
   const [timeLeft, setTimeLeft] = useState<string>('');
   const [copiedCode, setCopiedCode] = useState(false);
-  const [resetting, setResetting] = useState(false);
   const isSK = language === 'sk';
 
   // Kontrola 24h denného limitu
@@ -229,10 +228,46 @@ export default function LuckyWheelModal({
 
     setRotation(totalRotation);
 
+    // Paralelné volanie servera počas 5.2s animácie točenia
+    // Server vygeneruje kód (napr. KOLO5-XXXXXX, KOLO10-XXXXXX, KOLO15-XXXXXX, DARCEK-XXXXXX) a zapíše ho do Google Sheets aj databázy
+    let serverCode = '';
+    const rewardPromise = (async () => {
+      if (selectedPrize.giftType !== 'no_win') {
+        try {
+          const res = await fetch('/api/user/wheel-reward', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              userId: userId || null,
+              giftType: selectedPrize.giftType,
+              discountPercent: selectedPrize.discountPercent,
+              stampPrice: selectedPrize.stampPrice || 40,
+            }),
+          });
+          const resData = await res.json();
+          if (resData.code) {
+            serverCode = resData.code;
+          }
+          return resData;
+        } catch (err) {
+          console.error('Chyba pri ukladaní výhry z kolesa cez API:', err);
+        }
+      }
+      return null;
+    })();
+
     // Počkame na dokončenie 5.2s rotácie
     setTimeout(async () => {
       setSpinning(false);
-      setWonPrize(selectedPrize);
+      
+      // Počkáme na odpoveď API
+      await rewardPromise;
+
+      const finalWonPrize: WheelPrize = {
+        ...selectedPrize,
+        code: serverCode || selectedPrize.code || (selectedPrize.giftType === 'next_visit_gift' ? 'DARCEK' : 'KOLO'),
+      };
+      setWonPrize(finalWonPrize);
 
       if (userId) {
         localStorage.setItem(`last_wheel_spin_${userId}`, Date.now().toString());
@@ -249,66 +284,11 @@ export default function LuckyWheelModal({
         });
       }
 
-      // Uloženie výhry do Supabase
-      if (userId && selectedPrize.giftType !== 'no_win') {
-        try {
-          if (selectedPrize.giftType === 'free_stamp') {
-            const { error: stampErr } = await supabase.from('stamps').insert({
-              user_id: userId,
-              price: selectedPrize.stampPrice || 40,
-              claimed: false,
-            });
-            if (stampErr) console.error('Chyba pri vkladaní pečiatky:', stampErr);
-          } else {
-            await supabase.from('gifts').insert({
-              user_id: userId,
-              gift_type: selectedPrize.giftType,
-              custom_code: selectedPrize.code || `KOLO-${Date.now().toString(36).toUpperCase()}`,
-              used: false,
-            });
-          }
-
-          if (onRewardClaimed) onRewardClaimed();
-        } catch (err) {
-          console.error('Chyba pri ukladaní výhry:', err);
-        }
+      if (onRewardClaimed) onRewardClaimed();
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('profileUpdated'));
       }
     }, 5200);
-  };
-
-  // 🔄 Funkcia pre RESET TOČENIA (Testovací vývojársky mód)
-  const handleDevReset = async () => {
-    if (!userId || resetting) return;
-    setResetting(true);
-
-    try {
-      localStorage.removeItem(`last_wheel_spin_${userId}`);
-
-      await supabase
-        .from('gifts')
-        .delete()
-        .eq('user_id', userId)
-        .in('custom_code', ['KOLO5EUR', 'KOLO10PCT', 'VIP-UPGRADE']);
-
-      // Zmažeme testovaciu nezarátanú pečiatku s cenou 40
-      await supabase
-        .from('stamps')
-        .delete()
-        .eq('user_id', userId)
-        .eq('price', 40)
-        .eq('claimed', false);
-
-      setWonPrize(null);
-      setRotation(0);
-      setCanSpin(true);
-      setTimeLeft('');
-
-      if (onRewardClaimed) onRewardClaimed();
-    } catch (err) {
-      console.error('Chyba resetu:', err);
-    } finally {
-      setResetting(false);
-    }
   };
 
   const handleCopyCode = (code: string) => {
@@ -328,11 +308,11 @@ export default function LuckyWheelModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-xl animate-fadeIn">
-      <div className="relative w-full max-w-md p-6 sm:p-7 rounded-[32px] bg-[#070919] border border-amber-500/30 shadow-[0_0_60px_rgba(245,158,11,0.15)] text-white text-center space-y-5 overflow-hidden">
+      <div className="relative w-full max-w-md p-6 sm:p-7 rounded-[32px] bg-[#090B1E] border border-[#272B4D] shadow-[0_0_60px_rgba(102,51,238,0.25)] text-white text-center space-y-4 overflow-hidden">
         
-        {/* Luxusný zlatý & neónový ambient glow */}
-        <div className="absolute -top-28 -left-28 w-64 h-64 bg-amber-500/20 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-28 -right-28 w-64 h-64 bg-[#6633EE]/25 rounded-full blur-3xl pointer-events-none" />
+        {/* Luxusný fialový & zlatý ambient glow */}
+        <div className="absolute -top-28 -left-28 w-64 h-64 bg-[#6633EE]/25 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-28 -right-28 w-64 h-64 bg-amber-500/15 rounded-full blur-3xl pointer-events-none" />
 
         {/* Tlačidlo zatvorenia */}
         <button
@@ -344,26 +324,15 @@ export default function LuckyWheelModal({
           <X size={18} />
         </button>
 
-        {/* Luxusná Hlavička */}
-        <div className="space-y-1 relative z-10">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-amber-500/20 via-amber-500/10 to-amber-500/20 border border-amber-400/40 text-amber-300 text-[11px] font-extrabold uppercase tracking-widest shadow-xs">
-            <Sparkles size={12} className="text-amber-400" />
-            <span>{isSK ? 'Exkluzívne Denné Koleso' : 'Exclusive Daily Wheel'}</span>
-          </div>
-
+        {/* Hlavička - čistý nadpis bez odznaku a podtextu */}
+        <div className="pt-2 pb-1 relative z-10">
           <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight bg-gradient-to-r from-amber-200 via-amber-400 to-amber-100 bg-clip-text text-transparent drop-shadow-sm">
             {isSK ? 'Kolo Šťastia' : 'Wheel of Fortune'}
           </h2>
-
-          <p className="text-xs text-slate-400 font-normal">
-            {isSK 
-              ? 'Každý deň 1 voľné točenie pre registrovaných klientov' 
-              : '1 Free daily spin for registered clients'}
-          </p>
         </div>
 
         {/* ================================================================ */}
-        {/* 🎡 LUXUSNÉ VEKTOROVÉ KOLESO S 50/50 ROZLOŽENÍM A ZLATÝM RÁMOM    */}
+        {/* 🎡 LUXUSNÉ VEKTOROVÉ KOLESO SO ŠTÝLOM STRÁNKY                    */}
         {/* ================================================================ */}
         <div className="relative flex items-center justify-center py-2 select-none">
           
@@ -379,7 +348,7 @@ export default function LuckyWheelModal({
               transform: `rotate(${rotation}deg)`,
               transition: spinning ? 'transform 5.2s cubic-bezier(0.12, 0.96, 0.34, 1)' : 'none',
             }}
-            className="rounded-full shadow-[0_0_50px_rgba(245,158,11,0.25)]"
+            className="rounded-full shadow-[0_0_50px_rgba(102,51,238,0.25)]"
           >
             <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="w-[290px] h-[290px] sm:w-[340px] sm:h-[340px]">
               <defs>
@@ -400,7 +369,7 @@ export default function LuckyWheelModal({
               </defs>
 
               {/* Vonkajší masívny zlatý rám */}
-              <circle cx={center} cy={center} r={center - 3} fill="#0A0D1D" stroke="url(#goldLuxuryRim)" strokeWidth={7} />
+              <circle cx={center} cy={center} r={center - 3} fill="#090B1E" stroke="url(#goldLuxuryRim)" strokeWidth={7} />
 
               {/* Jednotlivé výseky s kontrastnými farbami */}
               {WHEEL_PRIZES.map((prize, i) => {
@@ -421,7 +390,7 @@ export default function LuckyWheelModal({
                 // Uhol a poloha pre text
                 const textAngle = startAngle + sliceAngle / 2;
                 const textRad = (textAngle * Math.PI) / 180;
-                const textDist = radius * 0.64;
+                const textDist = radius * 0.62;
                 const tx = center + textDist * Math.cos(textRad);
                 const ty = center + textDist * Math.sin(textRad);
 
@@ -432,8 +401,8 @@ export default function LuckyWheelModal({
                     <path
                       d={pathData}
                       fill={prize.color}
-                      stroke="#0F172A"
-                      strokeWidth={2}
+                      stroke="#090B1E"
+                      strokeWidth={1.5}
                     />
                     
                     {/* Jemný odlesk na výherných výsekoch */}
@@ -445,19 +414,58 @@ export default function LuckyWheelModal({
                       />
                     )}
 
+                    {/* Dvojriadkový formátovaný text výseku */}
                     <text
                       x={tx}
                       y={ty}
                       fill={prize.textColor}
-                      fontSize={isNoWin ? 11 : 12}
-                      fontWeight={isNoWin ? "600" : "800"}
                       fontFamily="Inter, sans-serif"
                       textAnchor="middle"
                       dominantBaseline="middle"
                       transform={`rotate(${textAngle}, ${tx}, ${ty})`}
-                      className="drop-shadow-[0_2px_3px_rgba(0,0,0,0.9)] pointer-events-none select-none"
+                      className="drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)] pointer-events-none select-none"
                     >
-                      {label}
+                      {label === '5% Zľava' ? (
+                        <>
+                          <tspan x={tx} dy="-0.55em" fontSize="12" fontWeight="800" fill="#FFFFFF">5%</tspan>
+                          <tspan x={tx} dy="1.25em" fontSize="9.5" fontWeight="700" fill="#E2E8F0" letterSpacing="0.05em">ZĽAVA</tspan>
+                        </>
+                      ) : label === '5% Off' ? (
+                        <>
+                          <tspan x={tx} dy="-0.55em" fontSize="12" fontWeight="800" fill="#FFFFFF">5%</tspan>
+                          <tspan x={tx} dy="1.25em" fontSize="9.5" fontWeight="700" fill="#E2E8F0" letterSpacing="0.05em">OFF</tspan>
+                        </>
+                      ) : label === '10% Zľava' ? (
+                        <>
+                          <tspan x={tx} dy="-0.55em" fontSize="12" fontWeight="800" fill="#FFFFFF">10%</tspan>
+                          <tspan x={tx} dy="1.25em" fontSize="9.5" fontWeight="700" fill="#E2E8F0" letterSpacing="0.05em">ZĽAVA</tspan>
+                        </>
+                      ) : label === '10% Off' ? (
+                        <>
+                          <tspan x={tx} dy="-0.55em" fontSize="12" fontWeight="800" fill="#FFFFFF">10%</tspan>
+                          <tspan x={tx} dy="1.25em" fontSize="9.5" fontWeight="700" fill="#E2E8F0" letterSpacing="0.05em">OFF</tspan>
+                        </>
+                      ) : label === '15% Zľava' ? (
+                        <>
+                          <tspan x={tx} dy="-0.55em" fontSize="12" fontWeight="800" fill="#FFFFFF">15%</tspan>
+                          <tspan x={tx} dy="1.25em" fontSize="9.5" fontWeight="700" fill="#FFE4E6" letterSpacing="0.05em">ZĽAVA</tspan>
+                        </>
+                      ) : label === '15% Off' ? (
+                        <>
+                          <tspan x={tx} dy="-0.55em" fontSize="12" fontWeight="800" fill="#FFFFFF">15%</tspan>
+                          <tspan x={tx} dy="1.25em" fontSize="9.5" fontWeight="700" fill="#FFE4E6" letterSpacing="0.05em">OFF</tspan>
+                        </>
+                      ) : prize.giftType === 'next_visit_gift' ? (
+                        <>
+                          <tspan x={tx} dy="-0.55em" fontSize="10.5" fontWeight="800" fill="#FFFBEB">{isSK ? 'Darček' : 'Massage'}</tspan>
+                          <tspan x={tx} dy="1.25em" fontSize="9.5" fontWeight="700" fill="#FDE68A">{isSK ? 'k masáži' : 'Gift'}</tspan>
+                        </>
+                      ) : (
+                        <>
+                          <tspan x={tx} dy="-0.55em" fontSize="9.5" fontWeight="600" fill="#94A3B8">{isSK ? 'Nevadí,' : 'Try'}</tspan>
+                          <tspan x={tx} dy="1.25em" fontSize="9.5" fontWeight="600" fill="#94A3B8">{isSK ? 'nabudúce' : 'next time'}</tspan>
+                        </>
+                      )}
                     </text>
                   </g>
                 );
@@ -484,7 +492,7 @@ export default function LuckyWheelModal({
               })}
 
               {/* Stredový zlatý kruh */}
-              <circle cx={center} cy={center} r={28} fill="#0F172A" stroke="url(#goldLuxuryRim)" strokeWidth={3} />
+              <circle cx={center} cy={center} r={28} fill="#090B1E" stroke="url(#goldLuxuryRim)" strokeWidth={3} />
               <circle cx={center} cy={center} r={20} fill="url(#centerLuxury)" />
             </svg>
           </div>
@@ -494,16 +502,16 @@ export default function LuckyWheelModal({
             type="button"
             onClick={handleSpin}
             disabled={spinning || !canSpin}
-            className="absolute z-20 w-14 h-14 rounded-full bg-gradient-to-tr from-amber-400 via-amber-300 to-amber-100 text-[#0F172A] font-black text-[10px] tracking-widest uppercase flex items-center justify-center shadow-[0_0_25px_rgba(245,158,11,0.8)] hover:scale-105 active:scale-95 transition cursor-pointer disabled:opacity-75 disabled:cursor-not-allowed"
+            className="absolute z-20 w-14 h-14 rounded-full bg-gradient-to-tr from-amber-400 via-amber-300 to-amber-100 text-[#0F172A] font-black text-[11px] tracking-widest uppercase flex items-center justify-center shadow-[0_0_25px_rgba(245,158,11,0.8)] hover:scale-105 active:scale-95 transition cursor-pointer disabled:opacity-75 disabled:cursor-not-allowed"
           >
             {spinning ? '...' : (isSK ? 'TOČIŤ' : 'SPIN')}
           </button>
         </div>
 
         {/* ================================================================ */}
-        {/* 🎉 VÝSLEDKOVÝ BOX (VÝHRA ALEBO MOTIVAČNÉ "SKÚS ZAJTRA")          */}
+        {/* 🎉 VÝSLEDKOVÝ BOX (LEN PRI SKUTOČNOM DOTOČENÍ / ZOBRAZENÍ VÝHRY)   */}
         {/* ================================================================ */}
-        {wonPrize ? (
+        {wonPrize && (
           wonPrize.giftType !== 'no_win' ? (
             <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-b from-amber-500/20 via-amber-500/10 to-transparent border border-amber-400/50 space-y-2.5 animate-fadeIn text-center shadow-lg">
               <div className="flex items-center justify-center gap-2">
@@ -536,7 +544,11 @@ export default function LuckyWheelModal({
 
               <p className="text-[11px] text-emerald-400 font-semibold flex items-center justify-center gap-1">
                 <CheckCircle2 size={13} />
-                <span>{isSK ? 'Odmena bola pripísaná k vášmu profilu!' : 'Reward saved to your profile!'}</span>
+                <span>
+                  {userId 
+                    ? (isSK ? 'Kód bol aktivovaný v systéme & pridaný do vášho profilu!' : 'Code activated in system & saved to your profile!')
+                    : (isSK ? 'Kód bol aktivovaný v systéme & je pripravený na rezerváciu!' : 'Code activated in system & ready for booking!')}
+                </span>
               </p>
             </div>
           ) : (
@@ -549,23 +561,18 @@ export default function LuckyWheelModal({
               </p>
             </div>
           )
-        ) : !canSpin && timeLeft ? (
-          <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/25 text-center space-y-1">
-            <p className="text-xs text-amber-300 font-medium">
-              {isSK ? 'Dnešné točenie ste už využili.' : 'You have already spun today.'}
-            </p>
-            <p className="text-[11px] text-slate-400 font-mono">
-              {isSK ? 'Ďalšie voľné točenie o:' : 'Next free spin in:'} <strong className="text-white font-bold">{timeLeft}</strong>
-            </p>
-          </div>
-        ) : null}
+        )}
 
         {/* Hlavné akčné tlačidlo */}
         <button
           type="button"
           onClick={handleSpin}
           disabled={spinning || !canSpin}
-          className="w-full py-3.5 rounded-full font-extrabold text-xs uppercase tracking-wider text-[#0F172A] transition-all cursor-pointer shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 hover:from-amber-300 hover:to-amber-200 active:scale-[0.98]"
+          className={`w-full py-3.5 rounded-2xl font-extrabold text-xs sm:text-sm uppercase tracking-wider transition-all cursor-pointer shadow-lg flex items-center justify-center gap-2 ${
+            !canSpin
+              ? 'bg-[#181B30] text-amber-400/90 border border-amber-500/30 cursor-not-allowed shadow-none'
+              : 'bg-gradient-to-r from-[#6633EE] via-[#7C3AED] to-[#8B5CF6] hover:from-[#5822DC] hover:to-[#7C3AED] text-white shadow-[0_0_30px_rgba(102,51,238,0.45)] active:scale-[0.98]'
+          } ${spinning ? 'opacity-80 cursor-wait' : ''}`}
         >
           <Sparkles size={16} className={spinning ? 'animate-spin' : ''} />
           <span>
@@ -576,19 +583,6 @@ export default function LuckyWheelModal({
               : (isSK ? 'Roztočiť Kolo Šťastia' : 'Spin Wheel of Fortune')}
           </span>
         </button>
-
-        {/* 🛠️ RESET TOČENIA PRE TESTOVANIE (DEV / TEST BUTTON) */}
-        <div className="pt-1 flex items-center justify-center border-t border-slate-800/80">
-          <button
-            type="button"
-            onClick={handleDevReset}
-            disabled={spinning || resetting}
-            className="flex items-center gap-1.5 text-[11px] text-slate-400 hover:text-amber-400 transition cursor-pointer p-1 disabled:opacity-50"
-          >
-            <RotateCw size={12} className={resetting ? 'animate-spin' : ''} />
-            <span>{isSK ? 'Resetovať točenie (Test mód)' : 'Reset spin limit (Test mode)'}</span>
-          </button>
-        </div>
 
       </div>
     </div>

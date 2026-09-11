@@ -123,6 +123,7 @@ const translations = {
 interface LanguageContextType {
   language: Language;
   toggleLanguage: () => void;
+  setLanguage: (lang: Language) => void;
   t: (typeof translations)[Language];
 }
 
@@ -146,11 +147,16 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     setLanguage((prev) => (prev === 'sk' ? 'en' : 'sk'));
   };
 
+  const setLanguageDirect = (lang: Language) => {
+    setLanguage(lang);
+  };
+
   return (
     <LanguageContext.Provider
       value={{
         language,
         toggleLanguage,
+        setLanguage: setLanguageDirect,
         t: translations[language],
       }}
     >

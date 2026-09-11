@@ -39,11 +39,11 @@ export default function Stepper({ currentStep, onStepClick, language, selectedTy
   const progressPercent = ((currentStep - 1) / (steps.length - 1)) * 100;
 
   return (
-    <div className="w-full max-w-xl mx-auto my-6 px-2 font-sans">
+    <div className="w-full max-w-xl mx-auto my-3 sm:my-6 px-1 sm:px-2 font-sans">
       <div className="relative flex items-center justify-between">
         
         {/* 1. BACKGROUND CONNECTOR TRACK LINE */}
-        <div className="absolute top-5 left-[10%] right-[10%] h-[2px] bg-[#E2E8F0] dark:bg-[#2B2F49] rounded-full z-0 overflow-hidden">
+        <div className="absolute top-4 sm:top-5 left-[10%] right-[10%] h-[2px] bg-[#E2E8F0] dark:bg-[#2B2F49] rounded-full z-0 overflow-hidden">
           {/* ANIMATED PROGRESS FILL LINE */}
           <div 
             className={`h-full transition-all duration-500 ease-out rounded-full ${
@@ -73,22 +73,22 @@ export default function Stepper({ currentStep, onStepClick, language, selectedTy
             >
               {/* STEP CIRCLE INDICATOR */}
               <div 
-                className={`w-10 h-10 rounded-full flex items-center justify-center font-medium text-xs transition-all duration-300 relative ${
+                className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center font-medium text-xs transition-all duration-300 relative ${
                   isCompleted
                     ? isVip
                       ? 'bg-[#E11D48] text-white shadow-[0_0_14px_rgba(225,29,72,0.5)] scale-100'
                       : 'bg-[#0284C7] text-white shadow-[0_0_14px_rgba(2,132,199,0.5)] scale-100'
                     : isActive
                     ? isVip
-                      ? 'bg-gradient-to-b from-[#FF5A7A] to-[#E11D48] text-white shadow-[0_0_20px_rgba(255,90,122,0.7)] ring-4 ring-[#FF5A7A]/30 scale-105'
-                      : 'bg-gradient-to-b from-[#38BDF8] to-[#0284C7] text-white shadow-[0_0_20px_rgba(2,132,199,0.7)] ring-4 ring-[#0284C7]/30 scale-105'
+                      ? 'bg-gradient-to-b from-[#FF5A7A] to-[#E11D48] text-white shadow-[0_0_20px_rgba(255,90,122,0.7)] ring-3 ring-[#FF5A7A]/30 scale-105'
+                      : 'bg-gradient-to-b from-[#38BDF8] to-[#0284C7] text-white shadow-[0_0_20px_rgba(2,132,199,0.7)] ring-3 ring-[#0284C7]/30 scale-105'
                     : 'bg-white dark:bg-[#0B0D22] text-[#94A3B8] dark:text-[#C7CAE0]/60 border border-[#E2E8F0] dark:border-[#2B2F49]'
                 }`}
               >
                 {isCompleted ? (
-                  <Check size={16} strokeWidth={2.5} className="animate-in zoom-in-50 duration-200" />
+                  <Check size={14} strokeWidth={2.5} className="animate-in zoom-in-50 duration-200" />
                 ) : (
-                  <StepIcon size={16} strokeWidth={isActive ? 2.2 : 1.8} />
+                  <StepIcon size={14} strokeWidth={isActive ? 2.2 : 1.8} className="sm:w-4 sm:h-4" />
                 )}
 
                 {/* ACTIVE STEP AMBIENT GLOW RING */}
@@ -100,9 +100,9 @@ export default function Stepper({ currentStep, onStepClick, language, selectedTy
               </div>
 
               {/* STEP TITLE & SUBTITLE */}
-              <div className="mt-2.5 text-center transition-all duration-300">
+              <div className="mt-1.5 sm:mt-2.5 text-center transition-all duration-300">
                 <p 
-                  className={`text-xs font-medium tracking-tight ${
+                  className={`text-[11px] sm:text-xs font-semibold tracking-tight ${
                     isActive || isCompleted
                       ? 'text-[#0B0D22] dark:text-[#FFFFFF]'
                       : 'text-[#94A3B8] dark:text-[#C7CAE0]/60'

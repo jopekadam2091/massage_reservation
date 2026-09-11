@@ -1,11 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { useLanguage } from '../lib/LanguageContext';
-import { useTheme } from '../lib/ThemeContext';
 import { useAvatar } from '../lib/AvatarContext';
 import SettingsModal from './SettingsModal';
 import UserHistoryModal from './UserHistoryModal';
@@ -13,7 +12,7 @@ import AdminUserManagementModal from './admin/AdminUserManagementModal';
 
 import { 
   Calendar, CreditCard, ShieldCheck, User, Sun, Moon, Settings,
-  Flower2, Leaf, Sparkles, Heart, Feather, Droplets, Coffee, Cat, Star
+  Flower2, Leaf, Sparkles, Heart, Feather, Droplets, Coffee, Cat, Star, ArrowLeft, Globe
 } from 'lucide-react';
 
 const ICON_MAP: Record<string, React.ElementType> = {
@@ -63,8 +62,7 @@ function getNavbarSvgPath(activeIdx: number, totalTabs: number) {
 
 export default function Navbar() {
   const pathname = usePathname();
-  const { language, toggleLanguage, t } = useLanguage();
-  const { theme, toggleTheme } = useTheme();
+  const { language, toggleLanguage, setLanguage, t } = useLanguage();
   const { avatarIcon, avatarColor } = useAvatar();
 
   const [sessionUser, setSessionUser] = useState<any>(null);
@@ -121,7 +119,18 @@ export default function Navbar() {
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, []);  const router = useRouter();
+
+  const handleGoHome = () => {
+    try {
+      sessionStorage.removeItem('welcome_seen');
+    } catch {}
+    if (pathname === '/') {
+      window.dispatchEvent(new CustomEvent('open_landing_screen'));
+    } else {
+      router.push('/');
+    }
+  };
 
   // Total tabs count: 3 for logged in, 2 for logged out
   const totalTabs = sessionUser ? 3 : 2;
@@ -168,6 +177,57 @@ export default function Navbar() {
   return (
     <>
       {/* ==========================================================================
+         🌐 TOP BAR (HORE VĽAVO ÚVOD SO ŠÍPKOU VŽDY, HORE VPRAVO JAZYK LEN PRE NEPRIHLÁSENÝCH)
+         SO ŠTÝLOVÝM ROZPLÝVAJÚCIM SA GRADIENTOM & BLUROM, ABY OBSAH PRI SCROLLOVANÍ PLYNULE ZMIZOL
+         ========================================================================== */}
+      <header 
+        suppressHydrationWarning 
+        className="fixed z-40 top-0 left-0 right-0 pointer-events-none transition-colors duration-300"
+      >
+        {/* Plynulý gradient & backdrop-blur mask cez celú šírku hornej lišty */}
+        <div 
+          className="absolute inset-x-0 top-0 h-20 sm:h-24 bg-gradient-to-b from-[#F4F6FB] via-[#F4F6FB]/85 to-transparent dark:from-[#010314] dark:via-[#010314]/85 dark:to-transparent backdrop-blur-[6px] [mask-image:linear-gradient(to_bottom,black_0%,black_60%,transparent_100%)] [-webkit-mask-image:linear-gradient(to_bottom,black_0%,black_60%,transparent_100%)] pointer-events-none"
+        />
+
+        {/* Samotný obsah hlavičky (tlačidlá) */}
+        <div 
+          className="relative z-10 flex items-center justify-between"
+          style={{ 
+            paddingTop: 'max(1.1rem, env(safe-area-inset-top, 18px))',
+            paddingLeft: 'max(1.25rem, env(safe-area-inset-left, 20px))',
+            paddingRight: 'max(1.25rem, env(safe-area-inset-right, 20px))',
+            paddingBottom: '0.75rem'
+          }}
+        >
+          {/* Hore vľavo: ÚVOD SO ŠÍPKOU (VŽDY VIDITEĽNÉ PRE PRIHLÁSENÝCH AJ NEPRIHLÁSENÝCH) */}
+          <button
+            type="button"
+            onClick={handleGoHome}
+            className="pointer-events-auto group flex items-center gap-2 text-[15px] sm:text-base font-bold text-[#0B0D22] dark:text-[#FFFFFF] hover:text-[#6633EE] dark:hover:text-[#A78BFA] transition-all cursor-pointer active:scale-95 py-1 select-none drop-shadow-sm"
+            title={language === 'sk' ? 'Prejsť na úvodnú domovskú obrazovku s recenziami' : 'Go to home welcome screen with reviews'}
+          >
+            <ArrowLeft size={19} className="text-[#6633EE] dark:text-[#A78BFA] transition-transform group-hover:-translate-x-1" />
+            <span className="tracking-tight">{language === 'sk' ? 'Úvod' : 'Home'}</span>
+          </button>
+
+          {/* Hore vpravo: JAZYK LEN PRE NEPRIHLÁSENÝCH (PO PRIHLÁSENÍ JE V NASTAVENIACH) */}
+          {!sessionUser && (
+            <div className="pointer-events-auto flex items-center">
+              <button
+                type="button"
+                onClick={toggleLanguage}
+                className="flex items-center gap-1.5 text-[15px] sm:text-base font-bold text-[#0B0D22] dark:text-[#FFFFFF] hover:text-[#6633EE] dark:hover:text-[#A78BFA] transition-all cursor-pointer active:scale-95 py-1 select-none drop-shadow-sm"
+                title={language === 'sk' ? 'Prepnúť do angličtiny' : 'Switch to Slovak'}
+              >
+                <Globe size={18} className="text-[#6633EE] dark:text-[#A78BFA]" />
+                <span className="uppercase tracking-wider font-extrabold">{language}</span>
+              </button>
+            </div>
+          )}
+        </div>
+      </header>
+
+      {/* ==========================================================================
          EVERVAULT NOTCHED NAVBAR WITH ELEVATED FLOATING ELECTRIC PURPLE CIRCLE
          ========================================================================== */}
       <nav 
@@ -211,7 +271,7 @@ export default function Navbar() {
             </div>
 
             {/* ================================================================== */}
-            {/* 3. LOGGED OUT TABS (2 Tabs: Rezervácia, Prihlásenie)             */}
+            {/* 3. LOGGED OUT TABS: 2 TABS (Rezervácia, Prihlásenie)             */}
             {/* ================================================================== */}
             {!sessionUser ? (
               <>
@@ -303,27 +363,6 @@ export default function Navbar() {
             )}
           </div>
         </div>
-
-        {/* ================================================================== */}
-        {/* QUICK THEME & LANG SWITCHER PILL (DESKTOP ONLY)                     */}
-        {/* ================================================================== */}
-        <div suppressHydrationWarning className="hidden sm:flex items-center gap-1.5 h-12 px-3 rounded-full bg-white/90 dark:bg-[#0B0D22]/90 border border-[#E2E8F0] dark:border-[#2B2F49] backdrop-blur-2xl shadow-xl">
-          <button
-            type="button"
-            onClick={toggleLanguage}
-            className="px-2.5 py-1 rounded-full bg-slate-50 dark:bg-[#010314] text-[#0B0D22] dark:text-[#FFFFFF] text-[10px] font-medium border border-[#E2E8F0] dark:border-[#2B2F49] hover:border-[#6633EE]/60 transition cursor-pointer"
-          >
-            {language.toUpperCase()}
-          </button>
-          <button
-            type="button"
-            onClick={toggleTheme}
-            className="p-1.5 rounded-full bg-slate-50 dark:bg-[#010314] text-[#6633EE] dark:text-[#A78BFA] border border-[#E2E8F0] dark:border-[#2B2F49] hover:border-[#6633EE]/60 transition cursor-pointer"
-          >
-            {theme === 'dark' ? <Moon size={14} /> : <Sun size={14} />}
-          </button>
-        </div>
-
       </nav>
     </>
   );

@@ -118,7 +118,7 @@ export const packagesTranslations: Record<'SK' | 'EN', PackagesData> = {
       },
       {
         duration: 45,
-        badge: 'Supreme',
+        badge: 'Optimal',
         desc: 'Vhodný pre rýchly relax celého tela.',
         features: [
           { text: 'Masáž celého tela' },
@@ -127,7 +127,7 @@ export const packagesTranslations: Record<'SK' | 'EN', PackagesData> = {
       },
       {
         duration: 60,
-        badge: 'Full Experience',
+        badge: 'Full',
         desc: 'Dokonalý zážitok s extra časom.',
         features: [
           { text: 'Stimulujúca masáž celého tela' },
@@ -190,7 +190,7 @@ export const packagesTranslations: Record<'SK' | 'EN', PackagesData> = {
       },
       {
         duration: 45,
-        badge: 'Supreme',
+        badge: 'Optimal',
         desc: 'Great for a quick full-body relax.',
         features: [
           { text: 'Full body massage' },
@@ -199,7 +199,7 @@ export const packagesTranslations: Record<'SK' | 'EN', PackagesData> = {
       },
       {
         duration: 60,
-        badge: 'Full Experience',
+        badge: 'Full',
         desc: 'A perfect experience with extra time.',
         features: [
           { text: 'Stimulated full body massage' },

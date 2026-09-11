@@ -286,7 +286,7 @@ import { Calendar, History, Settings, Gift, Sparkles, ShieldCheck } from 'lucide
  */
 export function ProfilePageSkeleton() {
   return (
-    <main className="relative min-h-screen w-full flex flex-col items-center justify-start p-4 sm:p-6 pt-4 sm:pt-6 lg:pt-8 pb-28 gap-4 bg-transparent transition-colors duration-300 font-sans overflow-hidden text-[#1E293B] dark:text-[#DDE0F2] animate-fadeIn">
+    <main className="relative min-h-screen w-full flex flex-col items-center justify-start p-4 sm:p-6 pt-16 sm:pt-20 lg:pt-24 pb-28 gap-4 bg-transparent transition-colors duration-300 font-sans overflow-hidden text-[#1E293B] dark:text-[#DDE0F2] animate-fadeIn">
       <div className="relative z-10 w-full max-w-sm sm:max-w-xl flex flex-col gap-4">
         
         {/* ================================================================ */}

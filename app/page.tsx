@@ -26,7 +26,7 @@ export default function Home() {
   const { language } = useLanguage();
   const lang: LangType = language.toUpperCase() as LangType;
 
-  const [showSplash, setShowSplash] = useState<boolean>(false);
+  const [showSplash, setShowSplash] = useState<boolean>(true);
   const [showSuccessPopup, setShowSuccessPopup] = useState<boolean>(false);
   const [lastBookingDetails, setLastBookingDetails] = useState<any>(null);
   const [discountTheme, setDiscountTheme] = useState(DEFAULT_DISCOUNT_THEME);
@@ -123,7 +123,20 @@ export default function Home() {
   };
 
   useEffect(() => {
+    const handleOpenLanding = () => {
+      setShowSplash(true);
+    };
+    window.addEventListener('open_landing_screen', handleOpenLanding);
+    return () => window.removeEventListener('open_landing_screen', handleOpenLanding);
+  }, []);
+
+  useEffect(() => {
     const checkSession = async () => {
+      const welcomeSeen = typeof window !== 'undefined' && sessionStorage.getItem('welcome_seen') === 'true';
+      if (welcomeSeen) {
+        setShowSplash(false);
+      }
+
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
         setSessionUser(session.user);
@@ -371,7 +384,7 @@ export default function Home() {
 
   return (
     <div
-      className="min-h-screen pt-4 sm:pt-6 lg:pt-8 transition-colors duration-300 pb-24 lg:pb-28 bg-transparent text-[#0B0D22] dark:text-[#FFFFFF] font-sans relative overflow-x-hidden"
+      className="min-h-screen pt-16 sm:pt-20 lg:pt-24 transition-colors duration-300 pb-28 sm:pb-36 bg-transparent text-[#0B0D22] dark:text-[#FFFFFF] font-sans relative overflow-x-hidden"
       style={
         {
           '--discount-border': '#2B2F49',
@@ -387,13 +400,13 @@ export default function Home() {
       {/* ONBOARDING SPLASH SCREEN */}
       {showSplash && !isAdmin ? (
         <LandingScreen
-          onEnter={() => setShowSplash(false)}
-          onViewServices={() => {
+          onEnter={() => {
             setShowSplash(false);
-            setMassageStep(2);
-            setSelectedType('Klasik');
+            try {
+              sessionStorage.setItem('welcome_seen', 'true');
+            } catch {}
           }}
-          t={t}
+          sessionUser={sessionUser}
         />
       ) : (
         <>
@@ -442,11 +455,11 @@ export default function Home() {
           )}
 
           {/* 🚀 HLAVNÝ OBSAH REZERVÁCIE */}
-          <main className="max-w-4xl mx-auto p-4 sm:p-6 pt-3 sm:pt-4">
+          <main className="max-w-4xl mx-auto px-3 sm:px-6 py-2 sm:py-4">
             {isAdmin ? (
               <AdminReservationDashboard language={language} />
             ) : (
-              <div className="space-y-6 sm:space-y-8 animate-fadeIn">
+              <div className="space-y-4 sm:space-y-6 animate-fadeIn">
                 
                 {/* 1. KARTA ZRUŠENÉHO STORNA */}
                 {approvedStornoNotice && dismissedApprovedRef !== approvedStornoNotice.booking_ref && (
@@ -606,28 +619,11 @@ export default function Home() {
                   </div>
                 )}
 
-                <div className="max-w-xl mx-auto text-center mt-6 space-y-2">
-                  <h1 className="text-3xl sm:text-4xl font-semibold text-[#0B0D22] dark:text-[#FFFFFF] tracking-tight">
+                {/* 🌟 HLAVIČKA TITULKU REZERVÁCIE */}
+                <div className="max-w-2xl mx-auto flex items-center justify-center mt-1 sm:mt-3 mb-2 sm:mb-3 px-1">
+                  <h1 className="text-xl sm:text-2xl font-extrabold text-[#0B0D22] dark:text-[#FFFFFF] tracking-tight text-center">
                     {t.massageTitle}
                   </h1>
-                  <p className="text-[#64748B] dark:text-[#C7CAE0] text-sm font-normal leading-relaxed">{t.massageSubtitle}</p>
-                  
-                  {/* 🌟 HERO TRUST BADGES */}
-                  <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 pt-1 text-xs text-[#64748B] dark:text-[#94A3B8]">
-                    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 font-medium text-[11px] border border-amber-500/20">
-                      <Star size={12} className="fill-amber-400 text-amber-400" />
-                      <span className="font-bold text-[#0B0D22] dark:text-white">4.9</span>
-                      <span>(120+ recenzií)</span>
-                    </div>
-                    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-medium text-[11px] border border-emerald-500/20">
-                      <ShieldCheck size={12} />
-                      <span>100% Diskrétnosť</span>
-                    </div>
-                    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-purple-500/10 text-purple-600 dark:text-purple-400 font-medium text-[11px] border border-purple-500/20">
-                      <Sparkles size={12} />
-                      <span>Privátny salón</span>
-                    </div>
-                  </div>
                 </div>
 
                 {/* 🚀 EVERVAULT STEPPER */}
@@ -766,7 +762,7 @@ export default function Home() {
       )}
 
       {/* SKLENENÉ INFORMAČNÉ OKNO PRE HOSŤA */}
-      {showGuestNotice && !sessionUser && (
+      {showGuestNotice && !sessionUser && !showSplash && (
         <div className="fixed inset-0 z-50 bg-[#0B0D22]/60 dark:bg-[#010314]/85 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 font-sans animate-fadeIn">
           <div className="w-full max-w-lg p-6 sm:p-8 rounded-2xl bg-white dark:bg-[#0B0D22] border border-[#E2E8F0] dark:border-[#2B2F49] shadow-2xl space-y-5 text-center relative animate-in fade-in zoom-in-95 duration-200 text-[#1E293B] dark:text-[#DDE0F2]">
             

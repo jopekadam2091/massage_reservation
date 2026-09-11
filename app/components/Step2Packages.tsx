@@ -40,32 +40,7 @@ export default function Step2Packages({ selectedType, packagesData, t, onSelectD
     ? (isDark ? 'rgba(28, 8, 18, 0.85)' : 'rgba(255, 245, 247, 0.9)') 
     : (isDark ? '#0B0D22' : '#FFFFFF');
 
-  const getVipBadge = (duration: number) => {
-    if (!isVip) return null;
 
-    if (duration === 45) {
-      return (
-        <div className="w-7 h-7 rounded-full bg-[#FF5A7A]/15 border border-[#FF5A7A]/30 flex items-center justify-center text-[#FF5A7A]" title="VIP Supreme">
-          <Crown size={14} className="text-[#FF5A7A]" />
-        </div>
-      );
-    }
-    if (duration === 60) {
-      return (
-        <div className="w-7 h-7 rounded-full bg-[#FF5A7A]/25 border border-[#FF5A7A]/40 flex items-center justify-center text-[#FF5A7A]" title="VIP Pro">
-          <Crown size={14} className="text-[#FF5A7A] fill-[#FF5A7A]/30" />
-        </div>
-      );
-    }
-    if (duration === 90) {
-      return (
-        <div className="w-7 h-7 rounded-full bg-[#FF5A7A]/25 border border-[#FF5A7A]/40 flex items-center justify-center text-[#FF5A7A]" title="VIP Max">
-          <Gem size={14} className="text-[#FF5A7A] animate-pulse" />
-        </div>
-      );
-    }
-    return null;
-  };
 
   const renderProcedureIcon = (feat: Feature, isVipItem: boolean) => {
     const text = feat.text.toLowerCase();
@@ -143,68 +118,40 @@ export default function Step2Packages({ selectedType, packagesData, t, onSelectD
   };
 
   return (
-    <div className="space-y-6 font-sans text-left">
-      {/* 🚀 HORNÝ HEADER: TRUST SIGNALS & SPÄŤ TLAČIDLO */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative">
-        <div className="text-left space-y-1.5">
-          <div className="flex items-center gap-2">
-            <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 ${
-              selectedType === 'VIP'
-                ? 'bg-[#FF5A7A]/15 text-[#FF5A7A] border border-[#FF5A7A]/30'
-                : 'bg-[#0284C7]/15 text-[#0284C7] dark:text-[#38BDF8] border border-[#38BDF8]/30'
-            }`}>
-              <span>{selectedType === 'VIP' ? (isSK ? 'VIP Premium Rituály' : 'VIP Premium Rituals') : (isSK ? 'Klasické Masáže' : 'Classic Massages')}</span>
-              {selectedType === 'VIP' && (
-                <span className="px-1.5 py-0.2 rounded-full bg-[#FF5A7A]/20 border border-[#FF5A7A]/40 text-[#FF5A7A] text-[9px] font-black">
-                  18+
-                </span>
-              )}
-            </span>
-
-            {/* TRUST SIGNAL BADGE */}
-            <div className="flex items-center gap-1 text-[11px] text-[#64748B] dark:text-[#94A3B8]">
-              <Star size={12} className="fill-amber-400 text-amber-400" />
-              <span className="font-bold text-[#0B0D22] dark:text-white">4.9</span>
-              <span className="hidden sm:inline">({isSK ? 'Top Voľba' : 'Top Choice'})</span>
-            </div>
-          </div>
-
-          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#0B0D22] dark:text-white">
-            {isSK ? 'Klienti si ' : 'Packages clients '}
-            <span className={`bg-gradient-to-r ${
-              selectedType === 'VIP'
-                ? 'from-[#FF5A7A] via-[#F43F5E] to-[#FB7185]'
-                : 'from-[#0284C7] via-[#38BDF8] to-[#818CF8]'
-            } bg-clip-text text-transparent`}>
-              {isSK ? 'najviac vyberajú' : 'choose most often'}
-            </span>
-          </h2>
-          <p className="text-xs text-[#64748B] dark:text-[#94A3B8] font-normal">
-            {isSK 
-              ? 'Garantovaná diskrétnosť, privátny priestor a prémiový individuálny prístup.' 
-              : 'Guaranteed discretion, private environment, and premium personal approach.'}
-          </p>
-        </div>
+    <div className="space-y-5 font-sans text-left">
+      {/* 🚀 HORNÝ HEADER: VARIANTY KLASICKEJ MASÁŽE & SPÄŤ TLAČIDLO */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 relative pb-1">
+        <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight text-[#0B0D22] dark:text-white">
+          {isSK ? 'Varianty ' : 'Variants of '}
+          <span className={`bg-gradient-to-r ${
+            selectedType === 'VIP'
+              ? 'from-[#FF5A7A] via-[#F43F5E] to-[#FB7185]'
+              : 'from-[#0284C7] via-[#38BDF8] to-[#818CF8]'
+          } bg-clip-text text-transparent`}>
+            {selectedType === 'VIP' 
+              ? (isSK ? 'VIP masáže:' : 'VIP massage:') 
+              : (isSK ? 'klasickej masáže:' : 'classic massage:')}
+          </span>
+        </h2>
 
         <button
           type="button"
           onClick={onBack}
-          className="self-start sm:self-center btn-secondary text-xs font-medium px-4 py-2 active:scale-95 cursor-pointer flex items-center gap-1.5 shrink-0 rounded-full border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md"
+          className="self-start sm:self-center btn-secondary text-xs font-medium px-3.5 py-1.5 active:scale-95 cursor-pointer flex items-center gap-1.5 shrink-0 rounded-full border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md shadow-xs"
         >
           <ArrowLeft size={14} />
           <span>{isSK ? 'Späť na úroveň' : 'Back to Level'}</span>
         </button>
       </div>
 
-      {/* 💎 3 KARTY BALÍČKOV V ŠTÝLE MODERNÉHO SAAS PRICINGU */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch pt-4 relative">
+      {/* 💎 KARTY BALÍČKOV */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5 items-stretch pt-2 relative">
         {packagesData[selectedType].map((pkg: PackageItem, index: number) => {
           const priceStr =
             selectedType === 'Klasik'
               ? PRICES.Klasik[pkg.duration as 30 | 45 | 60]
               : PRICES.VIP[pkg.duration as 45 | 60 | 90];
 
-          const originalPrice = ORIGINAL_PRICES[selectedType]?.[pkg.duration] || '';
           const isTop1 = index === 1; // Stredná karta je najžiadanejšia
 
           return (
@@ -214,7 +161,33 @@ export default function Step2Packages({ selectedType, packagesData, t, onSelectD
                 isTop1 ? 'md:-translate-y-2 z-20' : 'z-10'
               }`}
             >
-              {/* 👑 NEONOVÁ KORUNKA NAD NAJŽIADANEJŠOU KARTOU */}
+              {/* 🌟 ODZNAK NA ROHU KARTY: NAJŽIADANEJŠÍ / POPULÁRNE & 18+ PRE VŠETKY VIP KARTY */}
+              {isTop1 ? (
+                <div className="absolute -top-3 left-5 z-30 pointer-events-none flex items-center gap-1.5">
+                  <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider backdrop-blur-md shadow-xs ${
+                    isVip
+                      ? 'bg-[#FF5A7A]/20 dark:bg-[#1c0812] border border-[#FF5A7A]/50 text-[#FF5A7A] dark:text-white shadow-[0_0_10px_rgba(255,90,122,0.3)]'
+                      : 'bg-white/95 dark:bg-[#0B0D22]/95 border border-[#38BDF8]/40 text-[#0284C7] dark:text-[#38BDF8]'
+                  }`}>
+                    <Sparkles size={10} className={isVip ? 'text-[#FF5A7A]' : 'text-[#38BDF8]'} />
+                    <span>{selectedType === 'VIP' ? (isSK ? 'Populárne' : 'Popular') : (isSK ? 'Najžiadanejší' : 'Most Popular')}</span>
+                  </span>
+
+                  {isVip && (
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-black tracking-wider uppercase backdrop-blur-md shadow-xs bg-[#FF5A7A]/20 dark:bg-[#1c0812] border border-[#FF5A7A]/40 text-[#FF5A7A] dark:text-[#FDA4AF]">
+                      18+
+                    </span>
+                  )}
+                </div>
+              ) : isVip ? (
+                <div className="absolute -top-2.5 left-5 z-30 pointer-events-none">
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-black tracking-wider uppercase backdrop-blur-md shadow-xs bg-[#FF5A7A]/20 dark:bg-[#1c0812] border border-[#FF5A7A]/40 text-[#FF5A7A] dark:text-[#FDA4AF]">
+                    18+
+                  </span>
+                </div>
+              ) : null}
+
+              {/* 👑 NEONOVÁ KORUNKA NAD NAJŽIADANEJŠOU KARTOU NA DESKTOPE */}
               {isTop1 && (
                 <div className="hidden md:flex absolute -top-8 right-6 items-center justify-center pointer-events-none z-30 animate-pulse">
                   <svg 
@@ -263,7 +236,7 @@ export default function Step2Packages({ selectedType, packagesData, t, onSelectD
                     : 'shadow-md dark:shadow-xl border border-slate-200/80 dark:border-slate-800/80'
                 }`}
               >
-                <div className="p-6 sm:p-7 flex flex-col justify-between h-full relative overflow-hidden rounded-2xl">
+                <div className="p-5 sm:p-6 flex flex-col justify-between h-full relative overflow-hidden rounded-2xl">
                   
                   {/* 🔮 VIP TEXTÚRA V POZADÍ KARTY */}
                   {isVip && (
@@ -288,67 +261,43 @@ export default function Step2Packages({ selectedType, packagesData, t, onSelectD
                   )}
 
                   <div className="relative z-10">
-                    {/* HORNÝ BADGE A VIP IKONA S 18+ */}
-                    <div className="flex items-center justify-between mb-2">
-                      {isTop1 ? (
-                        <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider ${
-                          isVip
-                            ? 'bg-[#FF5A7A]/25 border border-[#FF5A7A]/50 text-[#FF5A7A] dark:text-white shadow-[0_0_12px_rgba(255,90,122,0.35)]'
-                            : 'bg-[#0284C7]/20 border border-[#38BDF8]/50 text-[#0284C7] dark:text-[#38BDF8] shadow-[0_0_12px_rgba(56,189,248,0.25)]'
+                    {/* HORNÝ RIADOK: NÁZOV BALÍKA VĽAVO (BEZ BUBLINIEK, VÄČŠÍ AKO CENA, S HODINAMI) + SUMA V PRAVOM HORNOM ROHU */}
+                    <div className="flex items-baseline justify-between gap-3 mb-4 pt-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h3 className={`font-black tracking-tight text-[#0B0D22] dark:text-white flex items-center gap-1.5 ${
+                          isVip ? 'text-xl sm:text-2xl' : 'text-2xl sm:text-3xl'
                         }`}>
-                          <Sparkles size={12} className={isVip ? 'text-[#FF5A7A]' : 'text-[#38BDF8]'} />
-                          <span>{selectedType === 'VIP' ? (isSK ? 'Hit mesiaca' : 'Monthly Hit') : (isSK ? 'Najžiadanejší' : 'Most Popular')}</span>
-                        </div>
-                      ) : (
-                        <span className={`text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full ${
-                          isVip 
-                            ? 'bg-[#FF5A7A]/10 text-[#FF5A7A] dark:text-[#FDA4AF] border border-[#FF5A7A]/20' 
-                            : 'bg-slate-100 dark:bg-slate-800/60 text-[#64748B] dark:text-[#94A3B8] border border-slate-200/60 dark:border-slate-700/60'
-                        }`}>
-                          {pkg.badge}
-                        </span>
-                      )}
-
-                      <div className="flex items-center gap-1.5">
-                        {isVip && (
-                          <span className="px-1.5 py-0.5 rounded-full bg-[#FF5A7A]/20 border border-[#FF5A7A]/40 text-[#FF5A7A] text-[9px] font-black tracking-wider">
-                            18+
+                          <span>{pkg.badge}</span>
+                          <span className={`inline-flex items-center gap-1 ${
+                            isVip ? 'text-[#FF5A7A]' : 'text-[#0284C7] dark:text-[#38BDF8]'
+                          }`}>
+                            <span>{pkg.duration}</span>
+                            <Clock size={isVip ? 18 : 20} className="stroke-[2.5] shrink-0" />
                           </span>
-                        )}
-                        {getVipBadge(pkg.duration)}
+                        </h3>
+
+
+                      </div>
+
+                      {/* 💰 SUMA V PRAVOM HORNOM ROHU (ROVNAKÁ VÁHA A VEĽKOSŤ AKO NÁZOV BALÍKA) */}
+                      <div className="text-right shrink-0">
+                        <span className={`font-black tracking-tight ${
+                          isVip ? 'text-xl sm:text-2xl' : 'text-2xl sm:text-3xl'
+                        } ${
+                          isVip 
+                            ? 'text-[#FF5A7A] drop-shadow-[0_0_12px_rgba(255,90,122,0.35)]' 
+                            : 'text-[#0B0D22] dark:text-white'
+                        }`}>
+                          {priceStr}
+                        </span>
                       </div>
                     </div>
 
-                    {/* PREŠKRTNUTÁ PÔVODNÁ CENA */}
-                    {originalPrice && (
-                      <span className={`text-xs line-through font-mono ${
-                        isVip ? 'text-[#FF5A7A]/60' : 'text-[#94A3B8] dark:text-[#64748B]'
-                      }`}>
-                        {originalPrice}
-                      </span>
-                    )}
-
-                    {/* HLAVNÁ CENA A TRVANIE */}
-                    <div className="flex items-baseline gap-1.5 mb-5 mt-0.5">
-                      <span className={`text-3xl sm:text-4xl font-extrabold tracking-tight ${
-                        isVip 
-                          ? 'text-[#FF5A7A] drop-shadow-[0_0_12px_rgba(255,90,122,0.35)]' 
-                          : 'text-[#0B0D22] dark:text-white'
-                      }`}>
-                        {priceStr}
-                      </span>
-                      <span className={`text-xs font-normal ${
-                        isVip ? 'text-[#FDA4AF] dark:text-[#FF809B]' : 'text-[#64748B] dark:text-[#94A3B8]'
-                      }`}>
-                        / {pkg.duration} min
-                      </span>
-                    </div>
-
-                    {/* 📋 ŠTRUKTÚROVANÉ RIADKY PROCEDÚR SO ZJEMNENÝMI PREDEĽMI */}
-                    <div className="space-y-3.5 mb-6 text-left">
+                    {/* 📋 ŠTRUKTÚROVANÉ RIADKY PROCEDÚR */}
+                    <div className="space-y-3 mb-4 text-left">
                       
                       {/* 1. RIADOK: ZAMERANIE MASÁŽE */}
-                      <div className={`border-b pb-3 ${
+                      <div className={`border-b pb-2.5 ${
                         isVip ? 'border-[#FF5A7A]/15 dark:border-[#FF5A7A]/20' : 'border-slate-200/60 dark:border-slate-800/60'
                       }`}>
                         <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-[#64748B] dark:text-[#94A3B8] mb-1">
@@ -361,9 +310,7 @@ export default function Step2Packages({ selectedType, packagesData, t, onSelectD
                       </div>
 
                       {/* 2. RIADOK: OLEJE & AROMATERAPIA */}
-                      <div className={`border-b pb-3 ${
-                        isVip ? 'border-[#FF5A7A]/15 dark:border-[#FF5A7A]/20' : 'border-slate-200/60 dark:border-slate-800/60'
-                      }`}>
+                      <div className={selectedType === 'VIP' ? 'border-b pb-2.5 border-[#FF5A7A]/15 dark:border-[#FF5A7A]/20' : 'pb-0.5'}>
                         <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-[#64748B] dark:text-[#94A3B8] mb-1">
                           <Droplets size={12} className={isVip ? 'text-[#FF5A7A]' : 'text-[#0284C7] dark:text-[#38BDF8]'} />
                           <span>{isSK ? 'Oleje & Aromaterapia' : 'Oils & Aromatherapy'}</span>
@@ -375,31 +322,33 @@ export default function Step2Packages({ selectedType, packagesData, t, onSelectD
                         </p>
                       </div>
 
-                      {/* 3. RIADOK: KOMPLETNÝ ZOZNAM PROCEDÚR */}
-                      <div className="pb-1">
-                        <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-[#64748B] dark:text-[#94A3B8] mb-2">
-                          <Heart size={12} className={isVip ? 'text-[#FF5A7A]' : 'text-[#0284C7] dark:text-[#38BDF8]'} />
-                          <span>{isSK ? 'Zahrnuté procedúry & výhody' : 'Included procedures & benefits'}</span>
+                      {/* 3. RIADOK: IBA PRE VIP - EXTRA PROCEDÚRY */}
+                      {selectedType === 'VIP' && (
+                        <div className="pb-1 pt-0.5">
+                          <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-[#64748B] dark:text-[#94A3B8] mb-2">
+                            <Heart size={12} className="text-[#FF5A7A]" />
+                            <span>{isSK ? 'Zahrnuté procedúry & výhody' : 'Included procedures & benefits'}</span>
+                          </div>
+                          <ul className="space-y-2">
+                            {pkg.features.map((feat: Feature, idx: number) => (
+                              <li key={idx} className="flex items-start gap-2 text-xs text-[#334155] dark:text-[#DDE0F2] font-normal">
+                                {renderProcedureIcon(feat, isVip)}
+                                <span className="leading-tight pt-0.5">{feat.text}</span>
+                              </li>
+                            ))}
+                          </ul>
                         </div>
-                        <ul className="space-y-2">
-                          {pkg.features.map((feat: Feature, idx: number) => (
-                            <li key={idx} className="flex items-start gap-2 text-xs text-[#334155] dark:text-[#DDE0F2] font-normal">
-                              {renderProcedureIcon(feat, isVip)}
-                              <span className="leading-tight pt-0.5">{feat.text}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
+                      )}
 
                     </div>
                   </div>
 
-                  {/* 🔘 AKČNÉ TLAČIDLO S TRANSPARENTNOU CENOU */}
+                  {/* 🔘 AKČNÉ TLAČIDLO: Vybrať 30 minútový balík */}
                   <div className="mt-3">
                     <button
                       type="button"
                       onClick={() => onSelectDuration(pkg.duration)}
-                      className={`w-full min-h-[46px] h-[46px] rounded-xl font-bold text-xs transition-all duration-200 active:scale-[0.98] cursor-pointer flex items-center justify-center relative overflow-hidden group/btn ${
+                      className={`w-full min-h-[50px] h-[50px] rounded-xl font-bold text-sm sm:text-base transition-all duration-200 active:scale-[0.98] cursor-pointer flex items-center justify-center relative overflow-hidden group/btn shadow-md ${
                         isVip
                           ? isTop1
                             ? 'bg-gradient-to-b from-[#E11D48] via-[#BE123C] to-[#881337] hover:from-[#F43F5E] hover:via-[#E11D48] hover:to-[#9F1239] text-white uppercase tracking-wider border border-[#FDA4AF]/70 shadow-[inset_0_1px_1px_rgba(255,255,255,0.45),0_0_20px_rgba(225,29,72,0.35),0_4px_12px_rgba(0,0,0,0.35)]'
@@ -411,7 +360,9 @@ export default function Step2Packages({ selectedType, packagesData, t, onSelectD
                     >
                       {/* Metalický svetelný odlesk pri hoveri */}
                       <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700 pointer-events-none" />
-                      <span>{isSK ? `Vybrať ${pkg.duration} min • ${priceStr}` : `Select ${pkg.duration} min • ${priceStr}`}</span>
+                      <span className="tracking-wide">
+                        {isSK ? `Vybrať ${pkg.duration} minútový balík` : `Select ${pkg.duration}-minute package`}
+                      </span>
                     </button>
                   </div>
 

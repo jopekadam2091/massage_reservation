@@ -3,6 +3,8 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAvatar } from '../lib/AvatarContext';
+import { useLanguage } from '../lib/LanguageContext';
+import { useTheme } from '../lib/ThemeContext';
 import ModernBirthdayPicker from './ModernBirthdayPicker';
 import DeleteAccountModal from './DeleteAccountModal';
 import LuckyWheelModal from './LuckyWheelModal';
@@ -81,13 +83,21 @@ export default function SettingsModal({
   isOpen,
   onClose,
   userId,
-  language,
-  toggleLanguage,
-  theme,
-  toggleTheme,
-  t,
+  language: propLanguage,
+  toggleLanguage: propToggleLanguage,
+  theme: propTheme,
+  toggleTheme: propToggleTheme,
+  t: propT,
 }: Props) {
   const { avatarIcon, avatarColor, setAvatarSettings } = useAvatar();
+  const { language: ctxLanguage, setLanguage, t: ctxT } = useLanguage();
+  const { theme: ctxTheme, setTheme } = useTheme();
+
+  const language = ctxLanguage || propLanguage || 'sk';
+  const theme = ctxTheme || propTheme || 'dark';
+  const currentLang = language;
+  const currentTheme = theme;
+  const t = ctxT || propT;
 
   const [activeTab, setActiveTab] = useState<SettingsTab>('avatar');
   const [isWheelOpen, setIsWheelOpen] = useState(false);
@@ -378,6 +388,126 @@ export default function SettingsModal({
                         title={color.name}
                       />
                     ))}
+                  </div>
+                </div>
+
+                {/* 🌐 Výber jazyka (Slovenčina / English) */}
+                <div className="pt-3 border-t border-[#E2E8F0] dark:border-[#2B2F49] space-y-2">
+                  <label className="text-xs font-semibold text-[#6633EE] dark:text-[#A78BFA] block">
+                    {currentLang === 'sk' ? 'Jazyk aplikácie' : 'Application Language'}
+                  </label>
+                  <div className="grid grid-cols-2 gap-2.5">
+                    <button
+                      type="button"
+                      onClick={() => setLanguage('sk')}
+                      className={`p-3 rounded-xl border flex items-center justify-between transition-all duration-200 cursor-pointer active:scale-95 ${
+                        currentLang === 'sk'
+                          ? 'border-[#6633EE] bg-[#6633EE]/10 shadow-[0_0_12px_rgba(102,51,238,0.25)] text-[#0B0D22] dark:text-white font-semibold'
+                          : 'border-[#E2E8F0] dark:border-[#2B2F49] bg-slate-50 dark:bg-[#010314] text-[#64748B] dark:text-[#C7CAE0]/70 hover:border-[#6633EE]/40'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <span className="text-xl shrink-0">🇸🇰</span>
+                        <div className="text-left min-w-0">
+                          <p className="text-xs font-bold leading-none truncate">Slovenčina</p>
+                          <p className="text-[10px] text-[#64748B] dark:text-[#C7CAE0]/60 mt-1 truncate">Slovenský jazyk</p>
+                        </div>
+                      </div>
+                      {currentLang === 'sk' && (
+                        <div className="w-5 h-5 rounded-full bg-[#6633EE] text-white flex items-center justify-center shrink-0 shadow-xs">
+                          <Check size={12} strokeWidth={3} />
+                        </div>
+                      )}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setLanguage('en')}
+                      className={`p-3 rounded-xl border flex items-center justify-between transition-all duration-200 cursor-pointer active:scale-95 ${
+                        currentLang === 'en'
+                          ? 'border-[#6633EE] bg-[#6633EE]/10 shadow-[0_0_12px_rgba(102,51,238,0.25)] text-[#0B0D22] dark:text-white font-semibold'
+                          : 'border-[#E2E8F0] dark:border-[#2B2F49] bg-slate-50 dark:bg-[#010314] text-[#64748B] dark:text-[#C7CAE0]/70 hover:border-[#6633EE]/40'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <span className="text-xl shrink-0">🇬🇧</span>
+                        <div className="text-left min-w-0">
+                          <p className="text-xs font-bold leading-none truncate">English</p>
+                          <p className="text-[10px] text-[#64748B] dark:text-[#C7CAE0]/60 mt-1 truncate">English language</p>
+                        </div>
+                      </div>
+                      {currentLang === 'en' && (
+                        <div className="w-5 h-5 rounded-full bg-[#6633EE] text-white flex items-center justify-center shrink-0 shadow-xs">
+                          <Check size={12} strokeWidth={3} />
+                        </div>
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                {/* 🌓 Režim zobrazenia (Dark / Light Mode) */}
+                <div className="pt-3 border-t border-[#E2E8F0] dark:border-[#2B2F49] space-y-2">
+                  <label className="text-xs font-semibold text-[#6633EE] dark:text-[#A78BFA] block">
+                    {currentLang === 'sk' ? 'Režim zobrazenia' : 'Display Theme'}
+                  </label>
+                  <div className="grid grid-cols-2 gap-2.5">
+                    <button
+                      type="button"
+                      onClick={() => setTheme('dark')}
+                      className={`p-3 rounded-xl border flex items-center justify-between transition-all duration-200 cursor-pointer active:scale-95 ${
+                        currentTheme === 'dark'
+                          ? 'border-[#6633EE] bg-[#6633EE]/10 shadow-[0_0_12px_rgba(102,51,238,0.25)] text-[#0B0D22] dark:text-white font-semibold'
+                          : 'border-[#E2E8F0] dark:border-[#2B2F49] bg-slate-50 dark:bg-[#010314] text-[#64748B] dark:text-[#C7CAE0]/70 hover:border-[#6633EE]/40'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="w-8 h-8 rounded-lg bg-slate-900 border border-[#2B2F49] flex items-center justify-center text-[#A78BFA] shrink-0 shadow-xs">
+                          <Moon size={16} />
+                        </div>
+                        <div className="text-left min-w-0">
+                          <p className="text-xs font-bold leading-none truncate">
+                            {currentLang === 'sk' ? 'Tmavý režim' : 'Dark Mode'}
+                          </p>
+                          <p className="text-[10px] text-[#64748B] dark:text-[#C7CAE0]/60 mt-1 truncate">
+                            Evervault Dark
+                          </p>
+                        </div>
+                      </div>
+                      {currentTheme === 'dark' && (
+                        <div className="w-5 h-5 rounded-full bg-[#6633EE] text-white flex items-center justify-center shrink-0 shadow-xs">
+                          <Check size={12} strokeWidth={3} />
+                        </div>
+                      )}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setTheme('light')}
+                      className={`p-3 rounded-xl border flex items-center justify-between transition-all duration-200 cursor-pointer active:scale-95 ${
+                        currentTheme === 'light'
+                          ? 'border-[#6633EE] bg-[#6633EE]/10 shadow-[0_0_12px_rgba(102,51,238,0.25)] text-[#0B0D22] dark:text-white font-semibold'
+                          : 'border-[#E2E8F0] dark:border-[#2B2F49] bg-slate-50 dark:bg-[#010314] text-[#64748B] dark:text-[#C7CAE0]/70 hover:border-[#6633EE]/40'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="w-8 h-8 rounded-lg bg-amber-100 border border-amber-300/60 flex items-center justify-center text-amber-600 shrink-0 shadow-xs">
+                          <Sun size={16} />
+                        </div>
+                        <div className="text-left min-w-0">
+                          <p className="text-xs font-bold leading-none truncate">
+                            {currentLang === 'sk' ? 'Svetlý režim' : 'Light Mode'}
+                          </p>
+                          <p className="text-[10px] text-[#64748B] dark:text-[#C7CAE0]/60 mt-1 truncate">
+                            Clean Light
+                          </p>
+                        </div>
+                      </div>
+                      {currentTheme === 'light' && (
+                        <div className="w-5 h-5 rounded-full bg-[#6633EE] text-white flex items-center justify-center shrink-0 shadow-xs">
+                          <Check size={12} strokeWidth={3} />
+                        </div>
+                      )}
+                    </button>
                   </div>
                 </div>
               </div>

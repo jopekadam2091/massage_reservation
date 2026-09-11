@@ -11,11 +11,13 @@ import { useTheme } from '../lib/ThemeContext';
 import { useAvatar } from '../lib/AvatarContext';
 import { ProfilePageSkeleton } from '../components/ui/Skeleton';
 import LuckyWheelModal from '../components/LuckyWheelModal';
-import { 
-  User, Flower2, Leaf, Sparkles as SparklesIcon, Sun, Moon, 
+import ReviewModal from '../components/ReviewModal';
+import {
+  User, Flower2, Leaf, Sparkles as SparklesIcon, Sun, Moon,
   Heart, Feather, Droplets, Coffee, Cat, Star,
   Settings, LogOut, History, Calendar, Clock, Tag, Plus,
-  CalendarX, CheckCircle2, AlertCircle, Sparkles, ChevronRight, ShieldCheck
+  CalendarX, CheckCircle2, AlertCircle, Sparkles, ChevronRight, ShieldCheck,
+  Gift, Percent, Copy, Check, MessageSquarePlus
 } from 'lucide-react';
 
 interface Profile {
@@ -44,6 +46,8 @@ interface GiftRecord {
   custom_code: string | null;
   used: boolean;
   created_at: string;
+  used_at?: string | null;
+  revoked_at?: string | null;
 }
 
 interface ClientRankingItem {
@@ -59,7 +63,7 @@ interface ClientRankingItem {
 }
 
 const ICON_MAP: Record<string, React.ElementType> = {
-  User, Flower2, Leaf, Sparkles: SparklesIcon, Sun, Moon, 
+  User, Flower2, Leaf, Sparkles: SparklesIcon, Sun, Moon,
   Heart, Feather, Droplets, Coffee, Cat, Star
 };
 
@@ -81,8 +85,16 @@ export default function ProfilPage() {
   const [loading, setLoading] = useState(true);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isWheelOpen, setIsWheelOpen] = useState(false);
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  const [copiedCodeId, setCopiedCodeId] = useState<string | null>(null);
   const [selectedCancelBooking, setSelectedCancelBooking] = useState<any>(null);
   const [showCancelModal, setShowCancelModal] = useState(false);
+
+  const handleCopyCode = (id: string, code: string) => {
+    navigator.clipboard.writeText(code);
+    setCopiedCodeId(id);
+    setTimeout(() => setCopiedCodeId(null), 2000);
+  };
 
   const formatFullDateText = (isoString: string) => {
     const d = new Date(isoString);
@@ -185,7 +197,7 @@ export default function ProfilPage() {
 
         const { data: giftsData } = await supabase
           .from('gifts')
-          .select('id, gift_type, custom_code, used, created_at')
+          .select('id, gift_type, custom_code, used, created_at, used_at, revoked_at')
           .eq('user_id', session.user.id)
           .order('created_at', { ascending: false });
 
@@ -231,23 +243,29 @@ export default function ProfilPage() {
   const totalSaloonRevenue = clientRankings.reduce((sum, c) => sum + c.totalSpent, 0);
   const avgSaloonSpend = clientRankings.length > 0 ? (totalSaloonRevenue / clientRankings.length).toFixed(1) : '0';
 
-  // Zoradenie záznamov histórie pre klienta (pečiatky + darčeky)
+  // Aktívne (neuplatnené a nezrušené) benefity a zľavové kódy
+  const activeGifts = gifts.filter((g) => !g.used && !g.revoked_at);
+  // Už skutočne uplatnené benefity v rezervácii (NIE zrušené/odstránené administrátorom)
+  const claimedGifts = gifts.filter((g) => g.used && !g.revoked_at);
+
+  // Zoradenie záznamov histórie pre klienta (len absolvované masáže/pečiatky + UPLATNENÉ benefity)
   type HistoryItem = { id: string; date: string; type: 'stamp' | 'gift'; data: any };
   const historyItems: HistoryItem[] = [];
   stamps.forEach((s) => historyItems.push({ id: `stamp-${s.id}`, date: s.created_at, type: 'stamp', data: s }));
-  gifts.forEach((g) => historyItems.push({ id: `gift-${g.id}`, date: g.created_at, type: 'gift', data: g }));
+  claimedGifts.forEach((g) => historyItems.push({ id: `gift-${g.id}`, date: g.used_at || g.created_at, type: 'gift', data: g }));
   historyItems.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   return (
-    <main className="relative min-h-screen w-full flex flex-col items-center justify-start p-4 sm:p-6 pt-4 sm:pt-6 lg:pt-8 pb-28 gap-4 bg-transparent transition-colors duration-300 font-sans overflow-hidden text-[#1E293B] dark:text-[#DDE0F2]">
+    <main className="relative min-h-screen w-full flex flex-col items-center justify-start p-4 sm:p-6 pt-16 sm:pt-20 lg:pt-24 pb-28 gap-4 bg-transparent transition-colors duration-300 font-sans overflow-hidden text-[#1E293B] dark:text-[#DDE0F2]">
       <div className="relative z-10 w-full max-w-sm sm:max-w-xl flex flex-col gap-4">
 
         {/* ================================================================ */}
         {/* 1. HLAVIČKA PROFILU: AVATAR, MENO, EMAIL A TLAČIDLÁ              */}
         {/* ================================================================ */}
-        <div className="p-5 rounded-2xl bg-white dark:bg-[#0B0D22] border border-[#E2E8F0] dark:border-[#2B2F49] shadow-sm dark:shadow-md flex items-center justify-between gap-3 text-left">
+        <div className="p-5 rounded-2xl bg-white dark:bg-[#0B0D22] border border-[#E2E8F0] dark:border-[#2B2F49] shadow-sm dark:shadow-md space-y-4 text-left">
+          {/* ZÁKLADNÉ INFORMÁCIE POUŽÍVATEĽA */}
           <div className="flex items-center gap-3.5 min-w-0">
-            <button 
+            <button
               type="button"
               onClick={() => setIsSettingsOpen(true)}
               className="w-14 h-14 rounded-full flex items-center justify-center bg-slate-50 dark:bg-[#010314] text-[#6633EE] dark:text-[#A78BFA] shrink-0 border border-[#E2E8F0] dark:border-[#2B2F49] hover:border-[#6633EE] transition cursor-pointer shadow-sm relative group"
@@ -258,8 +276,8 @@ export default function ProfilPage() {
                 <Settings size={10} />
               </span>
             </button>
-            
-            <div className="min-w-0">
+
+            <div className="min-w-0 flex-1">
               <h2 className="font-semibold text-base sm:text-lg text-[#0B0D22] dark:text-[#FFFFFF] truncate tracking-tight">
                 {profile.full_name || (isAdmin ? 'Administrátor salónu' : 'Vážený klient')}
               </h2>
@@ -275,24 +293,38 @@ export default function ProfilPage() {
             </div>
           </div>
 
-          <div className="flex flex-col gap-2 shrink-0">
-            <button
-              type="button"
-              onClick={() => setIsSettingsOpen(true)}
-              className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-50 dark:bg-[#010314] text-[#0B0D22] dark:text-[#FFFFFF] hover:border-[#6633EE] border border-[#E2E8F0] dark:border-[#2B2F49] text-xs font-medium transition cursor-pointer shadow-xs"
-            >
-              <Settings size={13} className="text-[#6633EE] dark:text-[#A78BFA]" />
-              <span>{language === 'sk' ? 'Nastavenia' : 'Settings'}</span>
-            </button>
+          {/* AKČNÉ TLAČIDLÁ PROFILU – PREHĽADNÉ A NEUTLÁČANÉ */}
+          <div className="pt-3 border-t border-[#E2E8F0] dark:border-[#2B2F49] space-y-2">
+            {!isAdmin && (
+              <button
+                type="button"
+                onClick={() => setIsReviewModalOpen(true)}
+                className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-gradient-to-r from-[#6633EE] to-[#7C3AED] hover:opacity-95 text-white text-xs font-semibold transition cursor-pointer shadow-sm active:scale-[0.99]"
+              >
+                <MessageSquarePlus size={15} />
+                <span>{language === 'sk' ? 'Napísať recenziu masáže' : 'Write massage review'}</span>
+              </button>
+            )}
 
-            <button
-              type="button"
-              onClick={handleLogout}
-              className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full bg-[#FF5A7A]/10 hover:bg-[#FF5A7A]/20 text-[#FF5A7A] border border-[#FF5A7A]/30 text-xs font-medium transition cursor-pointer"
-            >
-              <LogOut size={13} />
-              <span>{language === 'sk' ? 'Odhlásiť' : 'Logout'}</span>
-            </button>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setIsSettingsOpen(true)}
+                className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-slate-50 dark:bg-[#010314] text-[#0B0D22] dark:text-[#FFFFFF] hover:border-[#6633EE] border border-[#E2E8F0] dark:border-[#2B2F49] text-xs font-medium transition cursor-pointer shadow-xs active:scale-[0.99]"
+              >
+                <Settings size={14} className="text-[#6633EE] dark:text-[#A78BFA]" />
+                <span>{language === 'sk' ? 'Nastavenia' : 'Settings'}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-[#FF5A7A]/10 hover:bg-[#FF5A7A]/20 text-[#FF5A7A] border border-[#FF5A7A]/30 text-xs font-medium transition cursor-pointer active:scale-[0.99]"
+              >
+                <LogOut size={14} />
+                <span>{language === 'sk' ? 'Odhlásiť sa' : 'Logout'}</span>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -301,7 +333,7 @@ export default function ProfilPage() {
         {/* ================================================================ */}
         {isAdmin ? (
           <div className="space-y-4">
-            
+
             {/* Salónne Štatistiky */}
             <div className="grid grid-cols-3 gap-2.5">
               <div className="p-3.5 rounded-2xl bg-white dark:bg-[#0B0D22] border border-[#E2E8F0] dark:border-[#2B2F49] text-center space-y-1 shadow-xs">
@@ -328,7 +360,7 @@ export default function ProfilPage() {
 
             {/* Rebríček / Leaderboard Box */}
             <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#0B0D22] border border-[#E2E8F0] dark:border-[#2B2F49] shadow-sm dark:shadow-md space-y-4 text-left">
-              
+
               {/* Prepínač triedenia */}
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5">
                 <div>
@@ -345,11 +377,10 @@ export default function ProfilPage() {
                   <button
                     type="button"
                     onClick={() => setRankingSortBy('visits')}
-                    className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition cursor-pointer ${
-                      rankingSortBy === 'visits'
+                    className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition cursor-pointer ${rankingSortBy === 'visits'
                         ? 'bg-white dark:bg-[#0B0D22] text-[#6633EE] dark:text-[#FFFFFF] shadow-xs'
                         : 'text-[#64748B] dark:text-[#C7CAE0]/60 hover:text-[#0B0D22] dark:hover:text-white'
-                    }`}
+                      }`}
                   >
                     {language === 'sk' ? 'Podľa návštev' : 'By Visits'}
                   </button>
@@ -357,11 +388,10 @@ export default function ProfilPage() {
                   <button
                     type="button"
                     onClick={() => setRankingSortBy('spent')}
-                    className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition cursor-pointer ${
-                      rankingSortBy === 'spent'
+                    className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition cursor-pointer ${rankingSortBy === 'spent'
                         ? 'bg-white dark:bg-[#0B0D22] text-[#6633EE] dark:text-[#FFFFFF] shadow-xs'
                         : 'text-[#64748B] dark:text-[#C7CAE0]/60 hover:text-[#0B0D22] dark:hover:text-white'
-                    }`}
+                      }`}
                   >
                     {language === 'sk' ? 'Podľa útraty (€)' : 'By Spend (€)'}
                   </button>
@@ -387,9 +417,6 @@ export default function ProfilPage() {
                         <div className="flex items-center justify-between">
                           <span className="text-xs font-bold text-[#0B0D22] dark:text-[#FFFFFF]">
                             {medals[idx]}
-                          </span>
-                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-[#010314] text-[#6633EE] dark:text-[#A78BFA] border border-[#E2E8F0] dark:border-[#2B2F49]">
-                            {client.program_type === '5_stamps' ? '5p' : '10p'}
                           </span>
                         </div>
 
@@ -500,7 +527,7 @@ export default function ProfilPage() {
               {userBookings.length > 0 ? (
                 <div className="space-y-2.5">
                   {userBookings.map((b, idx) => (
-                    <div 
+                    <div
                       key={b.id || idx}
                       className="p-3.5 rounded-xl bg-slate-50 dark:bg-[#010314] border border-[#E2E8F0] dark:border-[#2B2F49] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3"
                     >
@@ -544,8 +571,8 @@ export default function ProfilPage() {
               ) : (
                 <div className="p-5 rounded-xl bg-slate-50 dark:bg-[#010314] border border-[#E2E8F0] dark:border-[#2B2F49] text-center space-y-2.5">
                   <p className="text-xs text-[#64748B] dark:text-[#C7CAE0]/70 font-normal">
-                    {language === 'sk' 
-                      ? 'Momentálne nemáte žiadne aktívne nadchádzajúce rezervácie.' 
+                    {language === 'sk'
+                      ? 'Momentálne nemáte žiadne aktívne nadchádzajúce rezervácie.'
                       : 'You have no active upcoming bookings at this moment.'}
                   </p>
                   <Link
@@ -559,9 +586,121 @@ export default function ProfilPage() {
               )}
             </div>
 
+            {/* 2.5. MOJE BENEFITY & ZĽAVOVÉ KÓDY (KOLO ŠŤASTIA / VERNOSTNÉ ZĽAVY) */}
+            <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#0B0D22] border border-[#E2E8F0] dark:border-[#2B2F49] shadow-sm dark:shadow-md space-y-3.5 text-left">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Gift size={16} className="text-[#6633EE] dark:text-[#A78BFA]" />
+                  <h3 className="font-semibold text-xs text-[#0B0D22] dark:text-[#FFFFFF] uppercase tracking-wider">
+                    {language === 'sk' ? 'Moje aktívne benefity & zľavy' : 'My Active Benefits & Discounts'}
+                  </h3>
+                </div>
+                
+                {activeGifts.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setIsWheelOpen(true)}
+                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 text-[11px] font-bold uppercase tracking-wider transition cursor-pointer shadow-xs"
+                  >
+                    <Sparkles size={12} />
+                    <span>{language === 'sk' ? 'Kolo šťastia' : 'Wheel of Fortune'}</span>
+                  </button>
+                )}
+              </div>
+
+              {activeGifts.length > 0 ? (
+                <div className="space-y-2.5">
+                  {activeGifts.map((g) => {
+                    const is5Pct = g.custom_code?.startsWith('KOLO5');
+                    const is10Pct = g.custom_code?.startsWith('KOLO10') || g.custom_code === 'KOLO10PCT';
+                    const is15Pct = g.custom_code?.startsWith('KOLO15');
+                    const isGift = g.custom_code?.startsWith('DARCEK') || g.gift_type === 'next_visit_gift';
+
+                    let benefitTitle = language === 'sk' ? 'Zľava na masáž' : 'Massage Discount';
+                    if (is5Pct) benefitTitle = language === 'sk' ? '+ 5% Zľava na masáž' : '+ 5% Massage Discount';
+                    else if (is10Pct) benefitTitle = language === 'sk' ? '+ 10% Zľava na masáž' : '+ 10% Massage Discount';
+                    else if (is15Pct) benefitTitle = language === 'sk' ? '+ 15% Zľava na masáž' : '+ 15% Massage Discount';
+                    else if (isGift) benefitTitle = language === 'sk' ? 'Darček k masáži' : 'Massage Gift';
+
+                    return (
+                      <div
+                        key={g.id}
+                        className="p-3.5 rounded-xl bg-gradient-to-r from-[#6633EE]/10 via-[#6633EE]/5 to-transparent dark:from-[#6633EE]/20 dark:via-[#6633EE]/10 dark:to-transparent border border-[#6633EE]/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs"
+                      >
+                        <div className="space-y-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-bold text-xs sm:text-sm text-[#0B0D22] dark:text-white flex items-center gap-1.5">
+                              {isGift ? (
+                                <Gift size={14} className="text-amber-500 dark:text-amber-400" />
+                              ) : (
+                                <Percent size={14} className="text-[#6633EE] dark:text-[#A78BFA]" />
+                              )}
+                              <span>{benefitTitle}</span>
+                            </span>
+                            <span className="px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-500 dark:text-emerald-400 text-[10px] font-bold">
+                              {language === 'sk' ? 'Aktívny benefit' : 'Active Benefit'}
+                            </span>
+                          </div>
+                          
+                          <p className="text-[11px] text-[#64748B] dark:text-[#C7CAE0]/80">
+                            {isGift 
+                              ? (language === 'sk' ? 'Darček z Kolesa šťastia pripravený k vašej návšteve.' : 'Fortune Wheel gift ready for your visit.')
+                              : (language === 'sk' ? 'Zľavový kupón z Kolesa šťastia pripravený na uplatnenie v rezervácii.' : 'Fortune Wheel discount voucher ready to apply.')}
+                          </p>
+
+                          {g.custom_code && (
+                            <div className="flex items-center gap-2 pt-0.5">
+                              <span className="font-mono text-xs font-bold text-[#6633EE] dark:text-[#A78BFA] bg-white dark:bg-[#0B0D22] px-2.5 py-1 rounded-md border border-[#6633EE]/30">
+                                {g.custom_code}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => handleCopyCode(g.id, g.custom_code!)}
+                                className="p-1.5 rounded-md bg-slate-100 dark:bg-[#010314] hover:bg-slate-200 dark:hover:bg-[#1E2238] text-slate-500 dark:text-slate-300 transition cursor-pointer"
+                                title={language === 'sk' ? 'Kopírovať kód' : 'Copy code'}
+                              >
+                                {copiedCodeId === g.id ? (
+                                  <Check size={13} className="text-emerald-500" />
+                                ) : (
+                                  <Copy size={13} />
+                                )}
+                              </button>
+                            </div>
+                          )}
+                        </div>
+
+                        <Link
+                          href="/"
+                          className="w-full sm:w-auto px-4 py-2 rounded-xl bg-[#6633EE] hover:bg-[#7C3AED] text-white text-xs font-bold uppercase tracking-wider text-center transition cursor-pointer shadow-xs shrink-0"
+                        >
+                          {language === 'sk' ? 'Uplatniť v rezervácii' : 'Apply in Booking'}
+                        </Link>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="p-4 rounded-xl bg-slate-50 dark:bg-[#010314] border border-[#E2E8F0] dark:border-[#2B2F49] text-center space-y-2.5">
+                  <p className="text-xs text-[#64748B] dark:text-[#C7CAE0]/80 font-normal leading-relaxed">
+                    {language === 'sk'
+                      ? 'Zatiaľ nemáte žiadny aktívny zľavový kód. Roztočte Koleso Šťastia a získajte zľavu až do 15% alebo darček k masáži!'
+                      : 'You do not have any active discount code yet. Spin the Wheel of Fortune and win up to 15% discount or a massage gift!'}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setIsWheelOpen(true)}
+                    className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-full bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 text-xs font-bold uppercase tracking-wider shadow-sm transition cursor-pointer active:scale-95"
+                  >
+                    <Sparkles size={14} />
+                    <span>{language === 'sk' ? 'Roztočiť Koleso Šťastia' : 'Spin Wheel of Fortune'}</span>
+                  </button>
+                </div>
+              )}
+            </div>
+
             {/* 3. HISTÓRIA MASÁŽÍ A PREHĽAD NÁVŠTEV */}
             <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#0B0D22] border border-[#E2E8F0] dark:border-[#2B2F49] shadow-sm dark:shadow-md space-y-4 text-left">
-              
+
               {/* Hlavička histórie & Štatistiky */}
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -585,7 +724,7 @@ export default function ProfilPage() {
                 </div>
 
                 <div className="p-3 rounded-xl bg-slate-50 dark:bg-[#010314] border border-[#E2E8F0] dark:border-[#2B2F49] text-center space-y-0.5">
-                  <span className="text-xl font-bold text-[#0B0D22] dark:text-[#FFFFFF]">{gifts.length}</span>
+                  <span className="text-xl font-bold text-[#0B0D22] dark:text-[#FFFFFF]">{claimedGifts.length}</span>
                   <p className="text-[10px] font-medium text-[#6633EE] dark:text-[#A78BFA] uppercase tracking-wider">
                     {language === 'sk' ? 'Uplatnených odmien' : 'Rewards Claimed'}
                   </p>
@@ -610,19 +749,18 @@ export default function ProfilPage() {
 
                     return (
                       <div key={item.id} className="relative group">
-                        <div 
-                          className={`absolute -left-[21px] sm:-left-[29px] top-1.5 w-3 h-3 rounded-full border-2 transition-all ${
-                            isStamp 
-                              ? 'bg-[#6633EE] border-white dark:border-[#0B0D22] ring-2 ring-[#6633EE]/40' 
+                        <div
+                          className={`absolute -left-[21px] sm:-left-[29px] top-1.5 w-3 h-3 rounded-full border-2 transition-all ${isStamp
+                              ? 'bg-[#6633EE] border-white dark:border-[#0B0D22] ring-2 ring-[#6633EE]/40'
                               : 'bg-[#A78BFA] border-white dark:border-[#0B0D22] ring-2 ring-[#A78BFA]/40'
-                          }`} 
+                            }`}
                         />
 
                         <div className="p-3 rounded-xl bg-slate-50 dark:bg-[#010314] border border-[#E2E8F0] dark:border-[#2B2F49] hover:border-[#6633EE]/40 transition-colors flex items-center justify-between gap-3 shadow-xs">
                           <div className="space-y-0.5 min-w-0">
                             <div className="flex items-center gap-1.5">
                               <span className="text-xs font-semibold text-[#0B0D22] dark:text-[#FFFFFF] truncate">
-                                {isStamp 
+                                {isStamp
                                   ? (language === 'sk' ? 'Absolvovaná masáž' : 'Massage Session')
                                   : (language === 'sk' ? 'Vernostná odmena' : 'Loyalty Reward')}
                               </span>
@@ -704,6 +842,15 @@ export default function ProfilPage() {
         onRewardClaimed={() => {
           loadProfileData();
         }}
+      />
+
+      {/* REVIEW MODAL */}
+      <ReviewModal
+        isOpen={isReviewModalOpen}
+        onClose={() => setIsReviewModalOpen(false)}
+        userId={profile.id}
+        userName={profile.full_name}
+        language={language}
       />
 
     </main>

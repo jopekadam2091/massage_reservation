@@ -5,7 +5,7 @@ import { QrCode, RotateCw } from 'lucide-react';
 
 interface CardProps {
   fullName: string;
-  programType: '5_stamps' | '10_stamps';
+  programType?: '5_stamps' | '10_stamps';
   activeStampsPrices: number[];
   avatarColor: string;
   onOpenQr?: () => void;
@@ -26,7 +26,7 @@ const DEFAULT_GRADIENT = { hueStart: 250, hueEnd: 275 };
 
 export default function Card({ 
   fullName, 
-  programType, 
+  programType = '10_stamps', 
   activeStampsPrices, 
   avatarColor,
   onOpenQr,
@@ -34,7 +34,7 @@ export default function Card({
   refreshing
 }: CardProps) {
   const { t, language } = useLanguage();
-  const maxStamps = programType === '5_stamps' ? 5 : 10;
+  const maxStamps = 10;
   const stampsCount = activeStampsPrices.length;
   const isFull = stampsCount >= maxStamps;
 

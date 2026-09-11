@@ -1,0 +1,90 @@
+[
+  {
+    "user_id": "0488fdf9-70d0-45c8-9ebc-0d10ad02c35b",
+    "user_name": "Anonymný užívateľ",
+    "rating": 5,
+    "comment": "test 2",
+    "status": "approved",
+    "is_anonymous": true,
+    "source": "profile",
+    "id": "rev-1789056430883-xsos8",
+    "created_at": "2026-09-10T16:07:10.883Z"
+  },
+  {
+    "user_id": "0488fdf9-70d0-45c8-9ebc-0d10ad02c35b",
+    "user_name": "Test uzivatel",
+    "rating": 5,
+    "comment": "Naozaj super teším sa :)",
+    "status": "approved",
+    "is_anonymous": false,
+    "source": "profile",
+    "id": "rev-1789056117595-gq6yv",
+    "created_at": "2026-09-10T16:01:57.595Z"
+  },
+  {
+    "id": "rev-1",
+    "user_id": null,
+    "user_name": "Michal K.",
+    "rating": 5,
+    "comment": "Neuveriteľný relax a uvoľnenie chrbta po náročnom týždni v kancelárii. Určite sa vrátim!",
+    "status": "approved",
+    "is_anonymous": false,
+    "source": "profile",
+    "created_at": "2026-09-08T14:30:00.000Z"
+  },
+  {
+    "id": "rev-2",
+    "user_id": null,
+    "user_name": "Peter S.",
+    "rating": 5,
+    "comment": "VIP rituál predčil všetky očakávania. 100% diskrétnosť, voňavé teplé oleje a maximálny pokoj.",
+    "status": "approved",
+    "is_anonymous": false,
+    "source": "profile",
+    "created_at": "2026-09-06T11:20:00.000Z"
+  },
+  {
+    "id": "rev-3",
+    "user_id": null,
+    "user_name": "Martin D.",
+    "rating": 5,
+    "comment": "Profesionálny prístup, čistota priestoru a skvelá energia. Bolesť krku zmizla hneď po procedúre.",
+    "status": "approved",
+    "is_anonymous": false,
+    "source": "profile",
+    "created_at": "2026-09-03T16:45:00.000Z"
+  },
+  {
+    "id": "rev-4",
+    "user_id": null,
+    "user_name": "Tomáš B.",
+    "rating": 5,
+    "comment": "Exkluzívne prostredie, citlivý prístup a dokonalá atmosféra. Najlepší rituál, aký som kedy zažil.",
+    "status": "approved",
+    "is_anonymous": false,
+    "source": "profile",
+    "created_at": "2026-08-27T10:15:00.000Z"
+  },
+  {
+    "id": "rev-5",
+    "user_id": null,
+    "user_name": "Marek V.",
+    "rating": 5,
+    "comment": "Skvelá regenerácia pre športovcov. Cítim sa ako znovuzrodený, odporúčam všetkým.",
+    "status": "approved",
+    "is_anonymous": false,
+    "source": "profile",
+    "created_at": "2026-08-20T18:00:00.000Z"
+  },
+  {
+    "id": "rev-6",
+    "user_id": null,
+    "user_name": "Anonymný užívateľ",
+    "rating": 5,
+    "comment": "Špičkový servis od privítania až po záver. Absolútne súkromie a autentický luxusný oddych.",
+    "status": "approved",
+    "is_anonymous": true,
+    "source": "qr_code",
+    "created_at": "2026-08-10T12:00:00.000Z"
+  }
+]

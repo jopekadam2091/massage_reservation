@@ -16,8 +16,9 @@ import ActiveBookingsSection from '../components/admin/ActiveBookingsSection';
 import ClientListSection from '../components/admin/ClientListSection';
 import AdminStatsSection from '../components/admin/AdminStatsSection';
 import CancellationRequestsSection from '../components/admin/CancellationRequestsSection';
+import AdminReviewsSection from '../components/admin/AdminReviewsSection';
 
-import { Users, Search, Camera, CheckCircle, Calendar, CalendarX, RotateCw, Coins } from 'lucide-react';
+import { Users, Search, Camera, CheckCircle, Calendar, CalendarX, RotateCw, Coins, MessageSquare } from 'lucide-react';
 
 export default function AdminPage() {
   const router = useRouter();
@@ -31,7 +32,7 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true);
 
   // Aktívny admin tab
-  const [activeAdminTab, setActiveAdminTab] = useState<'clients' | 'bookings' | 'stats'>('clients');
+  const [activeAdminTab, setActiveAdminTab] = useState<'clients' | 'bookings' | 'stats' | 'reviews'>('clients');
 
   // Zabaľovanie panelov
   const [isBookingsCollapsed, setIsBookingsCollapsed] = useState(false);
@@ -235,7 +236,7 @@ export default function AdminPage() {
     }
 
     const currentCount = getActiveStamps(stampProfile).length;
-    const maxStamps = stampProfile.program_type === '5_stamps' ? 5 : 10;
+    const maxStamps = 10;
 
     if (currentCount >= maxStamps) {
       setStampError(
@@ -272,7 +273,7 @@ export default function AdminPage() {
     }
 
     const activeCount = getActiveStamps(foundProfile).length;
-    const maxStamps = foundProfile.program_type === '5_stamps' ? 5 : 10;
+    const maxStamps = 10;
 
     if (activeCount >= maxStamps) {
       setScanFlowError(
@@ -502,25 +503,25 @@ export default function AdminPage() {
           </div>
         </div>
 
-        {/* 🚀 ADMIN TAB SWITCHER (Klienti, Rezervácie, Štatistiky) */}
-        <div className="grid grid-cols-3 gap-1.5 p-1.5 rounded-2xl bg-white dark:bg-[#0B0D22] border border-[#E2E8F0] dark:border-[#2B2F49] shadow-xs">
+        {/* 🚀 ADMIN TAB SWITCHER (Klienti, Rezervácie, Štatistiky, Recenzie) */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 p-1.5 rounded-2xl bg-white dark:bg-[#0B0D22] border border-[#E2E8F0] dark:border-[#2B2F49] shadow-xs">
           <button
             type="button"
             onClick={() => setActiveAdminTab('clients')}
-            className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-semibold transition cursor-pointer ${
+            className={`flex items-center justify-center gap-2 py-2.5 px-2.5 rounded-xl text-xs font-semibold transition cursor-pointer ${
               activeAdminTab === 'clients'
                 ? 'bg-[#6633EE] text-white shadow-sm'
                 : 'text-[#64748B] dark:text-[#C7CAE0]/70 hover:text-[#0B0D22] dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#010314]'
             }`}
           >
             <Users size={15} />
-            <span>{language === 'sk' ? `Klienti & Vernosť (${profiles.length})` : `Clients & Loyalty (${profiles.length})`}</span>
+            <span>{language === 'sk' ? `Klienti (${profiles.length})` : `Clients (${profiles.length})`}</span>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveAdminTab('bookings')}
-            className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-semibold transition cursor-pointer relative ${
+            className={`flex items-center justify-center gap-2 py-2.5 px-2.5 rounded-xl text-xs font-semibold transition cursor-pointer relative ${
               activeAdminTab === 'bookings'
                 ? 'bg-[#6633EE] text-white shadow-sm'
                 : 'text-[#64748B] dark:text-[#C7CAE0]/70 hover:text-[#0B0D22] dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#010314]'
@@ -536,7 +537,7 @@ export default function AdminPage() {
           <button
             type="button"
             onClick={() => setActiveAdminTab('stats')}
-            className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-semibold transition cursor-pointer ${
+            className={`flex items-center justify-center gap-2 py-2.5 px-2.5 rounded-xl text-xs font-semibold transition cursor-pointer ${
               activeAdminTab === 'stats'
                 ? 'bg-[#6633EE] text-white shadow-sm'
                 : 'text-[#64748B] dark:text-[#C7CAE0]/70 hover:text-[#0B0D22] dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#010314]'
@@ -544,6 +545,19 @@ export default function AdminPage() {
           >
             <Coins size={15} />
             <span>{language === 'sk' ? 'Štatistiky' : 'Statistics'}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveAdminTab('reviews')}
+            className={`flex items-center justify-center gap-2 py-2.5 px-2.5 rounded-xl text-xs font-semibold transition cursor-pointer ${
+              activeAdminTab === 'reviews'
+                ? 'bg-[#6633EE] text-white shadow-sm'
+                : 'text-[#64748B] dark:text-[#C7CAE0]/70 hover:text-[#0B0D22] dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#010314]'
+            }`}
+          >
+            <MessageSquare size={15} />
+            <span>{language === 'sk' ? 'Recenzie' : 'Reviews'}</span>
           </button>
         </div>
 
@@ -634,6 +648,15 @@ export default function AdminPage() {
             />
           </div>
         )}
+
+        {/* ================================================================== */}
+        {/* TAB 4: RECENZIE                                                    */}
+        {/* ================================================================== */}
+        {activeAdminTab === 'reviews' && (
+          <div className="space-y-4 animate-in fade-in duration-200">
+            <AdminReviewsSection language={language} />
+          </div>
+        )}
       </div>
 
       <AddStampModal
@@ -644,7 +667,7 @@ export default function AdminPage() {
         setStampPrice={setStampPrice}
         stampError={stampError}
         activeStampsCount={stampProfile ? getActiveStamps(stampProfile).length : 0}
-        maxStamps={stampProfile?.program_type === '5_stamps' ? 5 : 10}
+        maxStamps={10}
         language={language}
       />
 

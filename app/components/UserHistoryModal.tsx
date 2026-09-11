@@ -182,7 +182,7 @@ export default function UserHistoryModal({ isOpen, onClose, sessionUser, languag
                 });
               });
 
-              gifts.forEach((g) => {
+              gifts.filter((g) => g.used).forEach((g) => {
                 items.push({
                   id: `gift-${g.id}`,
                   date: g.created_at,
@@ -203,7 +203,7 @@ export default function UserHistoryModal({ isOpen, onClose, sessionUser, languag
                         </p>
                       </div>
                       <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-300">
-                        {g.used ? (language === 'sk' ? 'Použitý' : 'Used') : (language === 'sk' ? 'Aktivovaný' : 'Active')}
+                        {language === 'sk' ? 'Uplatnený' : 'Redeemed'}
                       </span>
                     </div>
                   ),
