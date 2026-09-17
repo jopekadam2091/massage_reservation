@@ -24,7 +24,7 @@ export interface WheelPrize {
   weight: number; // Váha pre pravdepodobnosť
 }
 
-// 🎯 8 Výsekov: 50/50 rozloženie (4x výhody: 1x 5%, 1x 10%, 1x 15%, 1x darček a 4x "Nevadí, nabudúce")
+// 🎯 8 Výsekov: Rozloženie pravdepodobnosti (20 % celková šanca na výhru vs. 80 % na "Nevadí, nabudúce")
 export const WHEEL_PRIZES: WheelPrize[] = [
   {
     id: 'prize_5pct',
@@ -37,7 +37,7 @@ export const WHEEL_PRIZES: WheelPrize[] = [
     textColor: '#FFFFFF',
     giftType: 'discount_code',
     discountPercent: '5%',
-    weight: 20,
+    weight: 10,
   },
   {
     id: 'prize_nowin_1',
@@ -49,7 +49,7 @@ export const WHEEL_PRIZES: WheelPrize[] = [
     secondaryColor: '#070919',
     textColor: '#8C94B8',
     giftType: 'no_win',
-    weight: 15,
+    weight: 20,
   },
   {
     id: 'prize_10pct',
@@ -62,7 +62,7 @@ export const WHEEL_PRIZES: WheelPrize[] = [
     textColor: '#FFFFFF',
     giftType: 'discount_code',
     discountPercent: '10%',
-    weight: 10,
+    weight: 5,
   },
   {
     id: 'prize_nowin_2',
@@ -74,7 +74,7 @@ export const WHEEL_PRIZES: WheelPrize[] = [
     secondaryColor: '#050713',
     textColor: '#8C94B8',
     giftType: 'no_win',
-    weight: 15,
+    weight: 20,
   },
   {
     id: 'prize_15pct',
@@ -87,7 +87,7 @@ export const WHEEL_PRIZES: WheelPrize[] = [
     textColor: '#FFFFFF',
     giftType: 'discount_code',
     discountPercent: '15%',
-    weight: 5,
+    weight: 2,
   },
   {
     id: 'prize_nowin_3',
@@ -99,7 +99,7 @@ export const WHEEL_PRIZES: WheelPrize[] = [
     secondaryColor: '#070919',
     textColor: '#8C94B8',
     giftType: 'no_win',
-    weight: 15,
+    weight: 20,
   },
   {
     id: 'prize_gift',
@@ -111,7 +111,7 @@ export const WHEEL_PRIZES: WheelPrize[] = [
     secondaryColor: '#B45309',
     textColor: '#FFFFFF',
     giftType: 'next_visit_gift',
-    weight: 5,
+    weight: 3,
   },
   {
     id: 'prize_nowin_4',
@@ -123,7 +123,7 @@ export const WHEEL_PRIZES: WheelPrize[] = [
     secondaryColor: '#050713',
     textColor: '#8C94B8',
     giftType: 'no_win',
-    weight: 15,
+    weight: 20,
   },
 ];
 
@@ -148,6 +148,9 @@ export default function LuckyWheelModal({
   const [canSpin, setCanSpin] = useState(true);
   const [timeLeft, setTimeLeft] = useState<string>('');
   const [copiedCode, setCopiedCode] = useState(false);
+  const [wheelEnabled, setWheelEnabled] = useState<boolean>(true);
+  const [maintenanceMessage, setMaintenanceMessage] = useState<string>('');
+  const [checkingSettings, setCheckingSettings] = useState<boolean>(true);
   const isSK = language === 'sk';
 
   // Kontrola 24h denného limitu
@@ -186,11 +189,27 @@ export default function LuckyWheelModal({
 
   useEffect(() => {
     if (isOpen) {
+      setCheckingSettings(true);
+      fetch('/api/system/settings')
+        .then((res) => res.json())
+        .then((data) => {
+          if (data?.settings) {
+            setWheelEnabled(data.settings.lucky_wheel_enabled !== false);
+            setMaintenanceMessage(
+              isSK
+                ? (data.settings.maintenance_message_sk || 'Koleso šťastia je momentálne v rekonštrukcii. Pripravujeme pre vás nové odmeny a vylepšenia. Skúste to prosím neskôr.')
+                : (data.settings.maintenance_message_en || 'The Lucky Wheel is currently under reconstruction. Please try again later.')
+            );
+          }
+        })
+        .catch(() => {})
+        .finally(() => setCheckingSettings(false));
+
       checkDailyLimit();
       const interval = setInterval(checkDailyLimit, 1000);
       return () => clearInterval(interval);
     }
-  }, [isOpen, userId]);
+  }, [isOpen, userId, isSK]);
 
   // Vážený náhodný výber výseku podľa váh (menšia šanca na výhru)
   const getWeightedWinningIndex = (): number => {
@@ -331,9 +350,40 @@ export default function LuckyWheelModal({
           </h2>
         </div>
 
-        {/* ================================================================ */}
-        {/* 🎡 LUXUSNÉ VEKTOROVÉ KOLESO SO ŠTÝLOM STRÁNKY                    */}
-        {/* ================================================================ */}
+        {/* 🚧 UNDER RECONSTRUCTION STATE */}
+        {!checkingSettings && !wheelEnabled ? (
+          <div className="py-6 px-3 space-y-5 text-center relative z-10 animate-in fade-in">
+            <div className="w-16 h-16 rounded-3xl bg-amber-500/15 border border-amber-500/30 text-amber-400 mx-auto flex items-center justify-center shadow-[0_0_30px_rgba(245,158,11,0.2)]">
+              <Sparkles size={32} className="animate-pulse" />
+            </div>
+
+            <div className="space-y-2">
+              <span className="inline-block px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                {isSK ? 'Rekonštrukcia' : 'Under Reconstruction'}
+              </span>
+              <h3 className="text-lg sm:text-xl font-bold text-white">
+                {isSK ? 'Koleso je momentálne v údržbe' : 'Lucky Wheel Under Maintenance'}
+              </h3>
+              <p className="text-xs text-slate-300 leading-relaxed max-w-xs mx-auto">
+                {maintenanceMessage || (isSK ? 'Koleso šťastia je momentálne v rekonštrukcii. Pripravujeme pre vás nové zľavy a benefity. Skúste to prosím neskôr.' : 'The Lucky Wheel is currently under reconstruction. Please try again later.')}
+              </p>
+            </div>
+
+            <div className="pt-3">
+              <button
+                type="button"
+                onClick={onClose}
+                className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-[#6633EE] to-[#7C3AED] hover:from-[#5822DC] hover:to-[#6633EE] text-white text-xs font-bold uppercase tracking-wider transition cursor-pointer active:scale-95 shadow-lg"
+              >
+                {isSK ? 'Rozumiem, skúsim neskôr' : 'Got it, will try later'}
+              </button>
+            </div>
+          </div>
+        ) : (
+          <>
+            {/* ================================================================ */}
+            {/* 🎡 LUXUSNÉ VEKTOROVÉ KOLESO SO ŠTÝLOM STRÁNKY                    */}
+            {/* ================================================================ */}
         <div className="relative flex items-center justify-center py-2 select-none">
           
           {/* Zlatý Ticker Pin (Ukazovateľ Hore s Rubínovým Šperkom) */}
@@ -583,6 +633,8 @@ export default function LuckyWheelModal({
               : (isSK ? 'Roztočiť Kolo Šťastia' : 'Spin Wheel of Fortune')}
           </span>
         </button>
+        </>
+        )}
 
       </div>
     </div>

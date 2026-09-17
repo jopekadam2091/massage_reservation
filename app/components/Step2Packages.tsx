@@ -154,6 +154,8 @@ export default function Step2Packages({ selectedType, packagesData, t, onSelectD
 
           const isTop1 = index === 1; // Stredná karta je najžiadanejšia
 
+          const numericPrice = parseInt(priceStr, 10);
+
           return (
             <div
               key={pkg.duration}
@@ -260,45 +262,41 @@ export default function Step2Packages({ selectedType, packagesData, t, onSelectD
                     </div>
                   )}
 
-                  <div className="relative z-10">
-                    {/* HORNÝ RIADOK: NÁZOV BALÍKA VĽAVO (BEZ BUBLINIEK, VÄČŠÍ AKO CENA, S HODINAMI) + SUMA V PRAVOM HORNOM ROHU */}
-                    <div className="flex items-baseline justify-between gap-3 mb-4 pt-1">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <h3 className={`font-black tracking-tight text-[#0B0D22] dark:text-white flex items-center gap-1.5 ${
-                          isVip ? 'text-xl sm:text-2xl' : 'text-2xl sm:text-3xl'
-                        }`}>
-                          <span>{pkg.badge}</span>
-                          <span className={`inline-flex items-center gap-1 ${
-                            isVip ? 'text-[#FF5A7A]' : 'text-[#0284C7] dark:text-[#38BDF8]'
-                          }`}>
-                            <span>{pkg.duration}</span>
-                            <Clock size={isVip ? 18 : 20} className="stroke-[2.5] shrink-0" />
-                          </span>
-                        </h3>
-
-
-                      </div>
-
-                      {/* 💰 SUMA V PRAVOM HORNOM ROHU (ROVNAKÁ VÁHA A VEĽKOSŤ AKO NÁZOV BALÍKA) */}
-                      <div className="text-right shrink-0">
-                        <span className={`font-black tracking-tight ${
-                          isVip ? 'text-xl sm:text-2xl' : 'text-2xl sm:text-3xl'
-                        } ${
-                          isVip 
-                            ? 'text-[#FF5A7A] drop-shadow-[0_0_12px_rgba(255,90,122,0.35)]' 
-                            : 'text-[#0B0D22] dark:text-white'
-                        }`}>
-                          {priceStr}
-                        </span>
-                      </div>
+                  <div className="relative z-10 flex flex-col flex-1">
+                    {/* 1. NÁZOV KARTY HORE: napr. Lite 30 so symbolom času */}
+                    <div className="text-center pt-1 pb-1">
+                      <h3 className="font-extrabold text-xl sm:text-2xl tracking-tight text-[#0B0D22] dark:text-white flex items-center justify-center gap-2">
+                        <span>{pkg.badge} {pkg.duration}</span>
+                        <Clock size={19} className={isVip ? "text-[#FF5A7A] shrink-0" : "text-[#0284C7] dark:text-[#38BDF8] shrink-0"} />
+                      </h3>
                     </div>
 
-                    {/* 📋 ŠTRUKTÚROVANÉ RIADKY PROCEDÚR */}
-                    <div className="space-y-3 mb-4 text-left">
+                    {/* 2. SUMA V STREDE - PRÉMIOVÝ DISPLAY FONT */}
+                    <div className="text-center py-2.5 my-1 flex items-baseline justify-center">
+                      <span className={`text-4xl sm:text-5xl font-black tracking-tighter tabular-nums ${
+                        isVip 
+                          ? 'text-transparent bg-clip-text bg-gradient-to-r from-[#FF5A7A] via-[#F43F5E] to-[#FB7185] drop-shadow-[0_0_18px_rgba(255,90,122,0.35)]' 
+                          : 'text-[#0B0D22] dark:text-white dark:drop-shadow-[0_0_16px_rgba(56,189,248,0.25)]'
+                      }`}>
+                        {numericPrice}
+                      </span>
+                      <span className={`text-2xl sm:text-3xl font-extrabold ml-1.5 ${
+                        isVip 
+                          ? 'text-[#FF5A7A]' 
+                          : 'text-[#0284C7] dark:text-[#38BDF8]'
+                      }`}>
+                        €
+                      </span>
+                    </div>
+
+                    {/* 3. ŠTRUKTÚROVANÝ OBSAH: SESSION FOCUS & OILS AROMATHERAPY & EXTRA */}
+                    <div className="space-y-3 my-3 text-left flex-1">
                       
-                      {/* 1. RIADOK: ZAMERANIE MASÁŽE */}
-                      <div className={`border-b pb-2.5 ${
-                        isVip ? 'border-[#FF5A7A]/15 dark:border-[#FF5A7A]/20' : 'border-slate-200/60 dark:border-slate-800/60'
+                      {/* ZAMERANIE MASÁŽE / SESSION FOCUS */}
+                      <div className={`rounded-xl p-3 ${
+                        isVip 
+                          ? 'bg-[#FF5A7A]/[0.06] border border-[#FF5A7A]/15' 
+                          : 'bg-slate-50 dark:bg-slate-900/50 border border-slate-200/70 dark:border-slate-800/70'
                       }`}>
                         <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-[#64748B] dark:text-[#94A3B8] mb-1">
                           <Zap size={12} className={isVip ? 'text-[#FF5A7A]' : 'text-[#0284C7] dark:text-[#38BDF8]'} />
@@ -309,8 +307,12 @@ export default function Step2Packages({ selectedType, packagesData, t, onSelectD
                         </p>
                       </div>
 
-                      {/* 2. RIADOK: OLEJE & AROMATERAPIA */}
-                      <div className={selectedType === 'VIP' ? 'border-b pb-2.5 border-[#FF5A7A]/15 dark:border-[#FF5A7A]/20' : 'pb-0.5'}>
+                      {/* OLEJE & AROMATERAPIA / OILS & AROMATHERAPY */}
+                      <div className={`rounded-xl p-3 ${
+                        isVip 
+                          ? 'bg-[#FF5A7A]/[0.06] border border-[#FF5A7A]/15' 
+                          : 'bg-slate-50 dark:bg-slate-900/50 border border-slate-200/70 dark:border-slate-800/70'
+                      }`}>
                         <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-[#64748B] dark:text-[#94A3B8] mb-1">
                           <Droplets size={12} className={isVip ? 'text-[#FF5A7A]' : 'text-[#0284C7] dark:text-[#38BDF8]'} />
                           <span>{isSK ? 'Oleje & Aromaterapia' : 'Oils & Aromatherapy'}</span>
@@ -322,10 +324,10 @@ export default function Step2Packages({ selectedType, packagesData, t, onSelectD
                         </p>
                       </div>
 
-                      {/* 3. RIADOK: IBA PRE VIP - EXTRA PROCEDÚRY */}
+                      {/* EXTRA PRE VIP: ZAHRNUTÉ PROCEDÚRY & VÝHODY */}
                       {selectedType === 'VIP' && (
-                        <div className="pb-1 pt-0.5">
-                          <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-[#64748B] dark:text-[#94A3B8] mb-2">
+                        <div className="pt-1">
+                          <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-[#64748B] dark:text-[#94A3B8] mb-2 px-1">
                             <Heart size={12} className="text-[#FF5A7A]" />
                             <span>{isSK ? 'Zahrnuté procedúry & výhody' : 'Included procedures & benefits'}</span>
                           </div>
@@ -343,16 +345,16 @@ export default function Step2Packages({ selectedType, packagesData, t, onSelectD
                     </div>
                   </div>
 
-                  {/* 🔘 AKČNÉ TLAČIDLO: Vybrať 30 minútový balík */}
-                  <div className="mt-3">
+                  {/* 4. 🔘 AKČNÉ TLAČIDLO: Select 30 [clock] package */}
+                  <div className="mt-4 pt-2">
                     <button
                       type="button"
                       onClick={() => onSelectDuration(pkg.duration)}
-                      className={`w-full min-h-[50px] h-[50px] rounded-xl font-bold text-sm sm:text-base transition-all duration-200 active:scale-[0.98] cursor-pointer flex items-center justify-center relative overflow-hidden group/btn shadow-md ${
+                      className={`w-full min-h-[48px] h-[48px] px-4 rounded-xl font-bold text-sm transition-all duration-200 active:scale-[0.98] cursor-pointer flex items-center justify-center gap-1.5 relative overflow-hidden group/btn shadow-md ${
                         isVip
                           ? isTop1
-                            ? 'bg-gradient-to-b from-[#E11D48] via-[#BE123C] to-[#881337] hover:from-[#F43F5E] hover:via-[#E11D48] hover:to-[#9F1239] text-white uppercase tracking-wider border border-[#FDA4AF]/70 shadow-[inset_0_1px_1px_rgba(255,255,255,0.45),0_0_20px_rgba(225,29,72,0.35),0_4px_12px_rgba(0,0,0,0.35)]'
-                            : 'bg-gradient-to-b from-[#9F1239] via-[#881337] to-[#4C0519] hover:from-[#BE123C] hover:via-[#9F1239] hover:to-[#5C0720] text-white uppercase tracking-wider border border-[#FB7185]/50 shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_2px_8px_rgba(0,0,0,0.35)]'
+                            ? 'bg-gradient-to-b from-[#E11D48] via-[#BE123C] to-[#881337] hover:from-[#F43F5E] hover:via-[#E11D48] hover:to-[#9F1239] text-white border border-[#FDA4AF]/70 shadow-[inset_0_1px_1px_rgba(255,255,255,0.45),0_0_20px_rgba(225,29,72,0.35),0_4px_12px_rgba(0,0,0,0.35)]'
+                            : 'bg-gradient-to-b from-[#9F1239] via-[#881337] to-[#4C0519] hover:from-[#BE123C] hover:via-[#9F1239] hover:to-[#5C0720] text-white border border-[#FB7185]/50 shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_2px_8px_rgba(0,0,0,0.35)]'
                           : isTop1
                           ? 'bg-gradient-to-b from-[#0284C7] via-[#0369A1] to-[#075985] hover:from-[#0EA5E9] hover:via-[#0284C7] hover:to-[#0369A1] text-white border border-[#38BDF8]/80 shadow-[inset_0_1px_1px_rgba(255,255,255,0.4),0_0_20px_rgba(2,132,199,0.35),0_4px_12px_rgba(0,0,0,0.35)]'
                           : 'bg-gradient-to-b from-[#0284C7] via-[#0369A1] to-[#075985] hover:from-[#0EA5E9] hover:via-[#0284C7] hover:to-[#0369A1] text-white border border-[#38BDF8]/60 shadow-[inset_0_1px_1px_rgba(255,255,255,0.35),0_2px_8px_rgba(2,132,199,0.3)]'
@@ -360,8 +362,11 @@ export default function Step2Packages({ selectedType, packagesData, t, onSelectD
                     >
                       {/* Metalický svetelný odlesk pri hoveri */}
                       <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700 pointer-events-none" />
-                      <span className="tracking-wide">
-                        {isSK ? `Vybrať ${pkg.duration} minútový balík` : `Select ${pkg.duration}-minute package`}
+                      <span className="inline-flex items-center gap-1">
+                        <span>{isSK ? 'Vybrať' : 'Select'}</span>
+                        <span className="font-extrabold">{pkg.duration}</span>
+                        <Clock size={15} className="inline mx-0.5 shrink-0" />
+                        <span>{isSK ? 'balík' : 'package'}</span>
                       </span>
                     </button>
                   </div>

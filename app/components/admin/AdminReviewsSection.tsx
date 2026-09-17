@@ -1,11 +1,13 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Star, Check, X, Trash2, Plus, QrCode, RefreshCw, 
-  MessageSquare, User, CheckCircle2, AlertCircle, Copy, ExternalLink, ShieldCheck
+  MessageSquare, User, CheckCircle2, AlertCircle, Copy, ExternalLink, ShieldCheck,
+  Filter, ArrowUpDown, Calendar, Clock
 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
+import { formatCreationTime, isWithinRegistrationPeriod } from '@/app/utils/bookingUtils';
 
 interface ReviewItem {
   id: string;
@@ -29,6 +31,9 @@ export default function AdminReviewsSection({ language }: AdminReviewsSectionPro
   const [reviews, setReviews] = useState<ReviewItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'pending' | 'approved' | 'all'>('pending');
+  const [reviewsSortBy, setReviewsSortBy] = useState<string>('date_desc');
+  const [dateFilter, setDateFilter] = useState<string>('all');
+  const [ratingFilter, setRatingFilter] = useState<string>('all');
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   // Modály
@@ -156,12 +161,47 @@ export default function AdminReviewsSection({ language }: AdminReviewsSectionPro
 
   const pendingReviews = reviews.filter((r) => r.status === 'pending');
   const approvedReviews = reviews.filter((r) => r.status === 'approved');
-  const displayedReviews =
+  const baseTabReviews =
     activeTab === 'pending'
       ? pendingReviews
       : activeTab === 'approved'
       ? approvedReviews
       : reviews;
+
+  const displayedReviews = useMemo(() => {
+    let list = [...baseTabReviews];
+
+    if (dateFilter !== 'all') {
+      list = list.filter((r) => isWithinRegistrationPeriod(r.created_at, dateFilter));
+    }
+
+    if (ratingFilter !== 'all') {
+      const star = parseInt(ratingFilter, 10);
+      list = list.filter((r) => r.rating === star);
+    }
+
+    return list.sort((a, b) => {
+      if (reviewsSortBy === 'date_desc') {
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      }
+      if (reviewsSortBy === 'date_asc') {
+        return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+      }
+      if (reviewsSortBy === 'rating_desc') {
+        return b.rating - a.rating;
+      }
+      if (reviewsSortBy === 'rating_asc') {
+        return a.rating - b.rating;
+      }
+      if (reviewsSortBy === 'name_asc') {
+        return (a.user_name || '').localeCompare(b.user_name || '', 'sk');
+      }
+      if (reviewsSortBy === 'name_desc') {
+        return (b.user_name || '').localeCompare(a.user_name || '', 'sk');
+      }
+      return 0;
+    });
+  }, [baseTabReviews, dateFilter, ratingFilter, reviewsSortBy]);
 
   return (
     <div className="space-y-4 text-left">
@@ -260,6 +300,97 @@ export default function AdminReviewsSection({ language }: AdminReviewsSectionPro
         </button>
       </div>
 
+      {/* OVLÁDACIA LIŠTA: FILTROVANIE A ZORADENIE RECENZIÍ */}
+      <div className="p-3 sm:p-4 rounded-2xl bg-white dark:bg-[#0B0D22] border border-[#E2E8F0] dark:border-[#2B2F49] space-y-3 shadow-xs">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          {/* FILTER DÁTUMU */}
+          <div className="flex flex-wrap items-center gap-1.5">
+            <div className="flex items-center gap-1 text-xs font-semibold text-[#0B0D22] dark:text-[#FFFFFF] mr-1">
+              <Filter size={13} className="text-[#6633EE] dark:text-[#A78BFA]" />
+              <span>{isSK ? 'Obdobie:' : 'Period:'}</span>
+            </div>
+            {[
+              { id: 'all', labelSk: 'Všetky', labelEn: 'All' },
+              { id: 'today', labelSk: 'Dnes', labelEn: 'Today' },
+              { id: 'week', labelSk: '7 dní', labelEn: '7 days' },
+              { id: 'month', labelSk: '30 dní', labelEn: '30 days' },
+              { id: 'year', labelSk: 'Tento rok', labelEn: 'This year' },
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setDateFilter(tab.id)}
+                className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition cursor-pointer ${
+                  dateFilter === tab.id
+                    ? 'bg-[#6633EE] text-white shadow-xs'
+                    : 'bg-slate-100 dark:bg-[#010314] text-[#64748B] dark:text-[#C7CAE0]/70 border border-[#E2E8F0] dark:border-[#2B2F49] hover:bg-slate-200 dark:hover:bg-[#1E2238]'
+                }`}
+              >
+                {isSK ? tab.labelSk : tab.labelEn}
+              </button>
+            ))}
+          </div>
+
+          {/* FILTER HODNOTENIA & ZORADENIE */}
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="flex items-center gap-1.5">
+              <Star size={13} className="text-amber-500 fill-amber-500 shrink-0" />
+              <select
+                value={ratingFilter}
+                onChange={(e) => setRatingFilter(e.target.value)}
+                aria-label={isSK ? 'Filter hodnotenia' : 'Rating filter'}
+                className="text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-[#010314] text-[#1E293B] dark:text-[#DDE0F2] border border-[#E2E8F0] dark:border-[#2B2F49] focus:outline-none focus:border-[#6633EE] shadow-xs cursor-pointer"
+              >
+                <option value="all">{isSK ? 'Všetky hviezdičky' : 'All stars'}</option>
+                <option value="5">5 hviezdičiek</option>
+                <option value="4">4 hviezdičky</option>
+                <option value="3">3 hviezdičky</option>
+                <option value="2">2 hviezdičky</option>
+                <option value="1">1 hviezdička</option>
+              </select>
+            </div>
+
+            <div className="flex items-center gap-1.5">
+              <ArrowUpDown size={13} className="text-[#6633EE] dark:text-[#A78BFA] shrink-0" />
+              <select
+                value={reviewsSortBy}
+                onChange={(e) => setReviewsSortBy(e.target.value)}
+                aria-label={isSK ? 'Zoradiť recenzie' : 'Sort reviews'}
+                className="text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-[#010314] text-[#1E293B] dark:text-[#DDE0F2] border border-[#E2E8F0] dark:border-[#2B2F49] focus:outline-none focus:border-[#6633EE] shadow-xs cursor-pointer"
+              >
+                <option value="date_desc">{isSK ? 'Dátum (Najnovšie prvé)' : 'Date (Newest first)'}</option>
+                <option value="date_asc">{isSK ? 'Dátum (Najstaršie prvé)' : 'Date (Oldest first)'}</option>
+                <option value="rating_desc">{isSK ? 'Hodnotenie (Najvyššie prvé)' : 'Rating (Highest first)'}</option>
+                <option value="rating_asc">{isSK ? 'Hodnotenie (Najnižšie prvé)' : 'Rating (Lowest first)'}</option>
+                <option value="name_asc">{isSK ? 'Meno autora (A - Z)' : 'Author (A - Z)'}</option>
+                <option value="name_desc">{isSK ? 'Meno autora (Z - A)' : 'Author (Z - A)'}</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {/* STAVOVÝ POPIS AK JE AKTÍVNY FILTER */}
+        {(dateFilter !== 'all' || ratingFilter !== 'all') && (
+          <div className="flex items-center justify-between text-[11px] text-[#64748B] dark:text-[#C7CAE0]/70 pt-1 border-t border-[#E2E8F0] dark:border-[#2B2F49]">
+            <span>
+              {isSK 
+                ? `Zobrazených ${displayedReviews.length} z ${baseTabReviews.length} recenzií podľa zvoleného filtra.` 
+                : `Showing ${displayedReviews.length} of ${baseTabReviews.length} reviews matching filter.`}
+            </span>
+            <button
+              type="button"
+              onClick={() => {
+                setDateFilter('all');
+                setRatingFilter('all');
+              }}
+              className="text-[11px] font-semibold text-[#6633EE] dark:text-[#A78BFA] hover:underline cursor-pointer"
+            >
+              {isSK ? 'Zrušiť filtre' : 'Clear filters'}
+            </button>
+          </div>
+        )}
+      </div>
+
       {/* Zoznam recenzií */}
       {loading ? (
         <div className="p-8 text-center text-xs text-slate-400">
@@ -279,11 +410,7 @@ export default function AdminReviewsSection({ language }: AdminReviewsSectionPro
           {displayedReviews.map((rev) => {
             const isPending = rev.status === 'pending';
             const isApproved = rev.status === 'approved';
-            const dateText = new Date(rev.created_at).toLocaleDateString(isSK ? 'sk-SK' : 'en-US', {
-              day: 'numeric',
-              month: 'short',
-              year: 'numeric',
-            });
+            const createdInfo = formatCreationTime(rev.created_at, language);
 
             return (
               <div
@@ -310,9 +437,19 @@ export default function AdminReviewsSection({ language }: AdminReviewsSectionPro
                           </span>
                         )}
                       </div>
-                      <span className="text-[10px] text-[#64748B] dark:text-[#C7CAE0]/60">
-                        {dateText} • {rev.source === 'qr_code' ? 'QR Kód' : rev.source === 'admin_manual' ? (isSK ? 'Ručne vložené' : 'Manual') : (isSK ? 'Klientsky profil' : 'Profile')}
-                      </span>
+                      <div className="flex flex-wrap items-center gap-1.5 text-[10px] text-[#64748B] dark:text-[#C7CAE0]/60 mt-0.5">
+                        <span className="flex items-center gap-1">
+                          <Calendar size={11} className="text-[#6633EE] dark:text-[#A78BFA]" />
+                          <span>{createdInfo?.formattedDateTime || new Date(rev.created_at).toLocaleDateString()}</span>
+                        </span>
+                        {createdInfo?.relative && (
+                          <span className="px-1.5 py-0.2 rounded-md bg-slate-100 dark:bg-[#010314] text-[#6633EE] dark:text-[#A78BFA] border border-[#E2E8F0] dark:border-[#2B2F49] font-medium">
+                            {createdInfo.relative}
+                          </span>
+                        )}
+                        <span>•</span>
+                        <span>{rev.source === 'qr_code' ? 'QR Kód' : rev.source === 'admin_manual' ? (isSK ? 'Ručne vložené' : 'Manual') : (isSK ? 'Klientsky profil' : 'Profile')}</span>
+                      </div>
                     </div>
 
                     <div className="flex items-center gap-1">

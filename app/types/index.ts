@@ -56,9 +56,25 @@ export interface Profile {
   referral_discount_status: string | null;
   is_banned?: boolean;
   birth_date?: string | null;
+  created_at?: string;
+  latestBooking?: {
+    created?: string;
+    start: string;
+    summary?: string;
+  } | null;
   stamps: StampRecord[];
   gifts: GiftRecord[];
   badges?: UserBadge[];
+}
+
+export interface AdminBooking {
+  id: string;
+  summary: string;
+  description: string;
+  start: string;
+  end: string;
+  created?: string;
+  updated?: string;
 }
 
 export type TimeSlot = {

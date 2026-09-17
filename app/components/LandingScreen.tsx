@@ -587,70 +587,72 @@ export default function LandingScreen({ onEnter, sessionUser }: Props) {
       )}
 
       {/* 📜 HLAVNÝ OBSAH LANDING SCREENU */}
-      <div className="w-full h-full max-h-screen overflow-hidden flex flex-col items-center justify-between p-3 sm:p-5 pt-11 sm:pt-14 pb-2 sm:pb-3">
+      <div className="w-full h-full max-h-screen overflow-hidden flex flex-col items-center justify-between p-3 sm:p-6 pt-10 sm:pt-6 pb-2 sm:pb-3">
 
-        {/* 💎 1. HORNÁ ČASŤ: LOGO, NÁPISY & VSTUP DO REZERVÁCIE */}
-        <div className="relative z-10 w-full max-w-md mx-auto text-center space-y-1.5 sm:space-y-2.5 animate-in fade-in zoom-in-95 duration-400 flex flex-col items-center shrink-0">
+        {/* 💎 1. HORNÁ / STREDNÁ ČASŤ: LOGO, NÁPISY & VSTUP DO REZERVÁCIE (NA WEBE VYCENTROVANÉ V PRIESTORE) */}
+        <div className="flex-1 w-full flex flex-col items-center justify-center my-auto min-h-0 sm:translate-y-4 lg:translate-y-8">
+          <div className="relative z-10 w-full max-w-md lg:max-w-xl mx-auto text-center space-y-2.5 sm:space-y-4 animate-in fade-in zoom-in-95 duration-400 flex flex-col items-center">
 
-          {/* LOGO BEZ KRUHU (2x VÄČŠIE S AMBIENT AURA ŽIAROU) */}
-          <div className="relative w-28 h-24 sm:w-32 sm:h-28 flex items-center justify-center shrink-0">
-            <div className="absolute inset-0 rounded-full bg-[#6633EE]/30 blur-2xl animate-pulse pointer-events-none" />
-            <svg
-              id="Hand_Logo_SVG"
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 500 414.01"
-              className="relative z-10 w-full h-full text-[#6633EE] dark:text-[#A78BFA] drop-shadow-[0_0_16px_rgba(102,51,238,0.8)]"
-            >
-                <g id="Hand_Logo">
-                  <path
-                    className="path-draw-1"
-                    fill="currentColor"
-                    stroke="currentColor"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M411.93,151.15c25.72-17.8,50.34-37.43,72.8-56.57,2.09-1.78,7.7-1.59,9.34-.34,1.97,1.5,2.51,8.3.61,9.97-25.48,22.33-50.03,42.39-77.91,60.53-29.33,19.09-63.3,22.75-95.2,9.29-33.44-14.11-49.21-33.13-76.78-38.23-37.31,15.29-44.01,65.9-91.86,54.71-15.85,11.3-33.72,19.07-51.84,6.91-12.78,8.19-26.99,8.44-39.21.06-4.53-3.1-6.27-10.93-2.46-15.45l46.13-54.84c-20.79,10.96-51.85,25.55-70.77,6.64-1.96-1.96-4.23-6.12-4.54-8.33-.38-2.65,2.43-8.55,4.63-10.02l77.38-51.76c21.45-14.35,42.05-26.16,65.93-35.58l38.54-15.2c17.43-6.87,33.96-6.82,51.59-.67l86.41,30.16c40.82,14.25,72.78-7.19,101.01-37.32,1.64-1.74,7.65-1.85,9.45-.39,2.1,1.7,2.51,8.23.29,10.58-34.47,36.51-68.61,56.98-117.33,39.99l-86.92-30.32c-12.63-4.41-26.44-3.57-38.73,1.34l-57.19,22.85c-15.98,6.38-30.22,16.65-44.75,26.3l-74.01,49.15c13.42,14.02,65.38-16.39,79.05-24.56,12.24-7.31,27.63-11.83,38.36-19.96,9.47-7.18,14.28-17.48,29.76-15.57,44.68,5.52,75.88,22.45,114.44,14.9,13.65-2.67,22.46,30.3-60.21,11.01l-45.98-10.73c-5.52-1.29-17.08-.87-20.79,2.92-5.33,5.43,2.09,15.1,7.31,18.19,33.83,20.09,53.68,8.97,100.45,39.16,39.05,25.2,78.47,42,123,11.18ZM104.72,178.01l42.53-47.55c7.99-8.93,16.74-14.44,26.86-22.73l-7.75-11.78c-9.46,6.22-23.5,7.43-30.38,15.71l-42.64,51.31-19.35,24.32c10.05,3.58,22.36.06,30.74-9.3ZM146.99,175.05l48.06-53.16c-.64-1.91-8.31-6.33-10.96-4.28-9.33,7.26-21.41,15.71-29.38,25.01l-39.32,45.87c12.66,2.62,23.01-3.96,31.6-13.45ZM227.14,129.23c-5.91-1.09-12.75-2.11-17.08-1.88-16,15.24-31.64,31.78-44.83,49.36,20.51,5.75,44.83-38.66,61.92-47.48Z"
-                  />
-                  <path
-                    className="path-draw-2"
-                    fill="currentColor"
-                    stroke="currentColor"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M462.77,291.66c-9.41-15.36-57.59,11.22-70.73,19.17-15.02,9.09-33,14.6-47.09,24.41-9.63,6.7-12.7,17.95-29.69,15.45-17.91-2.64-37.75-6.45-56.45-11.39-19.82-5.23-39.33-7.6-59.84-3.87-2.21.4-7.07-4.18-6.94-6.55,1.02-18.15,58.6-6.75,71.94-3.04,10.57,2.94,63.75,18.1,65.24,4.83.36-3.18-1.69-10.32-4.36-12.63-27.11-23.47-56.47-10.36-104.81-43.36-36.17-24.69-75.98-39.8-116.75-14.64-31.61,19.5-59.67,41.98-88.86,65.69-2.61,2.12-7.69,1.79-9.3-.3-1.71-2.23-1.53-9.7.72-11.49,28.38-22.67,55.14-43.97,85.25-63.31,24.52-15.75,52.66-21.62,80.56-14.99,40.13,9.53,56.19,33.63,93.07,45.39,35.72-17.44,51.8-73.26,92.99-54.73,15.19-19.24,33.03-14.63,51.06-11.37,2.67.48,39.48-10.88,44.73,10.46.6,2.43-2.45,6.83-4.32,9.13l-41.19,50.77c13.55-4.61,24.13-10.86,37.01-12.28,15.52-1.71,33.89,5.52,34.51,18.23.12,2.38-2.47,7.67-4.44,8.99l-75.78,50.91c-14.22,9.55-27.72,20.39-43.48,26.42l-72.76,27.84c-11.55,4.42-24.37,3.53-35.95-.5l-94.3-32.76c-40.06-13.92-73.76,7.31-100.86,35.02-1.85,1.9-6.96,2.54-8.88,2.01-2.3-.64-4.25-7.45-2.6-9.37,32.23-37.46,73.3-57.28,120.66-40.46l89.45,31.76c10.8,3.83,21.28,3.15,31.9-.82l50.26-18.81c18.78-7.03,35.27-16.13,52.1-27.44l77.94-52.38ZM330.39,292.93c35.18-24.56,37.01-37.46,65.58-66.68-19.4-3.97-34.7,14.53-46.65,28.97-11.97,14.46-23.8,27.54-36.6,38.91,3.64,1.99,8.16,5.44,10.04,4.13l7.63-5.33ZM342.3,319.57c9.85-5.66,24.73-7.37,32.79-16.66,21.38-24.65,40.98-49.25,61.41-75.44-14.22-3.46-26.11,3.78-34.98,13.64l-40.3,44.82c-7.78,8.65-17.74,14.04-27.04,21.4l8.12,12.24ZM299.73,288.14c16.41-15.87,31.64-31.98,45.95-50.35-22.8-4.82,41.18,34.37-61.98,47.81l16.04,2.54Z"
-                  />
-                </g>
-              </svg>
+            {/* LOGO BEZ KRUHU (PROPORČNE PRISPÔSOBENÉ PRE WEB AJ MOBIL) */}
+            <div className="relative w-28 h-24 sm:w-40 sm:h-34 lg:w-48 lg:h-40 flex items-center justify-center shrink-0">
+              <div className="absolute inset-0 rounded-full bg-[#6633EE]/30 blur-2xl animate-pulse pointer-events-none" />
+              <svg
+                id="Hand_Logo_SVG"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 500 414.01"
+                className="relative z-10 w-full h-full text-[#6633EE] dark:text-[#A78BFA] drop-shadow-[0_0_18px_rgba(102,51,238,0.8)]"
+              >
+                  <g id="Hand_Logo">
+                    <path
+                      className="path-draw-1"
+                      fill="currentColor"
+                      stroke="currentColor"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M411.93,151.15c25.72-17.8,50.34-37.43,72.8-56.57,2.09-1.78,7.7-1.59,9.34-.34,1.97,1.5,2.51,8.3.61,9.97-25.48,22.33-50.03,42.39-77.91,60.53-29.33,19.09-63.3,22.75-95.2,9.29-33.44-14.11-49.21-33.13-76.78-38.23-37.31,15.29-44.01,65.9-91.86,54.71-15.85,11.3-33.72,19.07-51.84,6.91-12.78,8.19-26.99,8.44-39.21.06-4.53-3.1-6.27-10.93-2.46-15.45l46.13-54.84c-20.79,10.96-51.85,25.55-70.77,6.64-1.96-1.96-4.23-6.12-4.54-8.33-.38-2.65,2.43-8.55,4.63-10.02l77.38-51.76c21.45-14.35,42.05-26.16,65.93-35.58l38.54-15.2c17.43-6.87,33.96-6.82,51.59-.67l86.41,30.16c40.82,14.25,72.78-7.19,101.01-37.32,1.64-1.74,7.65-1.85,9.45-.39,2.1,1.7,2.51,8.23.29,10.58-34.47,36.51-68.61,56.98-117.33,39.99l-86.92-30.32c-12.63-4.41-26.44-3.57-38.73,1.34l-57.19,22.85c-15.98,6.38-30.22,16.65-44.75,26.3l-74.01,49.15c13.42,14.02,65.38-16.39,79.05-24.56,12.24-7.31,27.63-11.83,38.36-19.96,9.47-7.18,14.28-17.48,29.76-15.57,44.68,5.52,75.88,22.45,114.44,14.9,13.65-2.67,22.46,30.3-60.21,11.01l-45.98-10.73c-5.52-1.29-17.08-.87-20.79,2.92-5.33,5.43,2.09,15.1,7.31,18.19,33.83,20.09,53.68,8.97,100.45,39.16,39.05,25.2,78.47,42,123,11.18ZM104.72,178.01l42.53-47.55c7.99-8.93,16.74-14.44,26.86-22.73l-7.75-11.78c-9.46,6.22-23.5,7.43-30.38,15.71l-42.64,51.31-19.35,24.32c10.05,3.58,22.36.06,30.74-9.3ZM146.99,175.05l48.06-53.16c-.64-1.91-8.31-6.33-10.96-4.28-9.33,7.26-21.41,15.71-29.38,25.01l-39.32,45.87c12.66,2.62,23.01-3.96,31.6-13.45ZM227.14,129.23c-5.91-1.09-12.75-2.11-17.08-1.88-16,15.24-31.64,31.78-44.83,49.36,20.51,5.75,44.83-38.66,61.92-47.48Z"
+                    />
+                    <path
+                      className="path-draw-2"
+                      fill="currentColor"
+                      stroke="currentColor"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M462.77,291.66c-9.41-15.36-57.59,11.22-70.73,19.17-15.02,9.09-33,14.6-47.09,24.41-9.63,6.7-12.7,17.95-29.69,15.45-17.91-2.64-37.75-6.45-56.45-11.39-19.82-5.23-39.33-7.6-59.84-3.87-2.21.4-7.07-4.18-6.94-6.55,1.02-18.15,58.6-6.75,71.94-3.04,10.57,2.94,63.75,18.1,65.24,4.83.36-3.18-1.69-10.32-4.36-12.63-27.11-23.47-56.47-10.36-104.81-43.36-36.17-24.69-75.98-39.8-116.75-14.64-31.61,19.5-59.67,41.98-88.86,65.69-2.61,2.12-7.69,1.79-9.3-.3-1.71-2.23-1.53-9.7.72-11.49,28.38-22.67,55.14-43.97,85.25-63.31,24.52-15.75,52.66-21.62,80.56-14.99,40.13,9.53,56.19,33.63,93.07,45.39,35.72-17.44,51.8-73.26,92.99-54.73,15.19-19.24,33.03-14.63,51.06-11.37,2.67.48,39.48-10.88,44.73,10.46.6,2.43-2.45,6.83-4.32,9.13l-41.19,50.77c13.55-4.61,24.13-10.86,37.01-12.28,15.52-1.71,33.89,5.52,34.51,18.23.12,2.38-2.47,7.67-4.44,8.99l-75.78,50.91c-14.22,9.55-27.72,20.39-43.48,26.42l-72.76,27.84c-11.55,4.42-24.37,3.53-35.95-.5l-94.3-32.76c-40.06-13.92-73.76,7.31-100.86,35.02-1.85,1.9-6.96,2.54-8.88,2.01-2.3-.64-4.25-7.45-2.6-9.37,32.23-37.46,73.3-57.28,120.66-40.46l89.45,31.76c10.8,3.83,21.28,3.15,31.9-.82l50.26-18.81c18.78-7.03,35.27-16.13,52.1-27.44l77.94-52.38ZM330.39,292.93c35.18-24.56,37.01-37.46,65.58-66.68-19.4-3.97-34.7,14.53-46.65,28.97-11.97,14.46-23.8,27.54-36.6,38.91,3.64,1.99,8.16,5.44,10.04,4.13l7.63-5.33ZM342.3,319.57c9.85-5.66,24.73-7.37,32.79-16.66,21.38-24.65,40.98-49.25,61.41-75.44-14.22-3.46-26.11,3.78-34.98,13.64l-40.3,44.82c-7.78,8.65-17.74,14.04-27.04,21.4l8.12,12.24ZM299.73,288.14c16.41-15.87,31.64-31.98,45.95-50.35-22.8-4.82,41.18,34.37-61.98,47.81l16.04,2.54Z"
+                    />
+                  </g>
+                </svg>
+            </div>
+
+            {/* MEDZERA MEDZI LOGOM A NÁPISOM */}
+            <div className="space-y-0.5 sm:space-y-1">
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight bg-gradient-to-r from-[#6633EE] via-[#8B5CF6] to-[#EC4899] bg-clip-text text-transparent leading-tight">
+                {isSK ? 'Vitajte' : 'Welcome'}
+              </h1>
+              <p className="text-xs sm:text-sm lg:text-base font-bold tracking-widest text-[#64748B] dark:text-[#C7CAE0] uppercase mt-0.5">
+                {isSK ? 'Exkluzívne masáže' : 'Exclusive Massages'}
+              </p>
+            </div>
+
+            {/* TLAČIDLO VSTÚPIŤ (PROPORČNE PRISPÔSOBENÉ) */}
+            <div className="pt-3 sm:pt-5 w-full max-w-[280px] sm:max-w-[320px] lg:max-w-[340px]">
+              <button
+                type="button"
+                onClick={handleVstupitClick}
+                className="w-full min-h-[48px] sm:min-h-[54px] h-[48px] sm:h-[54px] px-6 rounded-2xl bg-gradient-to-r from-[#6633EE] via-[#7C3AED] to-[#8B5CF6] hover:from-[#7C3AED] hover:to-[#6633EE] text-white font-extrabold text-sm sm:text-base tracking-wide shadow-[0_0_24px_rgba(102,51,238,0.5)] hover:shadow-[0_0_34px_rgba(102,51,238,0.7)] transition-all duration-200 active:scale-98 cursor-pointer flex items-center justify-center gap-2.5 relative overflow-hidden group"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 pointer-events-none" />
+                <span>{isSK ? 'Vstúpiť do rezervácie' : 'Enter Booking'}</span>
+                <ArrowRight size={18} className="group-hover:translate-x-1.5 transition-transform" />
+              </button>
+            </div>
+
           </div>
-
-          {/* JEMNÁ MEDZERA MEDZI LOGOM A NÁPISOM */}
-          <div className="space-y-0.5">
-            <h1 className="text-3xl sm:text-4xl font-black tracking-tight bg-gradient-to-r from-[#6633EE] via-[#8B5CF6] to-[#EC4899] bg-clip-text text-transparent leading-tight">
-              {isSK ? 'Vitajte' : 'Welcome'}
-            </h1>
-            <p className="text-xs sm:text-sm font-bold tracking-widest text-[#64748B] dark:text-[#C7CAE0] uppercase mt-0.5">
-              {isSK ? 'Exkluzívne masáže' : 'Exclusive Massages'}
-            </p>
-          </div>
-
-          {/* TLAČIDLO VSTÚPIŤ (ODSADENÉ NIŽŠIE OD TEXTOV) */}
-          <div className="pt-4 sm:pt-5 w-full max-w-[280px] sm:max-w-[320px]">
-            <button
-              type="button"
-              onClick={handleVstupitClick}
-              className="w-full min-h-[48px] sm:min-h-[52px] h-[48px] sm:h-[52px] px-6 rounded-2xl bg-gradient-to-r from-[#6633EE] via-[#7C3AED] to-[#8B5CF6] hover:from-[#7C3AED] hover:to-[#6633EE] text-white font-extrabold text-sm sm:text-base tracking-wide shadow-[0_0_24px_rgba(102,51,238,0.5)] hover:shadow-[0_0_34px_rgba(102,51,238,0.7)] transition-all duration-200 active:scale-98 cursor-pointer flex items-center justify-center gap-2.5 relative overflow-hidden group"
-            >
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 pointer-events-none" />
-              <span>{isSK ? 'Vstúpiť do rezervácie' : 'Enter Booking'}</span>
-              <ArrowRight size={18} className="group-hover:translate-x-1.5 transition-transform" />
-            </button>
-          </div>
-
         </div>
 
-        {/* 🌟 2. DOLNÁ ČASŤ: SEKCIA RECENZIÍ (POSUNUTÁ NAHOR O 3x VÝŠKU TEXTU OD SPODKU) */}
-        <section className="relative z-10 -mx-4 sm:mx-0 w-[calc(100%+2rem)] sm:w-full max-w-6xl mt-auto mb-[72px] sm:mb-[80px] py-1 pointer-events-auto select-none shrink-0">
+        {/* 🌟 2. DOLNÁ ČASŤ: SEKCIA RECENZIÍ */}
+        <section className="relative z-10 -mx-4 sm:mx-0 w-[calc(100%+2rem)] sm:w-full max-w-6xl mt-0 mb-[72px] sm:mb-[80px] py-1 pointer-events-auto select-none shrink-0">
 
           {/* HLAVIČKA: NÁPIS VĽAVO, KRUHOVÉ ŠÍPKY VPRAVO */}
           <div className="flex items-center justify-between gap-3 mb-2 px-5 sm:px-6">

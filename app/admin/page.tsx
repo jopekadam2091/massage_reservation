@@ -1,10 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '../lib/supabase';
 import { useLanguage } from '../lib/LanguageContext';
 import { Profile, StampRecord, GiftRecord } from '@/app/types';
+import { findLatestBookingForUser, isWithinRegistrationPeriod } from '@/app/utils/bookingUtils';
 
 import ScannerModal from '../components/ScannerModal';
 import AddStampModal from '../components/admin/AddStampModal';
@@ -17,8 +18,9 @@ import ClientListSection from '../components/admin/ClientListSection';
 import AdminStatsSection from '../components/admin/AdminStatsSection';
 import CancellationRequestsSection from '../components/admin/CancellationRequestsSection';
 import AdminReviewsSection from '../components/admin/AdminReviewsSection';
+import AdminDatabaseSection from '../components/admin/AdminDatabaseSection';
 
-import { Users, Search, Camera, CheckCircle, Calendar, CalendarX, RotateCw, Coins, MessageSquare } from 'lucide-react';
+import { Users, Search, Camera, CheckCircle, Calendar, CalendarX, RotateCw, Coins, MessageSquare, Database, Sparkles, Power } from 'lucide-react';
 
 export default function AdminPage() {
   const router = useRouter();
@@ -29,10 +31,16 @@ export default function AdminPage() {
   const [pendingStornoRequests, setPendingStornoRequests] = useState<any[]>([]);
   const [loadingBookings, setLoadingBookings] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [clientSortBy, setClientSortBy] = useState<string>('registered_desc');
+  const [registrationFilter, setRegistrationFilter] = useState<string>('all');
   const [loading, setLoading] = useState(true);
 
   // Aktívny admin tab
-  const [activeAdminTab, setActiveAdminTab] = useState<'clients' | 'bookings' | 'stats' | 'reviews'>('clients');
+  const [activeAdminTab, setActiveAdminTab] = useState<'clients' | 'bookings' | 'stats' | 'reviews' | 'database'>('clients');
+
+  // Stav Kolesa Šťastia (Globálne nastavenie)
+  const [luckyWheelEnabled, setLuckyWheelEnabled] = useState<boolean>(true);
+  const [updatingWheel, setUpdatingWheel] = useState(false);
 
   // Zabaľovanie panelov
   const [isBookingsCollapsed, setIsBookingsCollapsed] = useState(false);
@@ -64,6 +72,7 @@ export default function AdminPage() {
       fetchProfiles(),
       fetchActiveBookings(),
       fetchPendingStornos(),
+      fetchSettings(),
     ]);
     setLoadingBookings(false);
   };
@@ -133,6 +142,38 @@ export default function AdminPage() {
       .order('created_at', { ascending: false });
 
     if (data) setPendingStornoRequests(data);
+  };
+
+  const fetchSettings = async () => {
+    try {
+      const res = await fetch('/api/admin/settings');
+      const data = await res.json();
+      if (res.ok && data.settings) {
+        setLuckyWheelEnabled(data.settings.lucky_wheel_enabled !== false);
+      }
+    } catch (err) {
+      console.error('Chyba načítavania nastavení:', err);
+    }
+  };
+
+  const handleToggleLuckyWheel = async () => {
+    setUpdatingWheel(true);
+    try {
+      const nextState = !luckyWheelEnabled;
+      const res = await fetch('/api/admin/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ lucky_wheel_enabled: nextState }),
+      });
+      const data = await res.json();
+      if (res.ok && data.settings) {
+        setLuckyWheelEnabled(data.settings.lucky_wheel_enabled !== false);
+      }
+    } catch (err) {
+      console.error('Chyba prepnutia kolesa šťastia:', err);
+    } finally {
+      setUpdatingWheel(false);
+    }
   };
 
   const handleApproveStorno = async (requestId: string, bookingRef: string) => {
@@ -421,11 +462,80 @@ export default function AdminPage() {
     else await fetchProfiles();
   };
 
-  const filteredProfiles = profiles.filter(p => 
-    (p.full_name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-    p.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (p.referral_code || '').toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const profilesWithBookings = useMemo(() => {
+    return profiles.map((p) => {
+      const latest = findLatestBookingForUser(p, activeBookings);
+      return {
+        ...p,
+        latestBooking: latest,
+      };
+    });
+  }, [profiles, activeBookings]);
+
+  const sortedAndFilteredProfiles = useMemo(() => {
+    const q = searchQuery.toLowerCase().trim();
+    let list = profilesWithBookings.filter(p => 
+      (p.full_name || '').toLowerCase().includes(q) ||
+      p.email.toLowerCase().includes(q) ||
+      (p.referral_code || '').toLowerCase().includes(q)
+    );
+
+    // Filtrovanie podľa dátumu registrácie
+    if (registrationFilter !== 'all') {
+      list = list.filter(p => isWithinRegistrationPeriod(p.created_at, registrationFilter));
+    }
+
+    return list.sort((a, b) => {
+      if (clientSortBy === 'registered_desc') {
+        const regA = a.created_at ? new Date(a.created_at).getTime() : 0;
+        const regB = b.created_at ? new Date(b.created_at).getTime() : 0;
+        return regB - regA;
+      }
+
+      if (clientSortBy === 'registered_asc') {
+        const regA = a.created_at ? new Date(a.created_at).getTime() : 0;
+        const regB = b.created_at ? new Date(b.created_at).getTime() : 0;
+        return regA - regB;
+      }
+
+      if (clientSortBy === 'name_asc') {
+        return (a.full_name || a.email).localeCompare(b.full_name || b.email, 'sk');
+      }
+
+      if (clientSortBy === 'name_desc') {
+        return (b.full_name || b.email).localeCompare(a.full_name || a.email, 'sk');
+      }
+
+      if (clientSortBy === 'stamps_desc') {
+        const stampsA = getActiveStamps(a).length;
+        const stampsB = getActiveStamps(b).length;
+        return stampsB - stampsA;
+      }
+
+      if (clientSortBy === 'booking_created_desc') {
+        const timeA = a.latestBooking?.created 
+          ? new Date(a.latestBooking.created).getTime() 
+          : a.latestBooking?.start 
+            ? new Date(a.latestBooking.start).getTime()
+            : 0;
+        const timeB = b.latestBooking?.created 
+          ? new Date(b.latestBooking.created).getTime() 
+          : b.latestBooking?.start 
+            ? new Date(b.latestBooking.start).getTime()
+            : 0;
+
+        if (timeA > 0 && timeB > 0) return timeB - timeA;
+        if (timeA > 0) return -1;
+        if (timeB > 0) return 1;
+
+        const regA = a.created_at ? new Date(a.created_at).getTime() : 0;
+        const regB = b.created_at ? new Date(b.created_at).getTime() : 0;
+        return regB - regA;
+      }
+
+      return 0;
+    });
+  }, [profilesWithBookings, searchQuery, clientSortBy, registrationFilter]);
 
   const totalStampsCount = profiles.reduce((sum, p) => sum + p.stamps.length, 0);
   const estimatedRevenue = activeBookings.reduce((sum, b) => {
@@ -503,8 +613,67 @@ export default function AdminPage() {
           </div>
         </div>
 
-        {/* 🚀 ADMIN TAB SWITCHER (Klienti, Rezervácie, Štatistiky, Recenzie) */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 p-1.5 rounded-2xl bg-white dark:bg-[#0B0D22] border border-[#E2E8F0] dark:border-[#2B2F49] shadow-xs">
+        {/* 🎡 RÝCHLE NASTAVENIE: KOLESO ŠŤASTIA (ZAPNUTÉ / V REKONŠTRUKCII) */}
+        <div className={`p-3.5 sm:p-4 rounded-2xl border transition-all duration-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 ${
+          luckyWheelEnabled
+            ? 'bg-white dark:bg-[#0B0D22] border-[#E2E8F0] dark:border-[#2B2F49] shadow-xs'
+            : 'bg-amber-50/60 dark:bg-amber-950/20 border-amber-300/80 dark:border-amber-800/50 shadow-xs'
+        }`}>
+          <div className="flex items-center gap-3 min-w-0">
+            <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border ${
+              luckyWheelEnabled
+                ? 'bg-purple-50 dark:bg-[#6633EE]/15 text-[#6633EE] dark:text-[#A78BFA] border-[#6633EE]/20'
+                : 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 border-amber-300 dark:border-amber-700'
+            }`}>
+              <Sparkles size={17} className={luckyWheelEnabled ? '' : 'animate-pulse'} />
+            </div>
+
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="font-semibold text-xs text-[#0B0D22] dark:text-white">
+                  {language === 'sk' ? 'Koleso Šťastia pre klientov' : 'Client Wheel of Fortune'}
+                </span>
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${
+                  luckyWheelEnabled
+                    ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800'
+                    : 'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-700'
+                }`}>
+                  {luckyWheelEnabled
+                    ? (language === 'sk' ? 'Aktívne' : 'Active')
+                    : (language === 'sk' ? 'V rekonštrukcii' : 'Under Maintenance')}
+                </span>
+              </div>
+              <p className="text-[11px] text-[#64748B] dark:text-[#C7CAE0]/70 mt-0.5">
+                {luckyWheelEnabled
+                  ? (language === 'sk' ? 'Klienti môžu točiť kolesom a získavať zľavy/darčeky.' : 'Clients can spin the wheel and win discounts/gifts.')
+                  : (language === 'sk' ? 'Koleso je vypnuté – klientom sa v profile zobrazuje oznam o prebiehajúcej rekonštrukcii.' : 'Wheel is disabled – clients see the under-reconstruction notice in their profile.')}
+              </p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleToggleLuckyWheel}
+            disabled={updatingWheel}
+            className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition active:scale-95 cursor-pointer shrink-0 disabled:opacity-50 border ${
+              luckyWheelEnabled
+                ? 'bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/30 dark:hover:bg-amber-900/50 text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-700'
+                : 'bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-600 shadow-sm'
+            }`}
+          >
+            <Power size={13} />
+            <span>
+              {updatingWheel
+                ? (language === 'sk' ? 'Ukladám...' : 'Saving...')
+                : luckyWheelEnabled
+                ? (language === 'sk' ? 'Prepnúť do rekonštrukcie' : 'Set to Maintenance')
+                : (language === 'sk' ? 'Zapnúť koleso' : 'Enable Wheel')}
+            </span>
+          </button>
+        </div>
+
+        {/* 🚀 ADMIN TAB SWITCHER (Klienti, Rezervácie, Štatistiky, Recenzie, Databáza) */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-1.5 p-1.5 rounded-2xl bg-white dark:bg-[#0B0D22] border border-[#E2E8F0] dark:border-[#2B2F49] shadow-xs">
           <button
             type="button"
             onClick={() => setActiveAdminTab('clients')}
@@ -559,6 +728,19 @@ export default function AdminPage() {
             <MessageSquare size={15} />
             <span>{language === 'sk' ? 'Recenzie' : 'Reviews'}</span>
           </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveAdminTab('database')}
+            className={`flex items-center justify-center gap-2 py-2.5 px-2.5 rounded-xl text-xs font-semibold transition cursor-pointer col-span-2 sm:col-span-1 ${
+              activeAdminTab === 'database'
+                ? 'bg-[#6633EE] text-white shadow-sm'
+                : 'text-[#64748B] dark:text-[#C7CAE0]/70 hover:text-[#0B0D22] dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#010314]'
+            }`}
+          >
+            <Database size={15} />
+            <span>{language === 'sk' ? 'Databáza' : 'Database'}</span>
+          </button>
         </div>
 
         {/* ================================================================== */}
@@ -582,7 +764,12 @@ export default function AdminPage() {
 
             {/* SEKCIA NÁJDENÝCH KLIENTOV */}
             <ClientListSection
-              filteredProfiles={filteredProfiles}
+              filteredProfiles={sortedAndFilteredProfiles}
+              totalProfilesCount={profiles.length}
+              clientSortBy={clientSortBy}
+              setClientSortBy={setClientSortBy}
+              registrationFilter={registrationFilter}
+              setRegistrationFilter={setRegistrationFilter}
               isClientsCollapsed={isClientsCollapsed}
               setIsClientsCollapsed={setIsClientsCollapsed}
               getActiveStamps={getActiveStamps}
@@ -655,6 +842,19 @@ export default function AdminPage() {
         {activeAdminTab === 'reviews' && (
           <div className="space-y-4 animate-in fade-in duration-200">
             <AdminReviewsSection language={language} />
+          </div>
+        )}
+
+        {/* ================================================================== */}
+        {/* TAB 5: DATABÁZA & MAZANIE PROFILOV                                 */}
+        {/* ================================================================== */}
+        {activeAdminTab === 'database' && (
+          <div className="space-y-4 animate-in fade-in duration-200">
+            <AdminDatabaseSection
+              profiles={profiles}
+              refreshProfiles={fetchProfiles}
+              language={language}
+            />
           </div>
         )}
       </div>

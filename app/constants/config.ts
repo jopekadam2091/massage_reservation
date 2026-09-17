@@ -18,6 +18,6 @@ export const featureIcons: Record<string, string> = {
 };
 
 export const PRICES = {
-  Klasik: { 30: '30 eur', 45: '40 eur', 60: '45 eur' },
-  VIP: { 45: '65 eur', 60: '70 eur', 90: '90 eur' }
+  Klasik: { 30: '30 €', 45: '40 €', 60: '45 €' },
+  VIP: { 45: '65 €', 60: '70 €', 90: '90 €' }
 } as const;

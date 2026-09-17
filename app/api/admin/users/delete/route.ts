@@ -7,40 +7,99 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 export async function POST(req: Request) {
   try {
-    const { userId } = await req.json();
+    const body = await req.json();
+    const userIds: string[] = Array.isArray(body.userIds) 
+      ? body.userIds 
+      : body.userId ? [body.userId] : [];
 
-    if (!userId) {
-      return NextResponse.json({ error: 'Chýba ID používateľa' }, { status: 400 });
+    if (userIds.length === 0) {
+      return NextResponse.json({ error: 'Chýba ID používateľa na vymazanie' }, { status: 400 });
     }
 
-    // 1. Vymazanie pridružených dát zo tabuliek
-    await supabase.from('cancellation_requests').delete().eq('user_id', userId);
-    await supabase.from('gifts').delete().eq('user_id', userId);
-    await supabase.from('stamps').delete().eq('user_id', userId);
-    
-    // 2. Vymazanie profilu
-    const { error: profileError } = await supabase
-      .from('profiles')
-      .delete()
-      .eq('id', userId);
+    let deletedCount = 0;
+    const errors: string[] = [];
 
-    if (profileError) {
-      console.error('Chyba pri mazaní profilu:', profileError);
-      return NextResponse.json({ error: profileError.message }, { status: 500 });
-    }
-
-    // 3. Pokus o vymazanie z auth.users (ak je nastavený SERVICE_ROLE_KEY)
-    if (process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    for (const userId of userIds) {
       try {
-        await supabase.auth.admin.deleteUser(userId);
-      } catch (authErr) {
-        console.warn('Upozornenie: Nepodarilo sa vymazať z auth.users (možno nepodporované):', authErr);
+        // 1. Vymazanie pridružených dát zo tabuliek
+        try {
+          await supabase.from('cancellation_requests').delete().eq('user_id', userId);
+        } catch (e) {
+          console.warn('Upozornenie pri mazaní cancellation_requests:', e);
+        }
+
+        try {
+          await supabase.from('gifts').delete().eq('user_id', userId);
+        } catch (e) {
+          console.warn('Upozornenie pri mazaní gifts:', e);
+        }
+
+        try {
+          await supabase.from('stamps').delete().eq('user_id', userId);
+        } catch (e) {
+          console.warn('Upozornenie pri mazaní stamps:', e);
+        }
+
+        try {
+          await supabase.from('user_badges').delete().eq('user_id', userId);
+        } catch (e) {
+          console.warn('Upozornenie pri mazaní user_badges:', e);
+        }
+
+        try {
+          await supabase.from('profiles').update({ referred_by: null }).eq('referred_by', userId);
+        } catch (e) {
+          console.warn('Upozornenie pri odpojení referred_by:', e);
+        }
+
+        try {
+          await supabase.from('reviews').update({ user_id: null }).eq('user_id', userId);
+        } catch (e) {
+          console.warn('Upozornenie pri odpojení reviews:', e);
+        }
+        
+        // 2. Vymazanie profilu
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .delete()
+          .eq('id', userId);
+
+        if (profileError) {
+          console.error(`Chyba pri mazaní profilu ${userId}:`, profileError);
+          errors.push(`ID ${userId}: ${profileError.message}`);
+          continue;
+        }
+
+        // 3. Pokus o vymazanie z auth.users (ak je nastavený SERVICE_ROLE_KEY)
+        if (process.env.SUPABASE_SERVICE_ROLE_KEY) {
+          try {
+            await supabase.auth.admin.deleteUser(userId);
+          } catch (authErr) {
+            console.warn('Upozornenie: Nepodarilo sa vymazať z auth.users:', authErr);
+          }
+        }
+
+        deletedCount++;
+      } catch (errUser: any) {
+        errors.push(`ID ${userId}: ${errUser?.message || 'Chyba'}`);
       }
     }
 
-    return NextResponse.json({ success: true, message: 'Používateľ bol úspešne vymazaný z databázy.' });
+    if (deletedCount === 0 && errors.length > 0) {
+      return NextResponse.json({ error: errors.join(', ') }, { status: 500 });
+    }
+
+    return NextResponse.json({
+      success: true,
+      deletedCount,
+      totalRequested: userIds.length,
+      errors: errors.length > 0 ? errors : undefined,
+      message: deletedCount === 1
+        ? 'Používateľ bol úspešne vymazaný z databázy.'
+        : `${deletedCount} používateľov bolo úspešne vymazaných z databázy.`
+    });
   } catch (err: any) {
-    console.error('Chyba pri mazaní používateľa:', err);
+    console.error('Chyba pri mazaní používateľov:', err);
     return NextResponse.json({ error: err?.message || 'Chyba servera' }, { status: 500 });
   }
 }

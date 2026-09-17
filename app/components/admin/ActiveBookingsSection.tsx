@@ -1,10 +1,13 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
   Calendar, Clock, Tag, User, Package, Mail, Phone, Coins, Gift, CalendarX, 
-  ChevronDown, ChevronUp, Loader2 
+  ChevronDown, ChevronUp, Loader2, ArrowUpDown, Sparkles
 } from 'lucide-react';
+import { parseBookingDetails, formatCreationTime } from '@/app/utils/bookingUtils';
+
+export { parseBookingDetails };
 
 // Vlastná SVG ikonka Instagramu (keďže Lucide nemá značkové ikonky)
 const InstagramIcon = ({ size = 14, className = "" }: { size?: number; className?: string }) => (
@@ -26,40 +29,6 @@ const InstagramIcon = ({ size = 14, className = "" }: { size?: number; className
   </svg>
 );
 
-function parseBookingDetails(summary: string, description: string) {
-  const desc = description || '';
-
-  const refMatch = (summary + ' ' + desc).match(/#?(RES-[A-Z0-9]+)/i);
-  const bookingRef = refMatch ? refMatch[1].toUpperCase() : null;
-
-  const getLine = (keyword: string) => {
-    const line = desc.split('\n').find((l) => l.toLowerCase().startsWith(keyword.toLowerCase()));
-    if (!line) return null;
-    return line.split(':').slice(1).join(':').trim();
-  };
-
-  const name = getLine('Meno') || summary.replace(/^REZERVÁCIA:\s*/i, '').split('-')[0]?.trim() || 'Hosť';
-  const email = getLine('Email');
-  const phone = getLine('Tel');
-  const instagram = getLine('IG');
-  const packageType = getLine('Balíček');
-  const basePrice = getLine('Pôvodná cena');
-  const finalPrice = getLine('Finálna cena');
-  const notes = getLine('Poznámky & Odmeny') || getLine('Poznámka klienta');
-
-  return {
-    bookingRef,
-    name,
-    email,
-    phone,
-    instagram,
-    packageType,
-    basePrice,
-    finalPrice,
-    notes,
-  };
-}
-
 type Props = {
   activeBookings: any[];
   loadingBookings: boolean;
@@ -79,6 +48,27 @@ export default function ActiveBookingsSection({
   handleCancelDirectBooking,
   language,
 }: Props) {
+  const [sortBy, setSortBy] = useState<'created_desc' | 'created_asc' | 'start_asc' | 'start_desc'>('created_desc');
+
+  const sortedBookings = useMemo(() => {
+    return [...activeBookings].sort((a, b) => {
+      if (sortBy === 'created_desc') {
+        const timeA = a.created ? new Date(a.created).getTime() : 0;
+        const timeB = b.created ? new Date(b.created).getTime() : 0;
+        return timeB - timeA;
+      }
+      if (sortBy === 'created_asc') {
+        const timeA = a.created ? new Date(a.created).getTime() : 0;
+        const timeB = b.created ? new Date(b.created).getTime() : 0;
+        return timeA - timeB;
+      }
+      if (sortBy === 'start_desc') {
+        return new Date(b.start).getTime() - new Date(a.start).getTime();
+      }
+      return new Date(a.start).getTime() - new Date(b.start).getTime();
+    });
+  }, [activeBookings, sortBy]);
+
   return (
     <div className="bg-white dark:bg-[#0B0D22] border border-[#E2E8F0] dark:border-[#2B2F49] rounded-2xl shadow-sm overflow-hidden text-left font-sans text-[#1E293B] dark:text-[#DDE0F2]">
       <button
@@ -107,15 +97,38 @@ export default function ActiveBookingsSection({
       </button>
 
       {!isBookingsCollapsed && (
-        <div className="p-4 sm:p-5">
+        <div className="p-4 sm:p-5 space-y-4">
+          {/* LIŠTA PRE ZORADENIE REZERVÁCIÍ */}
+          {!loadingBookings && activeBookings.length > 0 && (
+            <div className="flex flex-wrap items-center justify-between gap-2 p-2.5 rounded-xl bg-slate-50 dark:bg-[#010314]/60 border border-[#E2E8F0] dark:border-[#2B2F49]">
+              <div className="flex items-center gap-2">
+                <ArrowUpDown size={14} className="text-[#6633EE] dark:text-[#A78BFA]" />
+                <span className="text-xs font-semibold text-[#0B0D22] dark:text-[#FFFFFF]">
+                  {language === 'sk' ? 'Zoradiť podľa:' : 'Sort by:'}
+                </span>
+              </div>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as any)}
+                aria-label={language === 'sk' ? 'Zoradiť rezervácie' : 'Sort bookings'}
+                className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-white dark:bg-[#0B0D22] text-[#1E293B] dark:text-[#DDE0F2] border border-[#E2E8F0] dark:border-[#2B2F49] focus:outline-none focus:border-[#6633EE] shadow-xs cursor-pointer"
+              >
+                <option value="created_desc">{language === 'sk' ? 'Čas vytvorenia rezervácie (Najnovšie prvé)' : 'Booking creation time (Newest first)'}</option>
+                <option value="created_asc">{language === 'sk' ? 'Čas vytvorenia rezervácie (Najstaršie prvé)' : 'Booking creation time (Oldest first)'}</option>
+                <option value="start_asc">{language === 'sk' ? 'Termín masáže (Najbližšie najskôr)' : 'Appointment time (Earliest first)'}</option>
+                <option value="start_desc">{language === 'sk' ? 'Termín masáže (Najneskoršie)' : 'Appointment time (Latest first)'}</option>
+              </select>
+            </div>
+          )}
+
           {loadingBookings ? (
             <div className="py-8 text-center text-[#64748B] dark:text-[#C7CAE0]/60 text-xs flex items-center justify-center gap-2 font-normal">
               <Loader2 size={18} className="animate-spin text-[#6633EE]" />
               <span>{language === 'sk' ? 'Načítavam kalendár...' : 'Loading calendar...'}</span>
             </div>
-          ) : activeBookings.length > 0 ? (
+          ) : sortedBookings.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {activeBookings.map((b) => {
+              {sortedBookings.map((b) => {
                 const parsed = parseBookingDetails(b.summary, b.description);
                 const startDate = new Date(b.start);
                 const formattedDate = startDate.toLocaleDateString('sk-SK', {
@@ -125,6 +138,7 @@ export default function ActiveBookingsSection({
                   year: 'numeric'
                 });
                 const formattedTime = startDate.toLocaleTimeString('sk-SK', { hour: '2-digit', minute: '2-digit' });
+                const createdInfo = formatCreationTime(b.created, language);
 
                 return (
                   <div key={b.id} className="p-4 rounded-2xl bg-slate-50 dark:bg-[#010314] border border-[#E2E8F0] dark:border-[#2B2F49] space-y-3 shadow-xs text-left flex flex-col justify-between">
@@ -152,6 +166,21 @@ export default function ActiveBookingsSection({
                           <span>{formattedTime}</span>
                         </div>
                       </div>
+
+                      {/* INFORMÁCIA O ČASE VYTVORENIA REZERVÁCIE */}
+                      {createdInfo && (
+                        <div className="flex items-center justify-between gap-2 text-[11px] px-3 py-1.5 rounded-xl bg-[#6633EE]/10 dark:bg-[#6633EE]/15 border border-[#6633EE]/25 text-[#43239e] dark:text-[#C4B5FD]">
+                          <div className="flex items-center gap-1.5 font-medium truncate">
+                            <Sparkles size={12} className="text-[#6633EE] dark:text-[#A78BFA] shrink-0" />
+                            <span>{language === 'sk' ? 'Rezervované:' : 'Booked at:'} <strong className="font-semibold text-[#1E293B] dark:text-white">{createdInfo.formattedDateTime}</strong></span>
+                          </div>
+                          {createdInfo.relative && (
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white dark:bg-[#0B0D22] text-[#6633EE] dark:text-[#A78BFA] border border-[#6633EE]/30 shrink-0 shadow-2xs">
+                              {createdInfo.relative}
+                            </span>
+                          )}
+                        </div>
+                      )}
 
                       {/* FORMULÁROVÉ POLÍČKA */}
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">

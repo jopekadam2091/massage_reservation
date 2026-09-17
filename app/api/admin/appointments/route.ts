@@ -31,6 +31,8 @@ export async function GET() {
         description: item.description,
         start: item.start?.dateTime || item.start?.date,
         end: item.end?.dateTime || item.end?.date,
+        created: item.created,
+        updated: item.updated,
       }));
 
     return NextResponse.json({ bookings });

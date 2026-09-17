@@ -85,6 +85,7 @@ export default function ProfilPage() {
   const [loading, setLoading] = useState(true);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isWheelOpen, setIsWheelOpen] = useState(false);
+  const [wheelEnabled, setWheelEnabled] = useState<boolean>(true);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [copiedCodeId, setCopiedCodeId] = useState<string | null>(null);
   const [selectedCancelBooking, setSelectedCancelBooking] = useState<any>(null);
@@ -206,6 +207,15 @@ export default function ProfilPage() {
         console.error('Chyba načítania histórie:', err);
       }
     }
+
+    // Načítanie globálnych nastavení (stav Kolesa šťastia)
+    try {
+      const resSettings = await fetch('/api/system/settings');
+      const dataSettings = await resSettings.json();
+      if (dataSettings?.settings) {
+        setWheelEnabled(dataSettings.settings.lucky_wheel_enabled !== false);
+      }
+    } catch {}
 
     setLoading(false);
   };
@@ -600,10 +610,18 @@ export default function ProfilPage() {
                   <button
                     type="button"
                     onClick={() => setIsWheelOpen(true)}
-                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 text-[11px] font-bold uppercase tracking-wider transition cursor-pointer shadow-xs"
+                    className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider transition cursor-pointer shadow-xs ${
+                      wheelEnabled
+                        ? 'bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950'
+                        : 'bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400 border border-amber-300 dark:border-amber-700'
+                    }`}
                   >
                     <Sparkles size={12} />
-                    <span>{language === 'sk' ? 'Kolo šťastia' : 'Wheel of Fortune'}</span>
+                    <span>
+                      {wheelEnabled 
+                        ? (language === 'sk' ? 'Kolo šťastia' : 'Wheel of Fortune')
+                        : (language === 'sk' ? 'Kolo (V rekonštrukcii)' : 'Wheel (In Maintenance)')}
+                    </span>
                   </button>
                 )}
               </div>
@@ -681,18 +699,36 @@ export default function ProfilPage() {
                 </div>
               ) : (
                 <div className="p-4 rounded-xl bg-slate-50 dark:bg-[#010314] border border-[#E2E8F0] dark:border-[#2B2F49] text-center space-y-2.5">
+                  {!wheelEnabled && (
+                    <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30">
+                      <Sparkles size={11} />
+                      <span>{language === 'sk' ? 'V rekonštrukcii' : 'Under Reconstruction'}</span>
+                    </div>
+                  )}
                   <p className="text-xs text-[#64748B] dark:text-[#C7CAE0]/80 font-normal leading-relaxed">
-                    {language === 'sk'
-                      ? 'Zatiaľ nemáte žiadny aktívny zľavový kód. Roztočte Koleso Šťastia a získajte zľavu až do 15% alebo darček k masáži!'
-                      : 'You do not have any active discount code yet. Spin the Wheel of Fortune and win up to 15% discount or a massage gift!'}
+                    {wheelEnabled 
+                      ? (language === 'sk'
+                          ? 'Zatiaľ nemáte žiadny aktívny zľavový kód. Roztočte Koleso Šťastia a získajte zľavu až do 15% alebo darček k masáži!'
+                          : 'You do not have any active discount code yet. Spin the Wheel of Fortune and win up to 15% discount or a massage gift!')
+                      : (language === 'sk'
+                          ? 'Koleso šťastia je momentálne v rekonštrukcii. Pripravujeme pre vás nové zľavy a benefity. Skúste to prosím neskôr.'
+                          : 'The Lucky Wheel is currently under reconstruction. Please try again later.')}
                   </p>
                   <button
                     type="button"
                     onClick={() => setIsWheelOpen(true)}
-                    className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-full bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 text-xs font-bold uppercase tracking-wider shadow-sm transition cursor-pointer active:scale-95"
+                    className={`inline-flex items-center gap-1.5 px-4 py-2.5 rounded-full text-xs font-bold uppercase tracking-wider shadow-sm transition cursor-pointer active:scale-95 ${
+                      wheelEnabled
+                        ? 'bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950'
+                        : 'bg-slate-100 dark:bg-[#151938] hover:bg-slate-200 dark:hover:bg-[#1E234B] text-slate-700 dark:text-[#DDE0F2] border border-slate-200 dark:border-[#2B2F49]'
+                    }`}
                   >
-                    <Sparkles size={14} />
-                    <span>{language === 'sk' ? 'Roztočiť Koleso Šťastia' : 'Spin Wheel of Fortune'}</span>
+                    <Sparkles size={14} className={wheelEnabled ? '' : 'text-amber-500'} />
+                    <span>
+                      {wheelEnabled 
+                        ? (language === 'sk' ? 'Roztočiť Koleso Šťastia' : 'Spin Wheel of Fortune')
+                        : (language === 'sk' ? 'Zobraziť stav Kolesa šťastia' : 'Check Lucky Wheel status')}
+                    </span>
                   </button>
                 </div>
               )}

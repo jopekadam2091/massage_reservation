@@ -58,10 +58,23 @@ async function writeDiscountToGoogleSheets(code: string, percent: string = '10%'
   return true;
 }
 
+import { getSystemSettings } from '@/app/lib/systemSettings';
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();
     const { action, userId, giftType, customCode, stampPrice, discountPercent } = body;
+
+    // Kontrola, či je Koleso šťastia povolené administrátorom
+    if (action !== 'reset') {
+      const settings = await getSystemSettings();
+      if (!settings.lucky_wheel_enabled) {
+        return NextResponse.json({
+          error: settings.maintenance_message_sk || 'Koleso šťastia je momentálne v rekonštrukcii. Skúste to prosím neskôr.',
+          isUnderMaintenance: true,
+        }, { status: 403 });
+      }
+    }
 
     // 🔄 Testovací vývojársky reset výhier
     if (action === 'reset') {

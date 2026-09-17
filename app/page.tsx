@@ -455,7 +455,7 @@ export default function Home() {
           )}
 
           {/* 🚀 HLAVNÝ OBSAH REZERVÁCIE */}
-          <main className="max-w-4xl mx-auto px-3 sm:px-6 py-2 sm:py-4">
+          <main className="max-w-5xl lg:max-w-6xl mx-auto px-3 sm:px-6 py-2 sm:py-4">
             {isAdmin ? (
               <AdminReservationDashboard language={language} />
             ) : (

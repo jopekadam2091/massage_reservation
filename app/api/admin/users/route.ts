@@ -19,7 +19,8 @@ export async function GET() {
         referral_code,
         referred_by,
         referral_discount_status,
-        is_banned
+        is_banned,
+        created_at
       `)
       .order('full_name', { ascending: true });
 
@@ -36,7 +37,8 @@ export async function GET() {
           program_type,
           referral_code,
           referred_by,
-          referral_discount_status
+          referral_discount_status,
+          created_at
         `)
         .order('full_name', { ascending: true });
 
