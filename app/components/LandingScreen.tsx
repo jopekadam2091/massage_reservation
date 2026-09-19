@@ -218,16 +218,21 @@ export default function LandingScreen({ onEnter, sessionUser }: Props) {
   const isDraggingRef = useRef(false);
 
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (e.button !== 0 && e.pointerType === 'mouse') return;
+    // Na dotykových zariadeniach (mobil/tablet) nechávame 100% natívne plynulé dotykové potiahnutie (swipe)
+    if (e.pointerType !== 'mouse') {
+      setIsAutoScrollPaused(true);
+      if (autoScrollTimerRef.current) clearTimeout(autoScrollTimerRef.current);
+      return;
+    }
     const el = scrollContainerRef.current;
-    if (!el) return;
+    if (!el || e.button !== 0) return;
 
     isPointerDownRef.current = true;
     isDraggingRef.current = false;
     startXRef.current = e.clientX;
     scrollStartRef.current = el.scrollLeft;
 
-    // Okamžite vypneme scroll-snap a smooth scroll pre priamy 1:1 pohyb bez odporu
+    // Okamžite vypneme scroll-snap a smooth scroll pre priamy 1:1 pohyb myšou bez odporu
     el.style.scrollSnapType = 'none';
     el.style.scrollBehavior = 'auto';
 
@@ -239,7 +244,7 @@ export default function LandingScreen({ onEnter, sessionUser }: Props) {
   };
 
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (!isPointerDownRef.current) return;
+    if (e.pointerType !== 'mouse' || !isPointerDownRef.current) return;
     const el = scrollContainerRef.current;
     if (!el) return;
 
@@ -248,12 +253,17 @@ export default function LandingScreen({ onEnter, sessionUser }: Props) {
       isDraggingRef.current = true;
     }
 
-    // Priamy posun 1:1 zarovno s pohybom ruky/myši
+    // Priamy posun 1:1 zarovno s pohybom myši
     el.scrollLeft = scrollStartRef.current - deltaX;
     updateCardFocus();
   };
 
   const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.pointerType !== 'mouse') {
+      setIsAutoScrollPaused(false);
+      resetAutoScroll();
+      return;
+    }
     if (!isPointerDownRef.current) return;
     isPointerDownRef.current = false;
     const el = scrollContainerRef.current;
@@ -545,27 +555,12 @@ export default function LandingScreen({ onEnter, sessionUser }: Props) {
       else if (el.scrollLeft <= baseCenter - singleSetWidth * 0.5) {
         el.scrollLeft += singleSetWidth;
         updateCardFocus();
-      } else {
-        // Po zastavení manuálneho posunu overíme, či je karta vycentrovaná; ak nie, plynule docentrujeme
-        const closestIdx = getClosestCardIndex();
-        if (closestIdx >= 0 && closestIdx < el.children.length) {
-          const card = el.children[closestIdx] as HTMLElement;
-          const containerRect = el.getBoundingClientRect();
-          const cardRect = card.getBoundingClientRect();
-          const containerCenter = containerRect.left + containerRect.width / 2;
-          const cardCenter = cardRect.left + cardRect.width / 2;
-          const diff = Math.abs(containerCenter - cardCenter);
-          if (diff > 3) {
-            const targetScroll = card.offsetLeft - (el.clientWidth - card.offsetWidth) / 2;
-            el.scrollTo({ left: targetScroll, behavior: 'smooth' });
-          }
-        }
       }
     };
 
     const onScrollEnd = () => {
       if (debounceTimer) clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(handleWrapAndSnap, 140);
+      debounceTimer = setTimeout(handleWrapAndSnap, 100);
     };
 
     el.addEventListener('scroll', onScrollEnd, { passive: true });
@@ -778,7 +773,15 @@ export default function LandingScreen({ onEnter, sessionUser }: Props) {
             onPointerMove={handlePointerMove}
             onPointerUp={handlePointerUp}
             onPointerCancel={handlePointerUp}
-            className="w-full overflow-x-auto no-scrollbar flex gap-3 sm:gap-5 py-1 px-4 sm:px-6 snap-x snap-mandatory cursor-grab active:cursor-grabbing select-none touch-pan-y"
+            onTouchStart={() => {
+              setIsAutoScrollPaused(true);
+              if (autoScrollTimerRef.current) clearTimeout(autoScrollTimerRef.current);
+            }}
+            onTouchEnd={() => {
+              setIsAutoScrollPaused(false);
+              resetAutoScroll();
+            }}
+            className="w-full overflow-x-auto no-scrollbar flex gap-3 sm:gap-5 py-2 px-4 sm:px-6 snap-x snap-mandatory cursor-grab active:cursor-grabbing select-none touch-pan-x [-webkit-overflow-scrolling:touch]"
           >
             {infiniteReviews.map((review, idx) => (
               <div
