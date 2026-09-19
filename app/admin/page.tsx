@@ -96,6 +96,13 @@ export default function AdminPage() {
         return;
       }
 
+      // 🛡️ Dvojstupňové (2FA) overenie administrátora cez e-mail
+      const is2FaVerified = typeof window !== 'undefined' && sessionStorage.getItem('admin_2fa_verified') === 'true';
+      if (!is2FaVerified) {
+        router.push('/login');
+        return;
+      }
+
       await refreshAllAdminData();
       setLoading(false);
     };

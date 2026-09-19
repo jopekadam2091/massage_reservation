@@ -22,10 +22,15 @@ export default function AuthPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [referralCode, setReferralCode] = useState('');
   
-  // Stavy pre 6-miestne OTP overenie
+  // Stavy pre 6-miestne OTP overenie registrácie
   const [otpStep, setOtpStep] = useState<'form' | 'otp'>('form');
   const [otpToken, setOtpToken] = useState<string>('');
   const [otpExpiresAt, setOtpExpiresAt] = useState<number>(0);
+
+  // 🛡️ Stavy pre 2FA e-mailové overenie administrátora
+  const [adminOtpStep, setAdminOtpStep] = useState<'form' | 'admin-otp'>('form');
+  const [adminOtpToken, setAdminOtpToken] = useState<string>('');
+  const [adminOtpExpiresAt, setAdminOtpExpiresAt] = useState<number>(0);
 
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
@@ -35,6 +40,7 @@ export default function AuthPage() {
     if (isRegistering) return;
     setIsRegistering(true);
     setOtpStep('form');
+    setAdminOtpStep('form');
     setErrorMsg('');
     setInfoMsg('');
   };
@@ -43,19 +49,22 @@ export default function AuthPage() {
     if (!isRegistering) return;
     setIsRegistering(false);
     setOtpStep('form');
+    setAdminOtpStep('form');
     setErrorMsg('');
     setInfoMsg('');
   };
 
-  // 1. Logika pre prihlásenie (Email + Heslo)
+  // 1. Logika pre prihlásenie (Email + Heslo) s 2FA pre Admina
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setErrorMsg('');
     setInfoMsg('');
 
+    const cleanEmail = email.trim();
+
     const { data, error } = await supabase.auth.signInWithPassword({
-      email: email.trim(),
+      email: cleanEmail,
       password,
     });
 
@@ -72,9 +81,104 @@ export default function AuthPage() {
       .single();
 
     if (profile?.role === 'admin') {
-      router.push('/admin');
+      // 🛡️ Pre administrátora vyžadujeme 2FA overenie cez e-mail
+      try {
+        const res = await fetch('/api/auth/admin-otp/send', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: cleanEmail }),
+        });
+
+        const resData = await res.json();
+
+        if (!res.ok || resData.error) {
+          setErrorMsg(resData.error || (language === 'sk' ? 'Nepodarilo sa odoslať 2FA kód administrátora.' : 'Failed to send admin 2FA code.'));
+          setLoading(false);
+          return;
+        }
+
+        setAdminOtpToken(resData.adminOtpToken);
+        setAdminOtpExpiresAt(resData.expiresAt);
+        setAdminOtpStep('admin-otp');
+        setInfoMsg(
+          language === 'sk'
+            ? 'Na váš administrátorský e-mail bol odoslaný 6-miestny bezpečnostný kód.'
+            : 'A 6-digit security code has been sent to your administrator email.'
+        );
+      } catch (err: any) {
+        setErrorMsg(err?.message || (language === 'sk' ? 'Chyba pri odosielaní 2FA kódu.' : 'Failed to send 2FA code.'));
+      } finally {
+        setLoading(false);
+      }
     } else {
+      // Bežný klient pokračuje priamo do profilu
       router.push('/profil');
+    }
+  };
+
+  // 🛡️ 1b. Overenie 2FA kódu administrátora
+  const handleVerifyAdminOtp = async (code: string) => {
+    setLoading(true);
+    setErrorMsg('');
+    setInfoMsg('');
+
+    try {
+      const res = await fetch('/api/auth/admin-otp/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: email.trim(),
+          code,
+          adminOtpToken,
+          expiresAt: adminOtpExpiresAt,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || data.error) {
+        setErrorMsg(data.error || (language === 'sk' ? 'Nesprávny bezpečnostný kód.' : 'Invalid security code.'));
+        setLoading(false);
+        return;
+      }
+
+      // Uloženie overeného 2FA stavu do sessionStorage pre admin stránku
+      sessionStorage.setItem('admin_2fa_verified', 'true');
+      if (data.verifiedToken) {
+        sessionStorage.setItem('admin_verified_token', data.verifiedToken);
+      }
+
+      router.push('/admin');
+    } catch (err: any) {
+      setErrorMsg(err?.message || (language === 'sk' ? 'Chyba pri overovaní kódu.' : 'Verification error.'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 🛡️ 1c. Opätovné odoslanie 2FA kódu administrátora
+  const handleResendAdminOtp = async () => {
+    setErrorMsg('');
+    setInfoMsg('');
+    try {
+      const res = await fetch('/api/auth/admin-otp/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email.trim() }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || data.error) {
+        setErrorMsg(data.error || (language === 'sk' ? 'Nepodarilo sa znovu odoslať kód.' : 'Failed to resend code.'));
+        return;
+      }
+
+      setAdminOtpToken(data.adminOtpToken);
+      setAdminOtpExpiresAt(data.expiresAt);
+      setInfoMsg(language === 'sk' ? 'Nový kód bol odoslaný na váš administrátorský e-mail.' : 'New code sent to your admin email.');
+    } catch (err: any) {
+      setErrorMsg(err?.message || (language === 'sk' ? 'Chyba pripojenia.' : 'Network error.'));
     }
   };
 
@@ -241,104 +345,124 @@ export default function AuthPage() {
               : 'opacity-100 pointer-events-auto scale-100 md:translate-x-0'
           }`}
         >
-          <div className="space-y-1.5 text-left w-full">
-            <h1 className="text-3xl sm:text-4xl font-semibold text-[#0B0D22] dark:text-[#FFFFFF] tracking-tight">
-              {language === 'sk' ? 'Prihlásenie' : 'Login'}
-            </h1>
-            <p className="text-xs sm:text-sm text-[#64748B] dark:text-[#C7CAE0] font-normal">
-              {language === 'sk' ? 'Zadajte vaše údaje pre prístup k účtu' : 'Enter your credentials to access your account'}
-            </p>
-          </div>
-
-          {/* Error / Info Alerts */}
-          {errorMsg && !isRegistering && (
-            <div className="p-3.5 text-xs font-medium text-[#FF5A7A] bg-[#FF5A7A]/15 rounded-full border border-[#FF5A7A]/30 animate-fadeIn w-full flex items-center gap-2">
-              <AlertCircle size={15} className="shrink-0" />
-              <span>{errorMsg}</span>
-            </div>
-          )}
-          {infoMsg && !isRegistering && (
-            <div className="p-3.5 text-xs font-medium text-[#6633EE] dark:text-[#A78BFA] bg-[#6633EE]/15 rounded-full border border-[#6633EE]/30 animate-fadeIn flex items-center gap-2 w-full">
-              <Check size={16} className="text-[#6633EE] dark:text-[#A78BFA] shrink-0" />
-              <span>{infoMsg}</span>
-            </div>
-          )}
-
-          {/* Stretched Form Container */}
-          <form onSubmit={handleLogin} className="w-full space-y-5 text-left">
-            {/* Email Input */}
-            <div className="space-y-1.5 w-full">
-              <label className="block text-xs font-medium text-[#6633EE] dark:text-[#A78BFA] uppercase tracking-wider">
-                {language === 'sk' ? 'E-mailová adresa' : 'Email'}
-              </label>
-              <div className="relative w-full border-b border-[#E2E8F0] dark:border-[#2B2F49] focus-within:border-[#6633EE] transition-colors">
-                <input
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full bg-transparent py-2.5 pr-10 text-[#0B0D22] dark:text-[#FFFFFF] placeholder-[#94A3B8] dark:placeholder-[#C7CAE0]/50 text-sm font-normal focus:outline-none"
-                  placeholder={language === 'sk' ? 'Zadajte váš e-mail' : 'Enter your email'}
-                />
-                <Mail size={18} className="absolute right-1 top-1/2 -translate-y-1/2 text-[#94A3B8] dark:text-[#C7CAE0]/60 pointer-events-none" />
+          {adminOtpStep === 'admin-otp' ? (
+            /* 🛡️ 6-DIGIT 2FA VERIFICATION VIEW PRE ADMINA */
+            <OtpVerificationInput
+              email={email}
+              onVerify={handleVerifyAdminOtp}
+              onResend={handleResendAdminOtp}
+              onBack={() => {
+                setAdminOtpStep('form');
+                setErrorMsg('');
+                setInfoMsg('');
+              }}
+              loading={loading}
+              errorMsg={errorMsg}
+              infoMsg={infoMsg}
+              language={language}
+            />
+          ) : (
+            <>
+              <div className="space-y-1.5 text-left w-full">
+                <h1 className="text-3xl sm:text-4xl font-semibold text-[#0B0D22] dark:text-[#FFFFFF] tracking-tight">
+                  {language === 'sk' ? 'Prihlásenie' : 'Login'}
+                </h1>
+                <p className="text-xs sm:text-sm text-[#64748B] dark:text-[#C7CAE0] font-normal">
+                  {language === 'sk' ? 'Zadajte vaše údaje pre prístup k účtu' : 'Enter your credentials to access your account'}
+                </p>
               </div>
-            </div>
 
-            {/* Password Input */}
-            <div className="space-y-1.5 w-full">
-              <div className="flex items-center justify-between w-full">
-                <label className="block text-xs font-medium text-[#6633EE] dark:text-[#A78BFA] uppercase tracking-wider">
-                  {language === 'sk' ? 'Heslo' : 'Password'}
-                </label>
+              {/* Error / Info Alerts */}
+              {errorMsg && !isRegistering && (
+                <div className="p-3.5 text-xs font-medium text-[#FF5A7A] bg-[#FF5A7A]/15 rounded-full border border-[#FF5A7A]/30 animate-fadeIn w-full flex items-center gap-2">
+                  <AlertCircle size={15} className="shrink-0" />
+                  <span>{errorMsg}</span>
+                </div>
+              )}
+              {infoMsg && !isRegistering && (
+                <div className="p-3.5 text-xs font-medium text-[#6633EE] dark:text-[#A78BFA] bg-[#6633EE]/15 rounded-full border border-[#6633EE]/30 animate-fadeIn flex items-center gap-2 w-full">
+                  <Check size={16} className="text-[#6633EE] dark:text-[#A78BFA] shrink-0" />
+                  <span>{infoMsg}</span>
+                </div>
+              )}
+
+              {/* Stretched Form Container */}
+              <form onSubmit={handleLogin} className="w-full space-y-5 text-left">
+                {/* Email Input */}
+                <div className="space-y-1.5 w-full">
+                  <label className="block text-xs font-medium text-[#6633EE] dark:text-[#A78BFA] uppercase tracking-wider">
+                    {language === 'sk' ? 'E-mailová adresa' : 'Email'}
+                  </label>
+                  <div className="relative w-full border-b border-[#E2E8F0] dark:border-[#2B2F49] focus-within:border-[#6633EE] transition-colors">
+                    <input
+                      type="email"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="w-full bg-transparent py-2.5 pr-10 text-[#0B0D22] dark:text-[#FFFFFF] placeholder-[#94A3B8] dark:placeholder-[#C7CAE0]/50 text-sm font-normal focus:outline-none"
+                      placeholder={language === 'sk' ? 'Zadajte váš e-mail' : 'Enter your email'}
+                    />
+                    <Mail size={18} className="absolute right-1 top-1/2 -translate-y-1/2 text-[#94A3B8] dark:text-[#C7CAE0]/60 pointer-events-none" />
+                  </div>
+                </div>
+
+                {/* Password Input */}
+                <div className="space-y-1.5 w-full">
+                  <div className="flex items-center justify-between w-full">
+                    <label className="block text-xs font-medium text-[#6633EE] dark:text-[#A78BFA] uppercase tracking-wider">
+                      {language === 'sk' ? 'Heslo' : 'Password'}
+                    </label>
+                    <button
+                      type="button"
+                      onClick={handleForgotPassword}
+                      className="text-[11px] font-normal text-[#64748B] dark:text-[#C7CAE0] hover:text-[#0B0D22] dark:hover:text-[#FFFFFF] transition cursor-pointer"
+                    >
+                      {language === 'sk' ? 'Zabudli ste heslo?' : 'Forgot password?'}
+                    </button>
+                  </div>
+                  <div className="relative w-full border-b border-[#E2E8F0] dark:border-[#2B2F49] focus-within:border-[#6633EE] transition-colors">
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      required
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="w-full bg-transparent py-2.5 pr-10 text-[#0B0D22] dark:text-[#FFFFFF] placeholder-[#94A3B8] dark:placeholder-[#C7CAE0]/50 text-sm font-normal focus:outline-none"
+                      placeholder="••••••••••••"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-1 top-1/2 -translate-y-1/2 text-[#94A3B8] dark:text-[#C7CAE0]/60 hover:text-[#0B0D22] dark:hover:text-white p-1 cursor-pointer transition"
+                    >
+                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Full Width Submit Button */}
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full btn-primary text-xs uppercase tracking-wider mt-5"
+                >
+                  <span>{loading ? (language === 'sk' ? 'Spracovávam...' : 'Working...') : (language === 'sk' ? 'Prihlásiť sa' : 'Login')}</span>
+                  <ArrowRight size={16} />
+                </button>
+              </form>
+
+              {/* Bottom Switch Link */}
+              <div className="pt-2 text-xs text-[#64748B] dark:text-[#C7CAE0] w-full">
+                {language === 'sk' ? 'Nemáte ešte účet?' : "Don't have an account?"}{' '}
                 <button
                   type="button"
-                  onClick={handleForgotPassword}
-                  className="text-[11px] font-normal text-[#64748B] dark:text-[#C7CAE0] hover:text-[#0B0D22] dark:hover:text-[#FFFFFF] transition cursor-pointer"
+                  onClick={toggleToRegister}
+                  className="font-medium text-[#6633EE] dark:text-[#A78BFA] hover:text-[#0B0D22] dark:hover:text-[#FFFFFF] transition cursor-pointer underline ml-1"
                 >
-                  {language === 'sk' ? 'Zabudli ste heslo?' : 'Forgot password?'}
+                  {language === 'sk' ? 'Registrovať sa' : 'Sign Up'}
                 </button>
               </div>
-              <div className="relative w-full border-b border-[#E2E8F0] dark:border-[#2B2F49] focus-within:border-[#6633EE] transition-colors">
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-transparent py-2.5 pr-10 text-[#0B0D22] dark:text-[#FFFFFF] placeholder-[#94A3B8] dark:placeholder-[#C7CAE0]/50 text-sm font-normal focus:outline-none"
-                  placeholder="••••••••••••"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-1 top-1/2 -translate-y-1/2 text-[#94A3B8] dark:text-[#C7CAE0]/60 hover:text-[#0B0D22] dark:hover:text-white p-1 cursor-pointer transition"
-                >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
-              </div>
-            </div>
-
-            {/* Full Width Submit Button */}
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full btn-primary text-xs uppercase tracking-wider mt-5"
-            >
-              <span>{loading ? (language === 'sk' ? 'Spracovávam...' : 'Working...') : (language === 'sk' ? 'Prihlásiť sa' : 'Login')}</span>
-              <ArrowRight size={16} />
-            </button>
-          </form>
-
-          {/* Bottom Switch Link */}
-          <div className="pt-2 text-xs text-[#64748B] dark:text-[#C7CAE0] w-full">
-            {language === 'sk' ? 'Nemáte ešte účet?' : "Don't have an account?"}{' '}
-            <button
-              type="button"
-              onClick={toggleToRegister}
-              className="font-medium text-[#6633EE] dark:text-[#A78BFA] hover:text-[#0B0D22] dark:hover:text-[#FFFFFF] transition cursor-pointer underline ml-1"
-            >
-              {language === 'sk' ? 'Registrovať sa' : 'Sign Up'}
-            </button>
-          </div>
+            </>
+          )}
         </div>
 
         {/* =================================================================== */}

@@ -636,5 +636,33 @@ body::-webkit-scrollbar {
   -webkit-mask-image: linear-gradient(to right, transparent 0%, black 14%, black 86%, transparent 100%);
 }
 
+/* ==========================================================================
+   👆 SWIPE GESTURE HAND ANIMATION
+   ========================================================================== */
+
+@keyframes swipeHand {
+  0% {
+    transform: translateX(5px) rotate(3deg);
+    opacity: 0.5;
+  }
+  25% {
+    transform: translateX(4px) rotate(2deg);
+    opacity: 1;
+  }
+  65% {
+    transform: translateX(-7px) rotate(-4deg);
+    opacity: 1;
+  }
+  85%, 100% {
+    transform: translateX(-7px) rotate(-4deg);
+    opacity: 0.3;
+  }
+}
+
+.animate-swipe-hand {
+  animation: swipeHand 1.8s ease-in-out infinite;
+}
+
+
 
 

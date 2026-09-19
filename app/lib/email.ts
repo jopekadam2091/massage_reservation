@@ -405,4 +405,88 @@ export async function sendDeleteAccountOtpEmail({
     console.error('❌ [Email Delete OTP Chyba]:', err?.message || err);
     throw err;
   }
-}
+}
+
+// 🚀 5. ODOSLANIE 6-MIESTNEHO BEZPEČNOSTNÉHO KÓDU PRE PRIHLÁSENIE ADMINISTRÁTORA (2FA)
+export async function sendAdminLoginOtpEmail({
+  to,
+  name,
+  code,
+}: {
+  to: string;
+  name?: string;
+  code: string;
+}) {
+  if (!to || !to.includes('@')) return false;
+
+  const smtpUser = process.env.SMTP_USER;
+  const smtpPass = process.env.SMTP_PASS;
+  if (!smtpUser || !smtpPass) {
+    console.error('❌ [Email Admin OTP]: Chýba SMTP_USER alebo SMTP_PASS.');
+    return false;
+  }
+
+  const transporter = nodemailer.createTransport({
+    host: process.env.SMTP_HOST || 'smtp.gmail.com',
+    port: parseInt(process.env.SMTP_PORT || '465', 10),
+    secure: true,
+    auth: { user: smtpUser, pass: smtpPass },
+  });
+
+  const subject = `Bezpečnostné overenie administrátora (2FA kód)`;
+
+  const htmlContent = `
+    <div style="font-family: Arial, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 540px; margin: 0 auto; padding: 32px 24px; background-color: #010314; border: 1px solid #2B2F49; border-radius: 24px; color: #DDE0F2;">
+      <div style="text-align: center; margin-bottom: 28px;">
+        <div style="display: inline-block; padding: 6px 18px; background-color: rgba(102, 51, 238, 0.2); color: #A78BFA; border: 1px solid rgba(102, 51, 238, 0.4); border-radius: 9999px; font-weight: 700; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 12px;">
+          🛡️ Admin Security • 2FA
+        </div>
+        <h1 style="color: #FFFFFF; margin: 0; font-size: 22px; font-weight: 700; letter-spacing: -0.5px;">
+          Overenie prihlásenia administrátora
+        </h1>
+        <p style="color: #C7CAE0; font-size: 13px; margin-top: 6px;">Dvojstupňová ochrana administrátorského účtu</p>
+      </div>
+
+      <div style="background-color: #0B0D22; padding: 28px 24px; border-radius: 20px; border: 1px solid #2B2F49; text-align: center; margin-bottom: 24px;">
+        <p style="margin: 0 0 16px; color: #DDE0F2; font-size: 14px; text-align: left;">
+          Dobrý deň <strong>${name || 'Administrátor'}</strong>,
+        </p>
+        <p style="margin: 0 0 20px; color: #C7CAE0; font-size: 13px; line-height: 1.6; text-align: left;">
+          Bolo zaznamenané prihlásenie do administrátorského rozhrania. Pre dokončenie vstupu a odomknutie administrácie zadajte tento 6-miestny overovací kód:
+        </p>
+
+        <!-- 6-digit OTP Display -->
+        <div style="display: inline-block; padding: 14px 28px; background-color: #010314; border: 2px solid #6633EE; border-radius: 16px; font-family: 'Courier New', monospace, monospace; font-size: 32px; font-weight: 800; letter-spacing: 8px; color: #FFFFFF; text-shadow: 0 0 18px rgba(102, 51, 238, 0.8); margin: 0 auto 16px;">
+          ${code}
+        </div>
+
+        <p style="margin: 0; color: #A78BFA; font-size: 12px;">
+          ⏱️ Platnosť kódu vyprší o <strong>10 minút</strong>.
+        </p>
+      </div>
+
+      <p style="color: #C7CAE0; font-size: 12px; text-align: center; margin: 0 0 20px; line-height: 1.5;">
+        Ak ste sa do administrácie neprihlasovali vy, okamžite si zmeňte heslo.
+      </p>
+
+      <div style="text-align: center; padding-top: 16px; border-top: 1px solid #2B2F49; color: #64748b; font-size: 11px;">
+        © ZenFlow Massage Sanctuary • Administrátorský bezpečnostný systém
+      </div>
+    </div>
+  `;
+
+  try {
+    await transporter.sendMail({
+      from: `"ZenFlow Sanctuary" <${smtpUser}>`,
+      to: to,
+      subject: subject,
+      html: htmlContent,
+    });
+    console.log(`✅ [Email Admin 2FA OTP]: Kód úspešne odoslaný na ${to}`);
+    return true;
+  } catch (err: any) {
+    console.error('❌ [Email Admin 2FA OTP Chyba]:', err?.message || err);
+    throw err;
+  }
+}
+

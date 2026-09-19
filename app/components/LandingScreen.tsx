@@ -211,6 +211,84 @@ export default function LandingScreen({ onEnter, sessionUser }: Props) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [isAutoScrollPaused, setIsAutoScrollPaused] = useState(false);
 
+  // 🖱️ / 📱 Ultra-plynulý priamy Drag-to-Scroll (1:1 v reálnom čase bez oneskorenia)
+  const isPointerDownRef = useRef(false);
+  const startXRef = useRef(0);
+  const scrollStartRef = useRef(0);
+  const isDraggingRef = useRef(false);
+
+  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.button !== 0 && e.pointerType === 'mouse') return;
+    const el = scrollContainerRef.current;
+    if (!el) return;
+
+    isPointerDownRef.current = true;
+    isDraggingRef.current = false;
+    startXRef.current = e.clientX;
+    scrollStartRef.current = el.scrollLeft;
+
+    // Okamžite vypneme scroll-snap a smooth scroll pre priamy 1:1 pohyb bez odporu
+    el.style.scrollSnapType = 'none';
+    el.style.scrollBehavior = 'auto';
+
+    try {
+      e.currentTarget.setPointerCapture(e.pointerId);
+    } catch { }
+
+    setIsAutoScrollPaused(true);
+  };
+
+  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!isPointerDownRef.current) return;
+    const el = scrollContainerRef.current;
+    if (!el) return;
+
+    const deltaX = e.clientX - startXRef.current;
+    if (Math.abs(deltaX) > 2) {
+      isDraggingRef.current = true;
+    }
+
+    // Priamy posun 1:1 zarovno s pohybom ruky/myši
+    el.scrollLeft = scrollStartRef.current - deltaX;
+    updateCardFocus();
+  };
+
+  const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!isPointerDownRef.current) return;
+    isPointerDownRef.current = false;
+    const el = scrollContainerRef.current;
+
+    try {
+      if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+        e.currentTarget.releasePointerCapture(e.pointerId);
+      }
+    } catch { }
+
+    if (el) {
+      // Zapneme plynulý snap k najbližšej karte
+      el.style.scrollBehavior = 'smooth';
+      const closestIdx = getClosestCardIndex();
+      if (closestIdx >= 0 && closestIdx < el.children.length) {
+        const card = el.children[closestIdx] as HTMLElement;
+        const targetScroll = card.offsetLeft - (el.clientWidth - card.offsetWidth) / 2;
+        el.scrollTo({ left: targetScroll, behavior: 'smooth' });
+      }
+
+      setTimeout(() => {
+        if (el) {
+          el.style.scrollSnapType = 'x mandatory';
+        }
+      }, 350);
+    }
+
+    setTimeout(() => {
+      isDraggingRef.current = false;
+    }, 60);
+
+    setIsAutoScrollPaused(false);
+    resetAutoScroll();
+  };
+
   // 4-násobná sada kariet pre plynulý nekonečný wrap-around (1. buffer vľavo, 2. a 3. stred, 4. buffer vpravo)
   const infiniteReviews = [
     ...reviewsList,
@@ -319,7 +397,7 @@ export default function LandingScreen({ onEnter, sessionUser }: Props) {
     };
   }, [reviewsList, updateCardFocus]);
 
-  // Plynulé sledovanie scrollu pre reálny odblur / zaostrenie pri posune
+  // Plynulé sledovanie scrollu pre reálny odblur / zaostrenie pri posune + podpora kolieska myši na PC
   useEffect(() => {
     const el = scrollContainerRef.current;
     if (!el) return;
@@ -335,8 +413,20 @@ export default function LandingScreen({ onEnter, sessionUser }: Props) {
       }
     };
 
+    const onWheel = (e: WheelEvent) => {
+      if (Math.abs(e.deltaY) > Math.abs(e.deltaX) && Math.abs(e.deltaY) > 6) {
+        e.preventDefault();
+        el.scrollLeft += e.deltaY;
+        updateCardFocus();
+      }
+    };
+
     el.addEventListener('scroll', onScroll, { passive: true });
-    return () => el.removeEventListener('scroll', onScroll);
+    el.addEventListener('wheel', onWheel, { passive: false });
+    return () => {
+      el.removeEventListener('scroll', onScroll);
+      el.removeEventListener('wheel', onWheel);
+    };
   }, [updateCardFocus]);
 
   // Vráti index karty, ktorá je najbližšie k stredu viditeľnej oblasti
@@ -513,16 +603,6 @@ export default function LandingScreen({ onEnter, sessionUser }: Props) {
     };
   }, [isAutoScrollPaused, reviewsList]);
 
-  // Ovládanie šípkami v hornej pravej časti
-  const handleScrollLeft = () => {
-    scrollToPrevCard();
-  };
-
-  const handleScrollRight = () => {
-    scrollToNextCard();
-  };
-
-
   // Spustí plynulý fade prechod do rezervačného systému
   const triggerEnterReservation = () => {
     setIsFading(true);
@@ -587,14 +667,14 @@ export default function LandingScreen({ onEnter, sessionUser }: Props) {
       )}
 
       {/* 📜 HLAVNÝ OBSAH LANDING SCREENU */}
-      <div className="w-full h-full max-h-screen overflow-hidden flex flex-col items-center justify-between p-3 sm:p-6 pt-10 sm:pt-6 pb-2 sm:pb-3">
+      <div className="w-full h-full max-h-screen overflow-hidden flex flex-col items-center justify-between p-3 sm:p-6 pt-8 sm:pt-6 pb-2 sm:pb-3">
 
-        {/* 💎 1. HORNÁ / STREDNÁ ČASŤ: LOGO, NÁPISY & VSTUP DO REZERVÁCIE (NA WEBE VYCENTROVANÉ V PRIESTORE) */}
-        <div className="flex-1 w-full flex flex-col items-center justify-center my-auto min-h-0 sm:translate-y-4 lg:translate-y-8">
-          <div className="relative z-10 w-full max-w-md lg:max-w-xl mx-auto text-center space-y-2.5 sm:space-y-4 animate-in fade-in zoom-in-95 duration-400 flex flex-col items-center">
+        {/* 💎 1. HORNÁ / STREDNÁ ČASŤ: LOGO, NÁPISY & VSTUP DO REZERVÁCIE */}
+        <div className="flex-1 w-full flex flex-col items-center justify-center my-auto min-h-0 py-1">
+          <div className="relative z-10 w-full max-w-md lg:max-w-xl mx-auto text-center space-y-2 sm:space-y-3.5 animate-in fade-in zoom-in-95 duration-400 flex flex-col items-center">
 
             {/* LOGO BEZ KRUHU (PROPORČNE PRISPÔSOBENÉ PRE WEB AJ MOBIL) */}
-            <div className="relative w-28 h-24 sm:w-40 sm:h-34 lg:w-48 lg:h-40 flex items-center justify-center shrink-0">
+            <div className="relative w-24 h-20 sm:w-36 sm:h-30 lg:w-44 lg:h-38 flex items-center justify-center shrink-0">
               <div className="absolute inset-0 rounded-full bg-[#6633EE]/30 blur-2xl animate-pulse pointer-events-none" />
               <svg
                 id="Hand_Logo_SVG"
@@ -627,20 +707,20 @@ export default function LandingScreen({ onEnter, sessionUser }: Props) {
 
             {/* MEDZERA MEDZI LOGOM A NÁPISOM */}
             <div className="space-y-0.5 sm:space-y-1">
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight bg-gradient-to-r from-[#6633EE] via-[#8B5CF6] to-[#EC4899] bg-clip-text text-transparent leading-tight">
+              <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black tracking-tight bg-gradient-to-r from-[#6633EE] via-[#8B5CF6] to-[#EC4899] bg-clip-text text-transparent leading-tight">
                 {isSK ? 'Vitajte' : 'Welcome'}
               </h1>
-              <p className="text-xs sm:text-sm lg:text-base font-bold tracking-widest text-[#64748B] dark:text-[#C7CAE0] uppercase mt-0.5">
+              <p className="text-[11px] sm:text-sm lg:text-base font-bold tracking-widest text-[#64748B] dark:text-[#C7CAE0] uppercase mt-0.5">
                 {isSK ? 'Exkluzívne masáže' : 'Exclusive Massages'}
               </p>
             </div>
 
             {/* TLAČIDLO VSTÚPIŤ (PROPORČNE PRISPÔSOBENÉ) */}
-            <div className="pt-3 sm:pt-5 w-full max-w-[280px] sm:max-w-[320px] lg:max-w-[340px]">
+            <div className="pt-2 sm:pt-4 w-full max-w-[260px] sm:max-w-[320px] lg:max-w-[340px]">
               <button
                 type="button"
                 onClick={handleVstupitClick}
-                className="w-full min-h-[48px] sm:min-h-[54px] h-[48px] sm:h-[54px] px-6 rounded-2xl bg-gradient-to-r from-[#6633EE] via-[#7C3AED] to-[#8B5CF6] hover:from-[#7C3AED] hover:to-[#6633EE] text-white font-extrabold text-sm sm:text-base tracking-wide shadow-[0_0_24px_rgba(102,51,238,0.5)] hover:shadow-[0_0_34px_rgba(102,51,238,0.7)] transition-all duration-200 active:scale-98 cursor-pointer flex items-center justify-center gap-2.5 relative overflow-hidden group"
+                className="w-full min-h-[44px] sm:min-h-[52px] h-[44px] sm:h-[52px] px-6 rounded-2xl bg-gradient-to-r from-[#6633EE] via-[#7C3AED] to-[#8B5CF6] hover:from-[#7C3AED] hover:to-[#6633EE] text-white font-extrabold text-sm sm:text-base tracking-wide shadow-[0_0_24px_rgba(102,51,238,0.5)] hover:shadow-[0_0_34px_rgba(102,51,238,0.7)] transition-all duration-200 active:scale-98 cursor-pointer flex items-center justify-center gap-2.5 relative overflow-hidden group"
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 pointer-events-none" />
                 <span>{isSK ? 'Vstúpiť do rezervácie' : 'Enter Booking'}</span>
@@ -652,12 +732,12 @@ export default function LandingScreen({ onEnter, sessionUser }: Props) {
         </div>
 
         {/* 🌟 2. DOLNÁ ČASŤ: SEKCIA RECENZIÍ */}
-        <section className="relative z-10 -mx-4 sm:mx-0 w-[calc(100%+2rem)] sm:w-full max-w-6xl mt-0 mb-[72px] sm:mb-[80px] py-1 pointer-events-auto select-none shrink-0">
+        <section className="relative z-10 -mx-3 sm:mx-0 w-[calc(100%+1.5rem)] sm:w-full max-w-6xl mt-auto mb-1 sm:mb-3 py-1 pointer-events-auto select-none shrink-0">
 
-          {/* HLAVIČKA: NÁPIS VĽAVO, KRUHOVÉ ŠÍPKY VPRAVO */}
-          <div className="flex items-center justify-between gap-3 mb-2 px-5 sm:px-6">
+          {/* HLAVIČKA: NÁPIS VĽAVO, ANIMOVANÝ SWIPE SYMBOL VPRAVO */}
+          <div className="flex items-center justify-between gap-3 mb-1.5 px-4 sm:px-6">
             <div>
-              <h2 className="text-lg sm:text-xl font-black text-[#0B0D22] dark:text-white tracking-tight leading-tight">
+              <h2 className="text-base sm:text-xl font-black text-[#0B0D22] dark:text-white tracking-tight leading-tight">
                 {isSK ? 'Čo hovoria naši ' : 'What Our '}
                 <span className="text-[#64748B] dark:text-[#94A3B8] font-semibold">
                   {isSK ? 'klienti' : 'Clients Say'}
@@ -665,55 +745,60 @@ export default function LandingScreen({ onEnter, sessionUser }: Props) {
               </h2>
             </div>
 
-            {/* OVLÁDACIE KRUHOVÉ ŠÍPKY */}
-            <div className="flex items-center gap-2 shrink-0">
-              <button
-                type="button"
-                onClick={handleScrollLeft}
-                className="w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center bg-[#0B0D22] dark:bg-white text-white dark:text-[#0B0D22] hover:bg-[#6633EE] dark:hover:bg-[#6633EE] hover:text-white dark:hover:text-white shadow-md transition-all duration-200 cursor-pointer active:scale-95"
-                aria-label={isSK ? 'Predchádzajúca recenzia' : 'Previous review'}
-              >
-                <ArrowLeft size={15} />
-              </button>
-              <button
-                type="button"
-                onClick={handleScrollRight}
-                className="w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center bg-[#0B0D22] dark:bg-white text-white dark:text-[#0B0D22] hover:bg-[#6633EE] dark:hover:bg-[#6633EE] hover:text-white dark:hover:text-white shadow-md transition-all duration-200 cursor-pointer active:scale-95"
-                aria-label={isSK ? 'Ďalšia recenzia' : 'Next review'}
-              >
-                <ArrowRight size={15} />
-              </button>
+            {/* 👆 ANIMOVANÝ SVG SYMBOL SWIPEU PODĽA DODANÉHO VZORU (BEZ TEXTU) */}
+            <div 
+              className="relative flex items-center justify-center select-none pointer-events-none p-1"
+              title={isSK ? 'Potiahnite pre ďalšie recenzie' : 'Swipe for more reviews'}
+            >
+              <div className="relative animate-swipe-hand">
+                <svg
+                  viewBox="0 0 100 100"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="w-7 h-7 sm:w-8 sm:h-8 text-[#6633EE] dark:text-[#A78BFA] drop-shadow-[0_0_8px_rgba(102,51,238,0.6)]"
+                >
+                  {/* Horný oblúk so šípkou doľava */}
+                  <path d="M 58 16 C 42 12 26 16 15 25" />
+                  <path d="M 24 16 L 14 25 L 24 32" />
+                  
+                  {/* Ruka s vystretým ukazovákom */}
+                  <path d="M 36 29 L 45 47" />
+                  <path d="M 36 29 C 33 23 27 26 25 31 C 23 36 30 52 35 60 C 29 55 22 55 20 60 C 18 64 22 70 28 77 C 35 84 46 90 57 88 C 69 86 78 77 81 65 C 84 53 76 43 72 43 C 69 43 67 46 66 50 C 65 44 60 41 56 42 C 53 43 51 46 51 50 C 50 44 45 42 41 43 C 38 44 37 47 37 51" />
+                </svg>
+              </div>
             </div>
           </div>
 
-          {/* HORIZONTÁLNY PÁS KARIET RECENZIÍ (POSUNUTÝCH NIŽŠIE ABY NEBOLI NATLAČENÉ NA TEXT) */}
+          {/* HORIZONTÁLNY PÁS KARIET RECENZIÍ */}
           <div
             ref={scrollContainerRef}
-            onMouseEnter={() => setIsAutoScrollPaused(true)}
-            onMouseLeave={() => setIsAutoScrollPaused(false)}
-            onTouchStart={() => setIsAutoScrollPaused(true)}
-            onTouchEnd={() => setIsAutoScrollPaused(false)}
-            className="w-full overflow-x-auto no-scrollbar flex gap-3.5 sm:gap-5 py-2 px-4 sm:px-6 mt-3 sm:mt-4 snap-x snap-mandatory"
+            onPointerDown={handlePointerDown}
+            onPointerMove={handlePointerMove}
+            onPointerUp={handlePointerUp}
+            onPointerCancel={handlePointerUp}
+            className="w-full overflow-x-auto no-scrollbar flex gap-3 sm:gap-5 py-1 px-4 sm:px-6 snap-x snap-mandatory cursor-grab active:cursor-grabbing select-none touch-pan-y"
           >
             {infiniteReviews.map((review, idx) => (
               <div
                 key={`${review.id}-${idx}`}
-                style={{ height: '270px', minHeight: '270px' }}
-                className="w-[260px] sm:w-[320px] md:w-[340px] shrink-0 p-4 sm:p-5 rounded-3xl bg-white/90 dark:bg-[#0B0D22]/90 backdrop-blur-2xl border border-[#E2E8F0] dark:border-[#2B2F49] shadow-lg flex flex-col justify-between text-left hover:border-[#6633EE]/60 hover:shadow-2xl transition-[filter,opacity,transform,border-color,box-shadow] duration-300 will-change-[filter,opacity,transform] snap-center"
+                className="w-[260px] sm:w-[320px] md:w-[340px] h-[175px] sm:h-[220px] md:h-[235px] shrink-0 p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl bg-white/90 dark:bg-[#0B0D22]/90 backdrop-blur-2xl border border-[#E2E8F0] dark:border-[#2B2F49] shadow-lg flex flex-col justify-between text-left hover:border-[#6633EE]/60 hover:shadow-2xl transition-[filter,opacity,transform,border-color,box-shadow] duration-300 will-change-[filter,opacity,transform] snap-center"
               >
                 {/* Horný riadok: Meno človeka vľavo, luxury hviezdičky v pilulke vpravo */}
                 <div className="flex items-start justify-between gap-2">
                   <div className="space-y-0.5 min-w-0">
                     <div className="flex items-center gap-1.5">
-                      <span className="font-extrabold text-sm sm:text-base text-[#0B0D22] dark:text-white tracking-tight truncate">
+                      <span className="font-extrabold text-xs sm:text-base text-[#0B0D22] dark:text-white tracking-tight truncate">
                         {formatReviewName(review.name, isSK)}
                       </span>
                       {review.verified && (
-                        <CheckCircle2 size={14} className="text-emerald-500 shrink-0" />
+                        <CheckCircle2 size={13} className="text-emerald-500 shrink-0" />
                       )}
                     </div>
                     {review.subtitle && (
-                      <p className="text-[11px] sm:text-xs text-[#64748B] dark:text-[#94A3B8] font-medium truncate">
+                      <p className="text-[10px] sm:text-xs text-[#64748B] dark:text-[#94A3B8] font-medium truncate">
                         {review.subtitle}
                       </p>
                     )}
@@ -722,21 +807,21 @@ export default function LandingScreen({ onEnter, sessionUser }: Props) {
                   {/* Hviezdičky priamo na karte bez bubliny */}
                   <div className="flex items-center gap-0.5 text-[#E5C158] drop-shadow-[0_0_6px_rgba(229,193,88,0.5)] shrink-0 pt-0.5">
                     {[...Array(review.rating)].map((_, i) => (
-                      <Star key={i} size={14} className="fill-[#E5C158] stroke-[#D4AF37] stroke-[0.5]" />
+                      <Star key={i} size={13} className="fill-[#E5C158] stroke-[#D4AF37] stroke-[0.5]" />
                     ))}
                   </div>
                 </div>
 
                 {/* Stred: Text recenzie */}
-                <div className="my-auto py-2 flex-1 flex items-center">
-                  <p className="text-xs sm:text-sm font-medium text-[#0B0D22] dark:text-white leading-relaxed tracking-tight line-clamp-6">
+                <div className="my-auto py-1 flex-1 flex items-center overflow-hidden">
+                  <p className="text-[11px] sm:text-sm font-medium text-[#0B0D22] dark:text-white leading-relaxed tracking-tight line-clamp-3 sm:line-clamp-4">
                     &ldquo;{review.text}&rdquo;
                   </p>
                 </div>
 
                 {/* Spodná časť: Dátum recenzie */}
                 {review.date && (
-                  <div className="pt-2 border-t border-slate-100 dark:border-[#1E2342] flex items-center justify-between text-[11px] sm:text-xs text-[#64748B] dark:text-[#94A3B8]">
+                  <div className="pt-1.5 border-t border-slate-100 dark:border-[#1E2342] flex items-center justify-between text-[10px] sm:text-xs text-[#64748B] dark:text-[#94A3B8]">
                     <span className="font-semibold text-[#6633EE] dark:text-[#A78BFA]">{isSK ? 'Overená recenzia' : 'Verified review'}</span>
                     <span>{review.date}</span>
                   </div>
@@ -747,7 +832,7 @@ export default function LandingScreen({ onEnter, sessionUser }: Props) {
         </section>
 
         {/* 📌 SPODNÁ LIŠTA OBRAZOVKY: INFORMÁCIA O MOŽNOSTI PRIDAŤ RECENZIU */}
-        <footer className="relative z-10 shrink-0 pt-1 pb-1 text-center pointer-events-auto">
+        <footer className="relative z-10 shrink-0 pt-0.5 pb-1 text-center pointer-events-auto">
           <p className="text-[10px] sm:text-xs text-[#64748B] dark:text-[#94A3B8] flex items-center justify-center gap-1.5 px-4 max-w-xl mx-auto leading-tight">
             <QrCode size={12} className="text-[#6633EE] dark:text-[#A78BFA] shrink-0" />
             <span>

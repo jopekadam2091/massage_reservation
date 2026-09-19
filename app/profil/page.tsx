@@ -229,6 +229,10 @@ export default function ProfilPage() {
   }, []);
 
   const handleLogout = async () => {
+    if (typeof window !== 'undefined') {
+      sessionStorage.removeItem('admin_2fa_verified');
+      sessionStorage.removeItem('admin_verified_token');
+    }
     await supabase.auth.signOut();
     router.push('/login');
   };
