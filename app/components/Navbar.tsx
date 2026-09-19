@@ -210,14 +210,14 @@ export default function Navbar() {
       >
         {/* Plynulý gradient & backdrop-blur mask cez celú šírku hornej lišty */}
         <div 
-          className="absolute inset-x-0 top-0 h-28 sm:h-32 bg-gradient-to-b from-[#F4F6FB] via-[#F4F6FB]/85 to-transparent dark:from-[#010314] dark:via-[#010314]/85 dark:to-transparent backdrop-blur-[6px] [mask-image:linear-gradient(to_bottom,black_0%,black_60%,transparent_100%)] [-webkit-mask-image:linear-gradient(to_bottom,black_0%,black_60%,transparent_100%)] pointer-events-none"
+          className="absolute inset-x-0 top-0 h-36 sm:h-40 bg-gradient-to-b from-[#F4F6FB] via-[#F4F6FB]/85 to-transparent dark:from-[#010314] dark:via-[#010314]/85 dark:to-transparent backdrop-blur-[6px] [mask-image:linear-gradient(to_bottom,black_0%,black_65%,transparent_100%)] [-webkit-mask-image:linear-gradient(to_bottom,black_0%,black_65%,transparent_100%)] pointer-events-none"
         />
 
-        {/* Samotný obsah hlavičky (tlačidlá) posunuté nižšie od stavovej lišty */}
+        {/* Samotný obsah hlavičky (tlačidlá) posunuté ešte o výšku textu dolu */}
         <div 
           className="relative z-10 flex items-center justify-between"
           style={{ 
-            paddingTop: 'calc(env(safe-area-inset-top, 24px) + 0.85rem)',
+            paddingTop: 'calc(env(safe-area-inset-top, 24px) + 2.2rem)',
             paddingLeft: 'max(1.25rem, env(safe-area-inset-left, 20px))',
             paddingRight: 'max(1.25rem, env(safe-area-inset-right, 20px))',
             paddingBottom: '0.6rem'
@@ -250,6 +250,20 @@ export default function Navbar() {
           )}
         </div>
       </header>
+
+      {/* ==========================================================================
+         🌫️ BOTTOM FADING DOCK VIGNETTE & BLUR MASK FOR CLEAN NAVBAR SEPARATION
+         Zabezpečuje, že obsah pod lištou (napr. červená VIP karta) ide do stratena
+         a nekoliduje s lištou. Scrollovaním sa dá karta zobraziť celá.
+         ========================================================================== */}
+      <div 
+        className="fixed inset-x-0 bottom-0 pointer-events-none z-40 transition-colors duration-300"
+        style={{ height: 'calc(6.5rem + env(safe-area-inset-bottom, 16px))' }}
+      >
+        <div 
+          className="w-full h-full bg-gradient-to-t from-[#F4F6FB] via-[#F4F6FB]/85 to-transparent dark:from-[#010314] dark:via-[#010314]/90 dark:to-transparent backdrop-blur-[6px] [mask-image:linear-gradient(to_top,black_0%,black_50%,transparent_100%)] [-webkit-mask-image:linear-gradient(to_top,black_0%,black_50%,transparent_100%)]"
+        />
+      </div>
 
       {/* ==========================================================================
          EVERVAULT NOTCHED NAVBAR WITH ELEVATED FLOATING ELECTRIC PURPLE CIRCLE

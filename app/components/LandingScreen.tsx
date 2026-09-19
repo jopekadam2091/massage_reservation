@@ -643,7 +643,7 @@ export default function LandingScreen({ onEnter, sessionUser }: Props) {
         <header
           className="fixed z-70 flex items-center gap-3 pointer-events-auto"
           style={{
-            top: 'calc(env(safe-area-inset-top, 24px) + 0.85rem)',
+            top: 'calc(env(safe-area-inset-top, 24px) + 2.2rem)',
             right: 'max(1.25rem, env(safe-area-inset-right, 20px))'
           }}
         >
@@ -661,10 +661,10 @@ export default function LandingScreen({ onEnter, sessionUser }: Props) {
       )}
 
       {/* 📜 HLAVNÝ OBSAH LANDING SCREENU */}
-      <div className="w-full h-full max-h-screen overflow-hidden flex flex-col items-center justify-between p-3 sm:p-6 pt-8 sm:pt-6 pb-2 sm:pb-3">
+      <div className="w-full h-full max-h-screen overflow-hidden flex flex-col items-center justify-between p-3 sm:p-6 pt-10 sm:pt-8 pb-3 sm:pb-4">
 
         {/* 💎 1. HORNÁ / STREDNÁ ČASŤ: LOGO, NÁPISY & VSTUP DO REZERVÁCIE */}
-        <div className="flex-1 w-full flex flex-col items-center justify-center my-auto min-h-0 py-1">
+        <div className="w-full flex-1 flex flex-col items-center justify-center pt-2 sm:pt-4 pb-1 sm:pb-2 min-h-0">
           <div className="relative z-10 w-full max-w-md lg:max-w-xl mx-auto text-center space-y-2 sm:space-y-3.5 animate-in fade-in zoom-in-95 duration-400 flex flex-col items-center">
 
             {/* LOGO BEZ KRUHU (PROPORČNE PRISPÔSOBENÉ PRE WEB AJ MOBIL) */}
@@ -710,7 +710,7 @@ export default function LandingScreen({ onEnter, sessionUser }: Props) {
             </div>
 
             {/* TLAČIDLO VSTÚPIŤ (PROPORČNE PRISPÔSOBENÉ) */}
-            <div className="pt-2 sm:pt-4 w-full max-w-[260px] sm:max-w-[320px] lg:max-w-[340px]">
+            <div className="pt-2 sm:pt-3 w-full max-w-[260px] sm:max-w-[320px] lg:max-w-[340px]">
               <button
                 type="button"
                 onClick={handleVstupitClick}
@@ -725,8 +725,8 @@ export default function LandingScreen({ onEnter, sessionUser }: Props) {
           </div>
         </div>
 
-        {/* 🌟 2. DOLNÁ ČASŤ: SEKCIA RECENZIÍ */}
-        <section className="relative z-10 -mx-3 sm:mx-0 w-[calc(100%+1.5rem)] sm:w-full max-w-6xl mt-auto mb-1 sm:mb-3 py-1 pointer-events-auto select-none shrink-0">
+        {/* 🌟 2. DOLNÁ ČASŤ: SEKCIA RECENZIÍ (POSUNUTÁ VYŠŠIE O POLOVICU) */}
+        <section className="relative z-10 -mx-3 sm:mx-0 w-[calc(100%+1.5rem)] sm:w-full max-w-6xl mt-0 sm:mt-auto mb-1.5 sm:mb-3 py-1 pointer-events-auto select-none shrink-0">
 
           {/* HLAVIČKA: NÁPIS VĽAVO, ANIMOVANÝ SWIPE SYMBOL VPRAVO */}
           <div className="flex items-center justify-between gap-3 mb-1.5 px-4 sm:px-6">

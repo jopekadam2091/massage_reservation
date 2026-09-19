@@ -391,7 +391,7 @@ export default function Home() {
 
   return (
     <div
-      className="min-h-screen pt-[calc(env(safe-area-inset-top,16px)+3.75rem)] sm:pt-24 lg:pt-28 transition-colors duration-300 pb-28 sm:pb-36 bg-transparent text-[#0B0D22] dark:text-[#FFFFFF] font-sans relative overflow-x-hidden"
+      className="min-h-screen pt-[calc(env(safe-area-inset-top,24px)+5rem)] sm:pt-28 lg:pt-32 transition-colors duration-300 pb-36 sm:pb-44 bg-transparent text-[#0B0D22] dark:text-[#FFFFFF] font-sans relative overflow-x-hidden"
       style={
         {
           '--discount-border': '#2B2F49',
