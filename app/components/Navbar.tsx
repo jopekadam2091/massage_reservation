@@ -32,34 +32,37 @@ const ICON_MAP: Record<string, React.ElementType> = {
 };
 
 // 💧 SVG PATH GENERATOR FOR SMOOTH CIRCULAR NOTCHED NAVBAR BACKGROUND
-function getNavbarSvgPath(activeIdx: number, totalTabs: number) {
-  const width = 400;
+function getNavbarSvgPath(activeIdx: number, totalTabs: number, width: number = 360) {
   const height = 64;
   const tabWidth = width / totalTabs;
   const xc = (activeIdx + 0.5) * tabWidth;
   const topY = 14;
+  const cornerR = 16;
 
   // Exact circular cradle coordinates embracing the round ball
-  const leftShoulderX = xc - 34;
+  const leftShoulderX = Math.max(cornerR, xc - 32);
   const leftArcX = xc - 23.5;
   const arcY = topY + 5.5;
   const rightArcX = xc + 23.5;
-  const rightShoulderX = xc + 34;
+  const rightShoulderX = Math.min(width - cornerR, xc + 32);
+
+  const cpLeftX = Math.max(cornerR, xc - 26);
+  const cpRightX = Math.min(width - cornerR, xc + 26);
 
   return `
-    M 16 ${topY}
+    M ${cornerR} ${topY}
     L ${leftShoulderX} ${topY}
-    C ${xc - 28} ${topY}, ${leftArcX - 2} ${topY + 1.5}, ${leftArcX} ${arcY}
+    C ${cpLeftX} ${topY}, ${leftArcX - 2} ${topY + 1.5}, ${leftArcX} ${arcY}
     A 25.5 25.5 0 0 0 ${rightArcX} ${arcY}
-    C ${rightArcX + 2} ${topY + 1.5}, ${xc + 28} ${topY}, ${rightShoulderX} ${topY}
-    L ${width - 16} ${topY}
-    A 16 16 0 0 1 ${width} ${topY + 16}
-    L ${width} ${height - 16}
-    A 16 16 0 0 1 ${width - 16} ${height}
-    L 16 ${height}
-    A 16 16 0 0 1 0 ${height - 16}
-    L 0 ${topY + 16}
-    A 16 16 0 0 1 16 ${topY}
+    C ${rightArcX + 2} ${topY + 1.5}, ${cpRightX} ${topY}, ${rightShoulderX} ${topY}
+    L ${width - cornerR} ${topY}
+    A ${cornerR} ${cornerR} 0 0 1 ${width} ${topY + cornerR}
+    L ${width} ${height - cornerR}
+    A ${cornerR} ${cornerR} 0 0 1 ${width - cornerR} ${height}
+    L ${cornerR} ${height}
+    A ${cornerR} ${cornerR} 0 0 1 0 ${height - cornerR}
+    L 0 ${topY + cornerR}
+    A ${cornerR} ${cornerR} 0 0 1 ${cornerR} ${topY}
     Z
   `;
 }
@@ -76,6 +79,23 @@ export default function Navbar() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isAdminUserMgmtOpen, setIsAdminUserMgmtOpen] = useState(false);
+
+  const navRef = React.useRef<HTMLDivElement>(null);
+  const [navWidth, setNavWidth] = useState<number>(360);
+
+  useEffect(() => {
+    if (!navRef.current) return;
+    const updateWidth = () => {
+      if (navRef.current) {
+        const w = navRef.current.getBoundingClientRect().width;
+        if (w > 0) setNavWidth(w);
+      }
+    };
+    updateWidth();
+    const ro = new ResizeObserver(updateWidth);
+    ro.observe(navRef.current);
+    return () => ro.disconnect();
+  }, [sessionUser]);
 
   useEffect(() => {
     const checkUser = async () => {
@@ -243,16 +263,15 @@ export default function Navbar() {
         {/* ================================================================== */}
         {/* NOTCHED TAB BAR CONTAINER (CONTAINS ONLY TABS + SVG CUTOUT NOTCH)  */}
         {/* ================================================================== */}
-        <div className={`relative h-16 ${sessionUser ? 'w-[290px] sm:w-[360px]' : 'w-[260px] sm:w-[320px]'}`}>
+        <div ref={navRef} className={`relative h-16 ${sessionUser ? 'w-[290px] sm:w-[360px]' : 'w-[260px] sm:w-[320px]'}`}>
           
           {/* 1. DYNAMIC SVG BACKGROUND WITH TEARDROP CUTOUT NOTCH */}
           <svg 
-            viewBox="0 0 400 64" 
+            viewBox={`0 0 ${navWidth} 64`} 
             className="absolute inset-0 w-full h-full pointer-events-none drop-shadow-2xl overflow-visible"
-            preserveAspectRatio="none"
           >
             <path
-              d={getNavbarSvgPath(activeTabIdx, totalTabs)}
+              d={getNavbarSvgPath(activeTabIdx, totalTabs, navWidth)}
               className="fill-white/95 dark:fill-[#0B0D22]/95 stroke-[#E2E8F0] dark:stroke-[#2B2F49] transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
               strokeWidth="1.5"
             />
