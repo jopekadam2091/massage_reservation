@@ -384,7 +384,7 @@ export default function Home() {
 
   return (
     <div
-      className="min-h-screen pt-16 sm:pt-20 lg:pt-24 transition-colors duration-300 pb-28 sm:pb-36 bg-transparent text-[#0B0D22] dark:text-[#FFFFFF] font-sans relative overflow-x-hidden"
+      className="min-h-screen pt-[calc(env(safe-area-inset-top,16px)+3.75rem)] sm:pt-24 lg:pt-28 transition-colors duration-300 pb-28 sm:pb-36 bg-transparent text-[#0B0D22] dark:text-[#FFFFFF] font-sans relative overflow-x-hidden"
       style={
         {
           '--discount-border': '#2B2F49',
@@ -620,7 +620,7 @@ export default function Home() {
                 )}
 
                 {/* 🌟 HLAVIČKA TITULKU REZERVÁCIE */}
-                <div className="max-w-2xl mx-auto flex items-center justify-center mt-1 sm:mt-3 mb-2 sm:mb-3 px-1">
+                <div className="max-w-2xl mx-auto flex items-center justify-center mt-2 sm:mt-4 mb-3 sm:mb-4 px-1">
                   <h1 className="text-xl sm:text-2xl font-extrabold text-[#0B0D22] dark:text-[#FFFFFF] tracking-tight text-center">
                     {t.massageTitle}
                   </h1>

@@ -326,7 +326,7 @@ export default function AuthPage() {
   };
 
   return (
-    <main suppressHydrationWarning className="relative min-h-screen w-full flex items-center justify-center p-4 sm:p-6 lg:p-8 pt-16 sm:pt-20 lg:pt-24 pb-24 lg:pb-28 font-sans overflow-hidden bg-transparent text-[#0B0D22] dark:text-[#FFFFFF]">
+    <main suppressHydrationWarning className="relative min-h-screen w-full flex items-center justify-center p-4 sm:p-6 lg:p-8 pt-[calc(env(safe-area-inset-top,16px)+3.75rem)] sm:pt-24 lg:pt-28 pb-24 lg:pb-28 font-sans overflow-hidden bg-transparent text-[#0B0D22] dark:text-[#FFFFFF]">
       
       {/* ⚡ Electric Purple Glowing Background Halos */}
       <div suppressHydrationWarning className="absolute top-1/4 left-1/3 w-[550px] h-[550px] rounded-full bg-[#6633EE]/15 blur-[150px] pointer-events-none animate-pulse" />

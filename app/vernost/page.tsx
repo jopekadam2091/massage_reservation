@@ -251,7 +251,7 @@ export default function VernostPage() {
   const shouldShowDisclaimer = activePrices.length >= targetStampsCount;
 
   return (
-    <main className="relative min-h-screen w-full flex flex-col items-center justify-start p-4 sm:p-6 pt-16 sm:pt-20 lg:pt-24 pb-28 gap-4 bg-transparent transition-colors duration-300 font-sans overflow-hidden text-[#1E293B] dark:text-[#DDE0F2]">
+    <main className="relative min-h-screen w-full flex flex-col items-center justify-start p-4 sm:p-6 pt-[calc(env(safe-area-inset-top,16px)+3.75rem)] sm:pt-24 lg:pt-28 pb-28 gap-4 bg-transparent transition-colors duration-300 font-sans overflow-hidden text-[#1E293B] dark:text-[#DDE0F2]">
       <div className="relative z-10 w-full max-w-sm sm:max-w-md flex flex-col gap-4">
 
         {/* 1. VLASTNÁ PEČIATKOVÁ KARTA (MASSAGE REWARDS) S INTEGROVANÝMI TLAČIDLAMI */}
