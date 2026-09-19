@@ -6,10 +6,21 @@
 
 html {
   color-scheme: light dark;
+  touch-action: pan-x pan-y;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 html.dark {
   color-scheme: dark;
+}
+
+body {
+  touch-action: pan-x pan-y;
+}
+
+button, a, select, input {
+  touch-action: manipulation;
 }
 
 /* ==========================================================================
