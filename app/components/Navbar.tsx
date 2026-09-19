@@ -210,27 +210,27 @@ export default function Navbar() {
       >
         {/* Plynulý gradient & backdrop-blur mask cez celú šírku hornej lišty */}
         <div 
-          className="absolute inset-x-0 top-0 h-24 sm:h-28 bg-gradient-to-b from-[#F4F6FB] via-[#F4F6FB]/90 to-transparent dark:from-[#010314] dark:via-[#010314]/90 dark:to-transparent backdrop-blur-[6px] [mask-image:linear-gradient(to_bottom,black_0%,black_65%,transparent_100%)] [-webkit-mask-image:linear-gradient(to_bottom,black_0%,black_65%,transparent_100%)] pointer-events-none"
+          className="absolute inset-x-0 top-0 h-28 sm:h-32 bg-gradient-to-b from-[#F4F6FB] via-[#F4F6FB]/85 to-transparent dark:from-[#010314] dark:via-[#010314]/85 dark:to-transparent backdrop-blur-[6px] [mask-image:linear-gradient(to_bottom,black_0%,black_60%,transparent_100%)] [-webkit-mask-image:linear-gradient(to_bottom,black_0%,black_60%,transparent_100%)] pointer-events-none"
         />
 
-        {/* Samotný obsah hlavičky (tlačidlá) */}
+        {/* Samotný obsah hlavičky (tlačidlá) posunuté nižšie od stavovej lišty */}
         <div 
           className="relative z-10 flex items-center justify-between"
           style={{ 
-            paddingTop: 'max(0.75rem, env(safe-area-inset-top, 14px))',
+            paddingTop: 'calc(env(safe-area-inset-top, 24px) + 0.85rem)',
             paddingLeft: 'max(1.25rem, env(safe-area-inset-left, 20px))',
             paddingRight: 'max(1.25rem, env(safe-area-inset-right, 20px))',
-            paddingBottom: '0.5rem'
+            paddingBottom: '0.6rem'
           }}
         >
           {/* Hore vľavo: ÚVOD SO ŠÍPKOU (VŽDY VIDITEĽNÉ PRE PRIHLÁSENÝCH AJ NEPRIHLÁSENÝCH) */}
           <button
             type="button"
             onClick={handleGoHome}
-            className="pointer-events-auto group flex items-center gap-2 text-sm sm:text-base font-bold text-[#0B0D22] dark:text-[#FFFFFF] hover:text-[#6633EE] dark:hover:text-[#A78BFA] transition-all cursor-pointer active:scale-95 py-1.5 px-3 rounded-full bg-white/80 dark:bg-[#0B0D22]/80 backdrop-blur-md border border-[#E2E8F0] dark:border-[#2B2F49] shadow-xs select-none"
+            className="pointer-events-auto group flex items-center gap-2 text-[15px] sm:text-base font-bold text-[#0B0D22] dark:text-[#FFFFFF] hover:text-[#6633EE] dark:hover:text-[#A78BFA] transition-all cursor-pointer active:scale-95 py-1 select-none drop-shadow-sm"
             title={language === 'sk' ? 'Prejsť na úvodnú domovskú obrazovku s recenziami' : 'Go to home welcome screen with reviews'}
           >
-            <ArrowLeft size={17} className="text-[#6633EE] dark:text-[#A78BFA] transition-transform group-hover:-translate-x-1" />
+            <ArrowLeft size={19} className="text-[#6633EE] dark:text-[#A78BFA] transition-transform group-hover:-translate-x-1" />
             <span className="tracking-tight">{language === 'sk' ? 'Úvod' : 'Home'}</span>
           </button>
 
@@ -240,11 +240,11 @@ export default function Navbar() {
               <button
                 type="button"
                 onClick={toggleLanguage}
-                className="flex items-center gap-1.5 text-sm sm:text-base font-bold text-[#0B0D22] dark:text-[#FFFFFF] hover:text-[#6633EE] dark:hover:text-[#A78BFA] transition-all cursor-pointer active:scale-95 py-1.5 px-3 rounded-full bg-white/80 dark:bg-[#0B0D22]/80 backdrop-blur-md border border-[#E2E8F0] dark:border-[#2B2F49] shadow-xs select-none"
+                className="flex items-center gap-1.5 text-[15px] sm:text-base font-bold text-[#0B0D22] dark:text-[#FFFFFF] hover:text-[#6633EE] dark:hover:text-[#A78BFA] transition-all cursor-pointer active:scale-95 py-1 select-none drop-shadow-sm"
                 title={language === 'sk' ? 'Prepnúť do angličtiny' : 'Switch to Slovak'}
               >
-                <Globe size={16} className="text-[#6633EE] dark:text-[#A78BFA]" />
-                <span className="uppercase tracking-wider font-extrabold text-xs sm:text-sm">{language}</span>
+                <Globe size={18} className="text-[#6633EE] dark:text-[#A78BFA]" />
+                <span className="uppercase tracking-wider font-extrabold">{language}</span>
               </button>
             </div>
           )}

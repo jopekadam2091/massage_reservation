@@ -26,7 +26,14 @@ export default function Home() {
   const { language } = useLanguage();
   const lang: LangType = language.toUpperCase() as LangType;
 
-  const [showSplash, setShowSplash] = useState<boolean>(true);
+  const [showSplash, setShowSplash] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        return sessionStorage.getItem('welcome_seen') !== 'true';
+      } catch {}
+    }
+    return true;
+  });
   const [showSuccessPopup, setShowSuccessPopup] = useState<boolean>(false);
   const [lastBookingDetails, setLastBookingDetails] = useState<any>(null);
   const [discountTheme, setDiscountTheme] = useState(DEFAULT_DISCOUNT_THEME);

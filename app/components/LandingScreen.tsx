@@ -643,7 +643,7 @@ export default function LandingScreen({ onEnter, sessionUser }: Props) {
         <header
           className="fixed z-70 flex items-center gap-3 pointer-events-auto"
           style={{
-            top: 'max(1.1rem, env(safe-area-inset-top, 18px))',
+            top: 'calc(env(safe-area-inset-top, 24px) + 0.85rem)',
             right: 'max(1.25rem, env(safe-area-inset-right, 20px))'
           }}
         >
