@@ -349,16 +349,15 @@ export default function LandingScreen({ onEnter, sessionUser }: Props) {
       const dist = Math.abs(containerCenter - cardCenter);
 
       if (isMobile) {
-        // Na mobile: karta v strede je dokonale ostrá, obe susedné nakúkajúce sú zablurované
+        // ⚡ Na mobile: Ultra-plynulý 60-120 FPS posun cez GPU (opacity + scale bez náročného CSS blur filtra)
         const maxDist = cardRect.width * 0.85;
         const ratio = Math.min(Math.max(dist / maxDist, 0), 1);
-        const blur = (ratio * 4.5).toFixed(1);
-        const opacity = (1 - ratio * 0.62).toFixed(2);
-        const scale = (1 - ratio * 0.08).toFixed(3);
+        const opacity = (1 - ratio * 0.42).toFixed(2);
+        const scale = (1 - ratio * 0.05).toFixed(3);
 
-        card.style.filter = `blur(${blur}px)`;
+        card.style.filter = 'none';
         card.style.opacity = opacity;
-        card.style.transform = `scale(${scale})`;
+        card.style.transform = `scale(${scale}) translateZ(0)`;
       } else {
         // Na desktope: stredné karty v zornom poli sú ostré, okrajové sa plynule rozostrujú
         const maxDist = containerRect.width * 0.42;
@@ -369,7 +368,7 @@ export default function LandingScreen({ onEnter, sessionUser }: Props) {
 
         card.style.filter = `blur(${blur}px)`;
         card.style.opacity = opacity;
-        card.style.transform = `scale(${scale})`;
+        card.style.transform = `scale(${scale}) translateZ(0)`;
       }
     }
   }, []);
@@ -784,7 +783,7 @@ export default function LandingScreen({ onEnter, sessionUser }: Props) {
             {infiniteReviews.map((review, idx) => (
               <div
                 key={`${review.id}-${idx}`}
-                className="w-[260px] sm:w-[320px] md:w-[340px] h-[175px] sm:h-[220px] md:h-[235px] shrink-0 p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl bg-white/90 dark:bg-[#0B0D22]/90 backdrop-blur-2xl border border-[#E2E8F0] dark:border-[#2B2F49] shadow-lg flex flex-col justify-between text-left hover:border-[#6633EE]/60 hover:shadow-2xl transition-[filter,opacity,transform,border-color,box-shadow] duration-300 will-change-[filter,opacity,transform] snap-center"
+                className="w-[260px] sm:w-[320px] md:w-[340px] h-[175px] sm:h-[220px] md:h-[235px] shrink-0 p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl bg-white dark:bg-[#0B0D22] sm:bg-white/90 sm:dark:bg-[#0B0D22]/90 sm:backdrop-blur-xl border border-[#E2E8F0] dark:border-[#2B2F49] shadow-lg flex flex-col justify-between text-left hover:border-[#6633EE]/60 hover:shadow-2xl transition-[opacity,transform,border-color,box-shadow] duration-200 transform-gpu snap-center"
               >
                 {/* Horný riadok: Meno človeka vľavo, luxury hviezdičky v pilulke vpravo */}
                 <div className="flex items-start justify-between gap-2">

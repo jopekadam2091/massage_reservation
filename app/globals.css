@@ -251,6 +251,17 @@ pre {
   will-change: transform, opacity;
 }
 
+/* ⚡ MOBILE GPU SAVER: Freeze heavy background infinite translation on mobile screens */
+@media (max-width: 768px), (prefers-reduced-motion: reduce) {
+  .animate-blob-flow-1,
+  .animate-blob-flow-2,
+  .animate-blob-flow-3 {
+    animation: none !important;
+    transform: translate3d(0, 0, 0) !important;
+    will-change: auto !important;
+  }
+}
+
 @keyframes fadeIn {
   0% {
     opacity: 0;
@@ -406,6 +417,12 @@ textarea,
   filter: blur(14px);
   opacity: 0.85;
   pointer-events: none;
+}
+
+@media (max-width: 768px) {
+  .neon-glow-card::before {
+    filter: blur(6px);
+  }
 }
 
 /* Sharp Inner Line */
