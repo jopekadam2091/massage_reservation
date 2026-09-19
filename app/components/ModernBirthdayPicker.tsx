@@ -8,6 +8,7 @@ type Props = {
   onChange: (dateIso: string) => void;
   disabled?: boolean;
   language: string;
+  compact?: boolean;
 };
 
 const MONTHS_SK = [
@@ -20,7 +21,17 @@ const MONTHS_EN = [
   'July', 'August', 'September', 'October', 'November', 'December'
 ];
 
-export default function ModernBirthdayPicker({ value, onChange, disabled, language }: Props) {
+const SHORT_MONTHS_SK = [
+  'Jan', 'Feb', 'Mar', 'Apr', 'Máj', 'Jún', 
+  'Júl', 'Aug', 'Sep', 'Okt', 'Nov', 'Dec'
+];
+
+const SHORT_MONTHS_EN = [
+  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+];
+
+export default function ModernBirthdayPicker({ value, onChange, disabled, language, compact = false }: Props) {
   const [day, setDay] = useState<string>('');
   const [month, setMonth] = useState<string>('');
   const [year, setYear] = useState<string>('');
@@ -44,6 +55,7 @@ export default function ModernBirthdayPicker({ value, onChange, disabled, langua
   const years = Array.from({ length: currentYear - 1930 + 1 }, (_, i) => String(currentYear - i));
 
   const monthsList = language === 'sk' ? MONTHS_SK : MONTHS_EN;
+  const shortMonths = language === 'sk' ? SHORT_MONTHS_SK : SHORT_MONTHS_EN;
 
   const handleSelect = (newDay: string, newMonth: string, newYear: string) => {
     setDay(newDay);
@@ -63,6 +75,72 @@ export default function ModernBirthdayPicker({ value, onChange, disabled, langua
     }
     return '';
   };
+
+  if (compact) {
+    return (
+      <div className="flex items-center gap-1.5 font-sans">
+        {/* DAY */}
+        <div className="relative">
+          <select
+            disabled={disabled}
+            value={day}
+            onChange={(e) => handleSelect(e.target.value, month, year)}
+            className="appearance-none pl-2 pr-5 py-1.5 rounded-lg bg-white dark:bg-[#0B0D22] border border-[#E2E8F0] dark:border-[#2B2F49] text-[#0B0D22] dark:text-white text-xs font-bold focus:outline-none focus:border-[#6633EE] transition-all cursor-pointer shadow-xs"
+            title={language === 'sk' ? 'Deň' : 'Day'}
+          >
+            <option value="" disabled>{language === 'sk' ? 'Deň' : 'Day'}</option>
+            {days.map((d) => (
+              <option key={d} value={d} className="bg-white dark:bg-[#0B0D22] text-[#0B0D22] dark:text-white">
+                {d}
+              </option>
+            ))}
+          </select>
+          <ChevronDown size={11} className="absolute right-1.5 top-1/2 -translate-y-1/2 text-[#64748B] dark:text-[#C7CAE0]/60 pointer-events-none" />
+        </div>
+
+        {/* MONTH */}
+        <div className="relative">
+          <select
+            disabled={disabled}
+            value={month}
+            onChange={(e) => handleSelect(day, e.target.value, year)}
+            className="appearance-none pl-2 pr-5 py-1.5 rounded-lg bg-white dark:bg-[#0B0D22] border border-[#E2E8F0] dark:border-[#2B2F49] text-[#0B0D22] dark:text-white text-xs font-bold focus:outline-none focus:border-[#6633EE] transition-all cursor-pointer shadow-xs"
+            title={language === 'sk' ? 'Mesiac' : 'Month'}
+          >
+            <option value="" disabled>{language === 'sk' ? 'Mesiac' : 'Month'}</option>
+            {shortMonths.map((mName, idx) => {
+              const mVal = String(idx + 1).padStart(2, '0');
+              return (
+                <option key={mVal} value={mVal} className="bg-white dark:bg-[#0B0D22] text-[#0B0D22] dark:text-white">
+                  {mName}
+                </option>
+              );
+            })}
+          </select>
+          <ChevronDown size={11} className="absolute right-1.5 top-1/2 -translate-y-1/2 text-[#64748B] dark:text-[#C7CAE0]/60 pointer-events-none" />
+        </div>
+
+        {/* YEAR */}
+        <div className="relative">
+          <select
+            disabled={disabled}
+            value={year}
+            onChange={(e) => handleSelect(day, month, e.target.value)}
+            className="appearance-none pl-2 pr-5 py-1.5 rounded-lg bg-white dark:bg-[#0B0D22] border border-[#E2E8F0] dark:border-[#2B2F49] text-[#0B0D22] dark:text-white text-xs font-bold focus:outline-none focus:border-[#6633EE] transition-all cursor-pointer shadow-xs"
+            title={language === 'sk' ? 'Rok' : 'Year'}
+          >
+            <option value="" disabled>{language === 'sk' ? 'Rok' : 'Year'}</option>
+            {years.map((y) => (
+              <option key={y} value={y} className="bg-white dark:bg-[#0B0D22] text-[#0B0D22] dark:text-white">
+                {y}
+              </option>
+            ))}
+          </select>
+          <ChevronDown size={11} className="absolute right-1.5 top-1/2 -translate-y-1/2 text-[#64748B] dark:text-[#C7CAE0]/60 pointer-events-none" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-3 font-sans text-left">

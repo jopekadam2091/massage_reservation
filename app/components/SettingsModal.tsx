@@ -8,10 +8,14 @@ import { useTheme } from '../lib/ThemeContext';
 import ModernBirthdayPicker from './ModernBirthdayPicker';
 import DeleteAccountModal from './DeleteAccountModal';
 import LuckyWheelModal from './LuckyWheelModal';
+import BlobatarAvatar, { 
+  AVAILABLE_EXPRESSIONS, 
+  parseAvatarString 
+} from './BlobatarAvatar';
 import { 
-  X, User, Flower2, Leaf, Sparkles as SparklesIcon, Sun, Moon, 
-  Heart, Feather, Droplets, Coffee, Cat, Star, Copy, Check, UserPlus, Loader2, 
-  Bell, Smartphone, Cake, Trash2, AlertTriangle, Palette, ShieldAlert, Sparkles, Gift, Crown
+  X, User, Copy, Check, UserPlus, Loader2, 
+  Bell, Smartphone, Cake, Trash2, AlertTriangle, Palette, ShieldAlert, Sparkles, Gift, Crown,
+  Sun, Moon, Pencil, Percent, Share2
 } from 'lucide-react';
 
 interface Profile {
@@ -28,6 +32,16 @@ interface Profile {
   birth_date?: string | null;
 }
 
+interface GiftRecord {
+  id: string;
+  gift_type: string;
+  custom_code: string | null;
+  used: boolean;
+  created_at: string;
+  used_at?: string | null;
+  revoked_at?: string | null;
+}
+
 interface ReferredPerson {
   id: string;
   full_name: string | null;
@@ -40,33 +54,25 @@ interface ReferrerInfo {
   email: string;
 }
 
-const ICON_MAP: Record<string, React.ElementType> = {
-  User,
-  Flower2,
-  Leaf,
-  Sparkles: SparklesIcon,
-  Sun,
-  Moon,
-  Heart,
-  Feather,
-  Droplets,
-  Coffee,
-  Cat,
-  Star,
-};
-
-const AVAILABLE_ICONS = Object.keys(ICON_MAP);
-
 const AVAILABLE_COLORS = [
-  { name: 'Emerald', hex: '#10b981', gradient: 'linear-gradient(135deg, hsl(140,95%,62%), hsl(172,90%,40%))' },
-  { name: 'Kráľovská modrá', hex: '#1d4ed8', gradient: 'linear-gradient(135deg, hsl(203,95%,62%), hsl(237,90%,40%))' },
-  { name: 'Rose', hex: '#f43f5e', gradient: 'linear-gradient(135deg, hsl(328,95%,62%), hsl(357,90%,40%))' },
-  { name: 'Amber', hex: '#f59e0b', gradient: 'linear-gradient(135deg, hsl(20,95%,62%), hsl(48,90%,40%))' },
-  { name: 'Sky', hex: '#0ea5e9', gradient: 'linear-gradient(135deg, hsl(188,95%,62%), hsl(214,90%,40%))' },
-  { name: 'Violet', hex: '#8b5cf6', gradient: 'linear-gradient(135deg, hsl(238,95%,62%), hsl(302,90%,40%))' },
+  { 
+    name: 'Farba systému (Auto)', 
+    nameEn: 'System color (Auto)', 
+    hex: 'auto', 
+    gradient: 'conic-gradient(from 180deg at 50% 50%, #10b981 0deg, #0ea5e9 72deg, #8b5cf6 144deg, #f43f5e 216deg, #f59e0b 288deg, #10b981 360deg)',
+    isAuto: true 
+  },
+  { name: 'Emerald', nameEn: 'Emerald', hex: '#10b981', gradient: 'linear-gradient(135deg, hsl(140,95%,62%), hsl(172,90%,40%))' },
+  { name: 'Kráľovská modrá', nameEn: 'Royal Blue', hex: '#1d4ed8', gradient: 'linear-gradient(135deg, hsl(203,95%,62%), hsl(237,90%,40%))' },
+  { name: 'Rose', nameEn: 'Rose', hex: '#f43f5e', gradient: 'linear-gradient(135deg, hsl(328,95%,62%), hsl(357,90%,40%))' },
+  { name: 'Amber', nameEn: 'Amber', hex: '#f59e0b', gradient: 'linear-gradient(135deg, hsl(20,95%,62%), hsl(48,90%,40%))' },
+  { name: 'Sky', nameEn: 'Sky', hex: '#0ea5e9', gradient: 'linear-gradient(135deg, hsl(188,95%,62%), hsl(214,90%,40%))' },
+  { name: 'Violet', nameEn: 'Violet', hex: '#8b5cf6', gradient: 'linear-gradient(135deg, hsl(238,95%,62%), hsl(302,90%,40%))' },
+  { name: 'Teal', nameEn: 'Teal', hex: '#14b8a6', gradient: 'linear-gradient(135deg, #2dd4bf, #0f766e)' },
+  { name: 'Coral', nameEn: 'Coral', hex: '#ff6b6b', gradient: 'linear-gradient(135deg, #ff6b6b, #ee5253)' },
 ];
 
-type SettingsTab = 'avatar' | 'benefits' | 'birthday' | 'notifications' | 'referral' | 'danger';
+type SettingsTab = 'avatar' | 'profile' | 'benefits' | 'notifications' | 'danger';
 
 type Props = {
   isOpen: boolean;
@@ -112,6 +118,9 @@ export default function SettingsModal({
   const [birthDateMsg, setBirthDateMsg] = useState<string>('');
   const [pushStatusMsg, setPushStatusMsg] = useState<string>('');
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState<boolean>(false);
+  const [customSeedInput, setCustomSeedInput] = useState<string>('');
+  const [gifts, setGifts] = useState<GiftRecord[]>([]);
+  const [copiedGiftCodeId, setCopiedGiftCodeId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isOpen || !userId) return;
@@ -160,6 +169,7 @@ export default function SettingsModal({
           });
           setBirthDate(profileData.birth_date || '');
           setAvatarSettings(profileData.avatar_icon || 'User', profileData.avatar_color || '#10b981');
+          setCustomSeedInput(profileData.full_name || parseAvatarString(profileData.avatar_icon).seed || '');
           
           if (profileData.hide_pwa_prompt !== undefined) {
             localStorage.setItem('hide_pwa_prompt', String(profileData.hide_pwa_prompt));
@@ -196,6 +206,16 @@ export default function SettingsModal({
               }))
             );
           }
+
+          const { data: giftsData } = await supabase
+            .from('gifts')
+            .select('id, gift_type, custom_code, used, created_at, used_at, revoked_at')
+            .eq('user_id', userId)
+            .order('created_at', { ascending: false });
+
+          if (giftsData && isMounted) {
+            setGifts(giftsData);
+          }
         }
       } catch (err) {
         console.error('Chyba pri načítavaní nastavení:', err);
@@ -213,31 +233,84 @@ export default function SettingsModal({
 
   if (!isOpen) return null;
 
+  const currentParsed = parseAvatarString(avatarIcon || profile?.email);
+
+  const handleNameChange = (newName: string) => {
+    setCustomSeedInput(newName);
+    const combined = currentParsed.expression && currentParsed.expression !== 'idle'
+      ? `${newName.trim() || 'ZenFlow'}:${currentParsed.expression}`
+      : (newName.trim() || 'ZenFlow');
+    setAvatarSettings(combined, avatarColor);
+  };
+
+  const handleUpdateExpression = async (expr: string) => {
+    if (!profile?.id) return;
+    const activeSeed = customSeedInput.trim() || currentParsed.seed;
+    const combined = expr && expr !== 'idle' ? `${activeSeed}:${expr}` : activeSeed;
+
+    setUpdatingAvatar(true);
+    setAvatarSettings(combined, avatarColor);
+    setProfile(prev => prev ? { ...prev, avatar_icon: combined } : null);
+
+    try {
+      await supabase
+        .from('profiles')
+        .update({ avatar_icon: combined, avatar_color: avatarColor })
+        .eq('id', profile.id);
+    } catch (e) {
+      console.error('Chyba pri ukladaní výrazu:', e);
+    } finally {
+      setUpdatingAvatar(false);
+    }
+  };
+
+  const handleSaveNameDirectly = async (nameToSave: string) => {
+    const trimmed = nameToSave.trim();
+    if (!trimmed || !profile?.id) return;
+
+    const combined = currentParsed.expression && currentParsed.expression !== 'idle'
+      ? `${trimmed}:${currentParsed.expression}`
+      : trimmed;
+
+    setAvatarSettings(combined, avatarColor);
+    setProfile(prev => prev ? { ...prev, full_name: trimmed, avatar_icon: combined } : null);
+
+    try {
+      await supabase
+        .from('profiles')
+        .update({ 
+          avatar_icon: combined, 
+          avatar_color: avatarColor,
+          full_name: trimmed 
+        })
+        .eq('id', profile.id);
+
+      window.dispatchEvent(new Event('profileUpdated'));
+    } catch (e) {
+      console.error('Chyba pri ukladaní mena:', e);
+    }
+  };
+
   const tabsConfig = [
     {
       id: 'avatar' as SettingsTab,
-      label: language === 'sk' ? 'Vzhľad' : 'Avatar',
+      label: language === 'sk' ? 'Avatar' : 'Avatar',
       icon: Palette,
+    },
+    {
+      id: 'profile' as SettingsTab,
+      label: language === 'sk' ? 'Profil' : 'Profile',
+      icon: User,
     },
     {
       id: 'benefits' as SettingsTab,
       label: language === 'sk' ? 'Benefity' : 'Benefits',
-      icon: Sparkles,
-    },
-    {
-      id: 'birthday' as SettingsTab,
-      label: language === 'sk' ? 'Narodeniny' : 'Birthday',
-      icon: Cake,
+      icon: Gift,
     },
     {
       id: 'notifications' as SettingsTab,
       label: language === 'sk' ? 'Upozornenia' : 'Alerts',
       icon: Bell,
-    },
-    {
-      id: 'referral' as SettingsTab,
-      label: language === 'sk' ? 'Referral' : 'Referral',
-      icon: UserPlus,
     },
     {
       id: 'danger' as SettingsTab,
@@ -266,260 +339,466 @@ export default function SettingsModal({
           </div>
         ) : (
           <>
-            {/* Modal Title & User summary */}
-            <div className="flex items-center gap-3 pr-8 pb-1">
-              <div
-                className="w-12 h-12 rounded-full flex items-center justify-center bg-slate-50 dark:bg-[#010314] border border-[#E2E8F0] dark:border-[#2B2F49] shadow-sm shrink-0 transition-all duration-300"
-                style={{ color: avatarColor }}
-              >
-                {(() => {
-                  const IconComp = ICON_MAP[avatarIcon] || ICON_MAP['User'];
-                  return <IconComp size={24} strokeWidth={1.8} />;
-                })()}
+            {/* Modal Title & User summary with Live Editable Name and Mood */}
+              <div className="flex items-center gap-3 pr-8 pb-1">
+                <div
+                  className="w-12 h-12 rounded-full flex items-center justify-center bg-slate-50 dark:bg-[#010314] border border-[#E2E8F0] dark:border-[#2B2F49] shadow-sm shrink-0 transition-all duration-300 p-0.5 overflow-hidden relative"
+                >
+                  <BlobatarAvatar
+                    name={avatarIcon || profile.email || 'ZenFlow'}
+                    color={avatarColor}
+                    size={44}
+                    animate="always"
+                    className="rounded-full"
+                  />
+                  {updatingAvatar && (
+                    <div className="absolute inset-0 bg-black/40 backdrop-blur-[1px] rounded-full flex items-center justify-center">
+                      <Loader2 size={16} className="animate-spin text-[#6633EE] dark:text-[#A78BFA]" />
+                    </div>
+                  )}
+                </div>
+
+                <div className="text-left min-w-0 flex-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <div className="relative flex items-center group max-w-[200px] sm:max-w-[240px]">
+                      <input
+                        type="text"
+                        value={customSeedInput}
+                        onChange={(e) => handleNameChange(e.target.value)}
+                        onBlur={() => handleSaveNameDirectly(customSeedInput)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') handleSaveNameDirectly(customSeedInput);
+                        }}
+                        placeholder={language === 'sk' ? 'Zadaj svoje meno...' : 'Enter your name...'}
+                        className="w-full font-bold text-sm sm:text-base text-[#0B0D22] dark:text-[#FFFFFF] bg-transparent hover:bg-slate-100/70 dark:hover:bg-[#010314]/60 focus:bg-slate-100 dark:focus:bg-[#010314] border-b border-dashed border-[#CBD5E1] dark:border-[#2B2F49] hover:border-[#6633EE] focus:border-[#6633EE] dark:focus:border-[#A78BFA] px-1 py-0.5 rounded focus:outline-none transition-all pr-6 truncate"
+                        title={language === 'sk' ? 'Klikni pre úpravu mena' : 'Click to edit name'}
+                      />
+                      <Pencil size={12} className="absolute right-1 text-[#64748B] dark:text-[#C7CAE0]/50 pointer-events-none group-hover:text-[#6633EE] transition-colors" />
+                    </div>
+
+                    <span className="px-2 py-0.5 rounded-full bg-[#6633EE]/15 border border-[#6633EE]/30 text-[#6633EE] dark:text-[#A78BFA] text-[9px] font-bold uppercase tracking-wider shrink-0">
+                      {currentParsed.expression || 'idle'}
+                    </span>
+                  </div>
+                  <p className="text-xs text-[#64748B] dark:text-[#C7CAE0]/60 font-normal truncate mt-0.5">{profile.email}</p>
+                </div>
               </div>
-              <div className="text-left min-w-0">
-                <h3 className="font-semibold text-[#0B0D22] dark:text-[#FFFFFF] text-base truncate">
-                  {profile.full_name || t.guest}
-                </h3>
-                <p className="text-xs text-[#64748B] dark:text-[#C7CAE0]/60 font-normal truncate">{profile.email}</p>
+
+              {/* 🚀 5-TAB CLEAN BALANCED RESPONSIVE BAR */}
+              <div className="flex items-center justify-between gap-1 p-1 rounded-xl bg-slate-100 dark:bg-[#010314] border border-[#E2E8F0] dark:border-[#2B2F49] overflow-x-auto no-scrollbar">
+                {tabsConfig.map((tab) => {
+                  const TabIcon = tab.icon;
+                  const isActive = activeTab === tab.id;
+                  const isDanger = tab.id === 'danger';
+
+                  return (
+                    <button
+                      type="button"
+                      key={tab.id}
+                      onClick={() => setActiveTab(tab.id)}
+                      className={`flex-1 flex items-center justify-center gap-1 sm:gap-1.5 px-1.5 sm:px-2.5 py-1.5 sm:py-2 rounded-lg text-[10.5px] sm:text-xs font-semibold transition-all duration-200 cursor-pointer text-center whitespace-nowrap select-none ${
+                        isActive
+                          ? isDanger
+                            ? 'bg-rose-600 text-white shadow-xs'
+                            : 'bg-white dark:bg-[#0B0D22] text-[#6633EE] dark:text-[#FFFFFF] shadow-xs border border-[#E2E8F0] dark:border-[#2B2F49]'
+                          : isDanger
+                          ? 'text-rose-500 dark:text-[#FF5A7A] hover:bg-rose-50 dark:hover:bg-rose-950/30'
+                          : 'text-[#64748B] dark:text-[#C7CAE0]/70 hover:text-[#0B0D22] dark:hover:text-white'
+                      }`}
+                    >
+                      <TabIcon size={12} className={`shrink-0 ${isActive ? (isDanger ? 'text-white' : 'text-[#6633EE] dark:text-[#A78BFA]') : ''}`} />
+                      <span>{tab.label}</span>
+                    </button>
+                  );
+                })}
               </div>
-            </div>
 
-            {/* 🚀 6-TAB CLEAN BALANCED RESPONSIVE GRID (ALL 6 TABS ALWAYS VISIBLE & NEVER CUT OFF) */}
-            <div className="grid grid-cols-3 sm:grid-cols-6 gap-1 p-1 rounded-xl bg-slate-100 dark:bg-[#010314] border border-[#E2E8F0] dark:border-[#2B2F49]">
-              {tabsConfig.map((tab) => {
-                const TabIcon = tab.icon;
-                const isActive = activeTab === tab.id;
-                const isDanger = tab.id === 'danger';
+              {/* 📦 STABLE HEIGHT TAB CONTENT CONTAINER WITH SMOOTH CROSSFADE */}
+              <div className="min-h-[420px] transition-all duration-300">
+                {/* ============================================================= */}
+                {/* TAB 1: VZHĽAD (BLOBATAR AVATAR & FARBA)                       */}
+                {/* ============================================================= */}
+                {activeTab === 'avatar' && (
+                  <div key="avatar" className="space-y-4 text-left animate-fadeIn">
+                    {/* 😊 NÁLADA A VÝRAZ TVÁRE (MOOD & FACIAL EXPRESSION) */}
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <label className="text-xs font-semibold text-[#6633EE] dark:text-[#A78BFA]">
+                          {language === 'sk' ? 'Nálada a výraz tváre' : 'Mood & Facial Expression'}
+                        </label>
+                        <span className="text-[10px] text-[#64748B] dark:text-[#C7CAE0]/60 capitalize">
+                          {AVAILABLE_EXPRESSIONS.find(e => e.id === currentParsed.expression)?.label || currentParsed.expression}
+                        </span>
+                      </div>
+                    <div className="grid grid-cols-3 sm:grid-cols-5 gap-1.5">
+                      {AVAILABLE_EXPRESSIONS.map((expr) => {
+                        const isSelected = currentParsed.expression === expr.id;
+                        const ExprIcon = expr.icon;
+                        return (
+                          <button
+                            type="button"
+                            key={expr.id}
+                            disabled={updatingAvatar}
+                            onClick={() => handleUpdateExpression(expr.id)}
+                            className={`flex items-center justify-center gap-1.5 px-2 py-2 rounded-xl text-[11px] font-medium border transition-all cursor-pointer ${
+                              isSelected
+                                ? 'bg-[#6633EE] text-white border-[#6633EE] shadow-xs'
+                                : 'bg-slate-50 dark:bg-[#010314] border-[#E2E8F0] dark:border-[#2B2F49] text-[#64748B] dark:text-[#C7CAE0]/80 hover:border-[#6633EE]/40 hover:text-[#0B0D22] dark:hover:text-white'
+                            }`}
+                          >
+                            <ExprIcon size={14} className={isSelected ? 'text-white' : 'text-[#6633EE] dark:text-[#A78BFA]'} />
+                            <span className="truncate">{language === 'sk' ? expr.label : expr.labelEn}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
 
-                return (
-                  <button
-                    type="button"
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`flex items-center justify-center gap-1 sm:gap-1.5 px-1.5 py-2 rounded-lg text-[11px] sm:text-xs font-semibold transition-all duration-200 cursor-pointer text-center min-w-0 ${
-                      isActive
-                        ? isDanger
-                          ? 'bg-rose-600 text-white shadow-xs'
-                          : 'bg-white dark:bg-[#0B0D22] text-[#6633EE] dark:text-[#FFFFFF] shadow-xs border border-[#E2E8F0] dark:border-[#2B2F49]'
-                        : isDanger
-                        ? 'text-rose-500 dark:text-[#FF5A7A] hover:bg-rose-50 dark:hover:bg-rose-950/30'
-                        : 'text-[#64748B] dark:text-[#C7CAE0]/70 hover:text-[#0B0D22] dark:hover:text-white'
-                    }`}
-                  >
-                    <TabIcon size={13} className={`shrink-0 ${isActive ? (isDanger ? 'text-white' : 'text-[#6633EE] dark:text-[#A78BFA]') : ''}`} />
-                    <span className="truncate">{tab.label}</span>
-                  </button>
-                );
-              })}
-            </div>
+                  {/* 🎨 VÝBER AKCENTOVEJ FARBY */}
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="text-xs font-semibold text-[#6633EE] dark:text-[#A78BFA]">
+                        {t.chooseColor}
+                      </label>
+                      <span className="text-[10px] text-[#64748B] dark:text-[#C7CAE0]/60">
+                        {avatarColor === 'auto' || !avatarColor || avatarColor === 'system'
+                          ? (language === 'sk' ? 'Farba systému (Auto)' : 'System color (Auto)')
+                          : AVAILABLE_COLORS.find(c => c.hex === avatarColor)?.name || avatarColor}
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap gap-2.5">
+                      {AVAILABLE_COLORS.map((color) => {
+                        const isSelected = color.isAuto 
+                          ? (avatarColor === 'auto' || !avatarColor || avatarColor === 'system')
+                          : avatarColor === color.hex;
 
-            {/* ============================================================= */}
-            {/* TAB 1: VZHĽAD (AVATAR & FARBA)                                */}
-            {/* ============================================================= */}
-            {activeTab === 'avatar' && (
-              <div className="space-y-4 text-left animate-in fade-in duration-200">
-                {/* Výber ikonky */}
-                <div>
-                  <label className="text-xs font-medium text-[#6633EE] dark:text-[#A78BFA] block mb-2">
-                    {t.chooseIcon}
-                  </label>
-                  <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
-                    {AVAILABLE_ICONS.map((iconName) => {
-                      const IconOption = ICON_MAP[iconName];
-                      const isSelected = avatarIcon === iconName;
+                        return (
+                          <button
+                            type="button"
+                            key={color.hex}
+                            disabled={updatingAvatar}
+                            onClick={async () => {
+                              const newColor = color.hex;
+                              setUpdatingAvatar(true);
+                              setAvatarSettings(avatarIcon, newColor);
 
-                      return (
+                              await supabase
+                                .from('profiles')
+                                .update({ avatar_icon: avatarIcon, avatar_color: newColor })
+                                .eq('id', profile.id);
+                              setUpdatingAvatar(false);
+                            }}
+                            className={`w-9 h-9 rounded-full transition-all active:scale-95 border-2 shadow-sm cursor-pointer relative flex items-center justify-center ${
+                              isSelected
+                                ? 'border-[#0B0D22] dark:border-white scale-110 shadow-[0_0_12px_rgba(102,51,238,0.6)] ring-2 ring-[#6633EE]'
+                                : 'border-transparent opacity-80 hover:opacity-100 hover:scale-105'
+                            }`}
+                            style={{ background: color.gradient }}
+                            title={language === 'sk' ? color.name : (color.nameEn || color.name)}
+                          >
+                            {isSelected && (
+                              <Check size={14} className="text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] stroke-[3]" />
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ============================================================= */}
+              {/* TAB 2: PROFIL (JAZYK, DARK MODE, NARODENINY, REFERRAL)        */}
+              {/* ============================================================= */}
+              {activeTab === 'profile' && (
+                <div key="profile" className="space-y-4 text-left animate-fadeIn">
+                  {/* 1. JAZYK A REŽIM ZOBRAZENIA */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    {/* Jazyk */}
+                    <div className="p-3 rounded-xl bg-slate-50 dark:bg-[#010314] border border-[#E2E8F0] dark:border-[#2B2F49] space-y-1.5">
+                      <span className="text-[10px] font-semibold text-[#64748B] dark:text-[#C7CAE0]/60 uppercase tracking-wider block">
+                        {language === 'sk' ? 'Jazyk aplikácie' : 'Language'}
+                      </span>
+                      <div className="grid grid-cols-2 gap-1.5">
                         <button
                           type="button"
-                          key={iconName}
-                          disabled={updatingAvatar}
-                          onClick={async () => {
-                            setUpdatingAvatar(true);
-                            setAvatarSettings(iconName, avatarColor);
-
-                            await supabase
-                              .from('profiles')
-                              .update({ avatar_icon: iconName, avatar_color: avatarColor })
-                              .eq('id', profile.id);
-                            setUpdatingAvatar(false);
-                          }}
-                          className={`h-12 rounded-xl flex items-center justify-center border bg-slate-50 dark:bg-[#010314] transition-all active:scale-95 cursor-pointer ${
-                            isSelected
-                              ? 'border-[#6633EE] shadow-[0_0_12px_rgba(102,51,238,0.4)] font-semibold'
-                              : 'border-[#E2E8F0] dark:border-[#2B2F49] hover:border-[#6633EE]/40 text-[#94A3B8] dark:text-[#C7CAE0]/50'
+                          onClick={() => setLanguage('sk')}
+                          className={`px-2 py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition active:scale-95 cursor-pointer ${
+                            language === 'sk'
+                              ? 'bg-[#6633EE] text-white shadow-xs font-bold'
+                              : 'bg-white dark:bg-[#0B0D22] text-[#64748B] dark:text-[#C7CAE0]/70 hover:text-[#0B0D22] dark:hover:text-white border border-[#E2E8F0] dark:border-[#2B2F49]'
                           }`}
-                          style={isSelected ? { color: avatarColor } : {}}
                         >
-                          <IconOption size={22} strokeWidth={1.8} />
+                          <span>🇸🇰</span>
+                          <span>Slovenčina</span>
                         </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Výber farby */}
-                <div>
-                  <label className="text-xs font-medium text-[#6633EE] dark:text-[#A78BFA] block mb-2">
-                    {t.chooseColor}
-                  </label>
-                  <div className="flex flex-wrap gap-2.5">
-                    {AVAILABLE_COLORS.map((color) => (
-                      <button
-                        type="button"
-                        key={color.hex}
-                        disabled={updatingAvatar}
-                        onClick={async () => {
-                          setUpdatingAvatar(true);
-                          setAvatarSettings(avatarIcon, color.hex);
-
-                          await supabase
-                            .from('profiles')
-                            .update({ avatar_icon: avatarIcon, avatar_color: color.hex })
-                            .eq('id', profile.id);
-                          setUpdatingAvatar(false);
-                        }}
-                        className={`w-9 h-9 rounded-full transition active:scale-95 border-2 shadow-sm cursor-pointer ${
-                          avatarColor === color.hex
-                            ? 'border-[#0B0D22] dark:border-white scale-110 shadow-[0_0_12px_rgba(102,51,238,0.5)]'
-                            : 'border-transparent opacity-80 hover:opacity-100'
-                        }`}
-                        style={{ background: color.gradient }}
-                        title={color.name}
-                      />
-                    ))}
-                  </div>
-                </div>
-
-                {/* 🌐 Výber jazyka (Slovenčina / English) */}
-                <div className="pt-3 border-t border-[#E2E8F0] dark:border-[#2B2F49] space-y-2">
-                  <label className="text-xs font-semibold text-[#6633EE] dark:text-[#A78BFA] block">
-                    {currentLang === 'sk' ? 'Jazyk aplikácie' : 'Application Language'}
-                  </label>
-                  <div className="grid grid-cols-2 gap-2.5">
-                    <button
-                      type="button"
-                      onClick={() => setLanguage('sk')}
-                      className={`p-3 rounded-xl border flex items-center justify-between transition-all duration-200 cursor-pointer active:scale-95 ${
-                        currentLang === 'sk'
-                          ? 'border-[#6633EE] bg-[#6633EE]/10 shadow-[0_0_12px_rgba(102,51,238,0.25)] text-[#0B0D22] dark:text-white font-semibold'
-                          : 'border-[#E2E8F0] dark:border-[#2B2F49] bg-slate-50 dark:bg-[#010314] text-[#64748B] dark:text-[#C7CAE0]/70 hover:border-[#6633EE]/40'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <span className="text-xl shrink-0">🇸🇰</span>
-                        <div className="text-left min-w-0">
-                          <p className="text-xs font-bold leading-none truncate">Slovenčina</p>
-                          <p className="text-[10px] text-[#64748B] dark:text-[#C7CAE0]/60 mt-1 truncate">Slovenský jazyk</p>
-                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setLanguage('en')}
+                          className={`px-2 py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition active:scale-95 cursor-pointer ${
+                            language === 'en'
+                              ? 'bg-[#6633EE] text-white shadow-xs font-bold'
+                              : 'bg-white dark:bg-[#0B0D22] text-[#64748B] dark:text-[#C7CAE0]/70 hover:text-[#0B0D22] dark:hover:text-white border border-[#E2E8F0] dark:border-[#2B2F49]'
+                          }`}
+                        >
+                          <span>🇬🇧</span>
+                          <span>English</span>
+                        </button>
                       </div>
-                      {currentLang === 'sk' && (
-                        <div className="w-5 h-5 rounded-full bg-[#6633EE] text-white flex items-center justify-center shrink-0 shadow-xs">
-                          <Check size={12} strokeWidth={3} />
-                        </div>
-                      )}
-                    </button>
+                    </div>
 
-                    <button
-                      type="button"
-                      onClick={() => setLanguage('en')}
-                      className={`p-3 rounded-xl border flex items-center justify-between transition-all duration-200 cursor-pointer active:scale-95 ${
-                        currentLang === 'en'
-                          ? 'border-[#6633EE] bg-[#6633EE]/10 shadow-[0_0_12px_rgba(102,51,238,0.25)] text-[#0B0D22] dark:text-white font-semibold'
-                          : 'border-[#E2E8F0] dark:border-[#2B2F49] bg-slate-50 dark:bg-[#010314] text-[#64748B] dark:text-[#C7CAE0]/70 hover:border-[#6633EE]/40'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <span className="text-xl shrink-0">🇬🇧</span>
-                        <div className="text-left min-w-0">
-                          <p className="text-xs font-bold leading-none truncate">English</p>
-                          <p className="text-[10px] text-[#64748B] dark:text-[#C7CAE0]/60 mt-1 truncate">English language</p>
-                        </div>
+                    {/* Téma (Dark / Light) */}
+                    <div className="p-3 rounded-xl bg-slate-50 dark:bg-[#010314] border border-[#E2E8F0] dark:border-[#2B2F49] space-y-1.5">
+                      <span className="text-[10px] font-semibold text-[#64748B] dark:text-[#C7CAE0]/60 uppercase tracking-wider block">
+                        {language === 'sk' ? 'Režim vzhľadu' : 'Display Theme'}
+                      </span>
+                      <div className="grid grid-cols-2 gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => setTheme('dark')}
+                          className={`px-2 py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition active:scale-95 cursor-pointer ${
+                            theme === 'dark'
+                              ? 'bg-[#6633EE] text-white shadow-xs font-bold'
+                              : 'bg-white dark:bg-[#0B0D22] text-[#64748B] dark:text-[#C7CAE0]/70 hover:text-[#0B0D22] dark:hover:text-white border border-[#E2E8F0] dark:border-[#2B2F49]'
+                          }`}
+                        >
+                          <Moon size={13} />
+                          <span>{language === 'sk' ? 'Tmavý' : 'Dark'}</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setTheme('light')}
+                          className={`px-2 py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition active:scale-95 cursor-pointer ${
+                            theme === 'light'
+                              ? 'bg-[#6633EE] text-white shadow-xs font-bold'
+                              : 'bg-white dark:bg-[#0B0D22] text-[#64748B] dark:text-[#C7CAE0]/70 hover:text-[#0B0D22] dark:hover:text-white border border-[#E2E8F0] dark:border-[#2B2F49]'
+                          }`}
+                        >
+                          <Sun size={13} />
+                          <span>{language === 'sk' ? 'Svetlý' : 'Light'}</span>
+                        </button>
                       </div>
-                      {currentLang === 'en' && (
-                        <div className="w-5 h-5 rounded-full bg-[#6633EE] text-white flex items-center justify-center shrink-0 shadow-xs">
-                          <Check size={12} strokeWidth={3} />
-                        </div>
-                      )}
-                    </button>
+                    </div>
                   </div>
-                </div>
 
-                {/* 🌓 Režim zobrazenia (Dark / Light Mode) */}
-                <div className="pt-3 border-t border-[#E2E8F0] dark:border-[#2B2F49] space-y-2">
-                  <label className="text-xs font-semibold text-[#6633EE] dark:text-[#A78BFA] block">
-                    {currentLang === 'sk' ? 'Režim zobrazenia' : 'Display Theme'}
-                  </label>
-                  <div className="grid grid-cols-2 gap-2.5">
-                    <button
-                      type="button"
-                      onClick={() => setTheme('dark')}
-                      className={`p-3 rounded-xl border flex items-center justify-between transition-all duration-200 cursor-pointer active:scale-95 ${
-                        currentTheme === 'dark'
-                          ? 'border-[#6633EE] bg-[#6633EE]/10 shadow-[0_0_12px_rgba(102,51,238,0.25)] text-[#0B0D22] dark:text-white font-semibold'
-                          : 'border-[#E2E8F0] dark:border-[#2B2F49] bg-slate-50 dark:bg-[#010314] text-[#64748B] dark:text-[#C7CAE0]/70 hover:border-[#6633EE]/40'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <div className="w-8 h-8 rounded-lg bg-slate-900 border border-[#2B2F49] flex items-center justify-center text-[#A78BFA] shrink-0 shadow-xs">
-                          <Moon size={16} />
+                  {/* 2. DÁTUM NARODENÍN (KOMPAKTNÝ 1-RIADKOVÝ LAYOUT) */}
+                  <div className="p-3 sm:p-3.5 rounded-xl bg-slate-50 dark:bg-[#010314] border border-[#E2E8F0] dark:border-[#2B2F49] space-y-2">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                      
+                      {/* ĽAVÁ STRANA: INFO O NARODENINÁCH */}
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div className="p-1.5 rounded-full bg-[#EC4899]/15 text-[#EC4899] shrink-0">
+                          <Cake size={16} />
                         </div>
-                        <div className="text-left min-w-0">
-                          <p className="text-xs font-bold leading-none truncate">
-                            {currentLang === 'sk' ? 'Tmavý režim' : 'Dark Mode'}
+                        <div className="min-w-0">
+                          <p className="text-xs font-semibold text-[#0B0D22] dark:text-[#FFFFFF] truncate">
+                            {language === 'sk' ? 'Dátum narodenín' : 'Date of Birth'}
                           </p>
-                          <p className="text-[10px] text-[#64748B] dark:text-[#C7CAE0]/60 mt-1 truncate">
-                            Evervault Dark
+                          <p className="text-[10px] text-[#64748B] dark:text-[#C7CAE0]/70 font-normal truncate">
+                            {birthDate ? (
+                              <span className="font-semibold text-[#EC4899]">
+                                {(() => {
+                                  const p = birthDate.split('-');
+                                  return p.length === 3 ? `${p[2]}.${p[1]}.${p[0]}` : birthDate;
+                                })()}
+                              </span>
+                            ) : (
+                              language === 'sk' ? 'Špeciálny darček & odznak' : 'Birthday gift & badge'
+                            )}
                           </p>
                         </div>
                       </div>
-                      {currentTheme === 'dark' && (
-                        <div className="w-5 h-5 rounded-full bg-[#6633EE] text-white flex items-center justify-center shrink-0 shadow-xs">
-                          <Check size={12} strokeWidth={3} />
-                        </div>
-                      )}
-                    </button>
 
-                    <button
-                      type="button"
-                      onClick={() => setTheme('light')}
-                      className={`p-3 rounded-xl border flex items-center justify-between transition-all duration-200 cursor-pointer active:scale-95 ${
-                        currentTheme === 'light'
-                          ? 'border-[#6633EE] bg-[#6633EE]/10 shadow-[0_0_12px_rgba(102,51,238,0.25)] text-[#0B0D22] dark:text-white font-semibold'
-                          : 'border-[#E2E8F0] dark:border-[#2B2F49] bg-slate-50 dark:bg-[#010314] text-[#64748B] dark:text-[#C7CAE0]/70 hover:border-[#6633EE]/40'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <div className="w-8 h-8 rounded-lg bg-amber-100 border border-amber-300/60 flex items-center justify-center text-amber-600 shrink-0 shadow-xs">
-                          <Sun size={16} />
+                      {/* PRAVÁ STRANA: KOMPAKTNÝ VÝBER (DEŇ, MESIAC, ROK) + TLAČIDLO ULOŽIŤ */}
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <ModernBirthdayPicker
+                          value={birthDate}
+                          onChange={(newIso) => setBirthDate(newIso)}
+                          disabled={savingBirthDate}
+                          language={language}
+                          compact
+                        />
+
+                        <button
+                          type="button"
+                          disabled={savingBirthDate || !birthDate}
+                          onClick={async () => {
+                            setSavingBirthDate(true);
+                            setBirthDateMsg('');
+                            try {
+                              const res = await fetch('/api/user/settings', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ userId: profile.id, birth_date: birthDate }),
+                              });
+                              if (res.ok) {
+                                setBirthDateMsg(language === 'sk' ? 'Uložené! 🎉' : 'Saved! 🎉');
+                                setTimeout(() => setBirthDateMsg(''), 3000);
+                              }
+                            } catch (err) {
+                              console.error('Chyba ukladania narodenín:', err);
+                            } finally {
+                              setSavingBirthDate(false);
+                            }
+                          }}
+                          className="px-2.5 py-1.5 rounded-lg bg-[#6633EE] hover:bg-[#5522DD] text-white text-[11px] font-bold uppercase tracking-wider transition flex items-center justify-center gap-1 shrink-0 cursor-pointer shadow-xs active:scale-95 disabled:opacity-50 h-[30px]"
+                          title={language === 'sk' ? 'Uložiť dátum narodenín' : 'Save birthday date'}
+                        >
+                          <Check size={13} />
+                          <span>{savingBirthDate ? '...' : (language === 'sk' ? 'Uložiť' : 'Save')}</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    {birthDateMsg && (
+                      <p className="text-xs font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 p-1.5 rounded-lg border border-emerald-500/30 flex items-center gap-1.5">
+                        <Check size={13} />
+                        <span>{birthDateMsg}</span>
+                      </p>
+                    )}
+                  </div>
+
+                  {/* 3. ODPORÚČACÍ REFERRAL SYSTÉM (2-STĹPCOVÝ KOMPAKTNÝ LAYOUT + 5 SLOTOV) */}
+                  <div className="p-3.5 sm:p-4 rounded-xl bg-slate-50 dark:bg-[#010314] border border-[#E2E8F0] dark:border-[#2B2F49] space-y-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <div className="p-1.5 rounded-full bg-[#6633EE]/15 text-[#6633EE] dark:text-[#A78BFA]">
+                          <Share2 size={16} />
                         </div>
-                        <div className="text-left min-w-0">
-                          <p className="text-xs font-bold leading-none truncate">
-                            {currentLang === 'sk' ? 'Svetlý režim' : 'Light Mode'}
+                        <div>
+                          <p className="text-xs font-semibold text-[#0B0D22] dark:text-[#FFFFFF]">
+                            {language === 'sk' ? 'Odporuč priateľa & Získaj zľavu' : 'Refer a Friend & Get Reward'}
                           </p>
-                          <p className="text-[10px] text-[#64748B] dark:text-[#C7CAE0]/60 mt-1 truncate">
-                            Clean Light
+                          <p className="text-[10px] text-[#64748B] dark:text-[#C7CAE0]/70 font-normal">
+                            {language === 'sk'
+                              ? 'Po 1. masáži priateľa získate obaja zľavu 10%!'
+                              : 'When a friend finishes 1st massage, both get 10% off!'}
                           </p>
                         </div>
                       </div>
-                      {currentTheme === 'light' && (
-                        <div className="w-5 h-5 rounded-full bg-[#6633EE] text-white flex items-center justify-center shrink-0 shadow-xs">
-                          <Check size={12} strokeWidth={3} />
+                    </div>
+
+                    {/* 2-Column Grid: Left = Your code, Right = 5 Slots */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-start pt-0.5">
+                      
+                      {/* ĽAVÁ STRANA: VÁŠ KÓD & ODPORÚČATEĽ */}
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between gap-2 p-2.5 rounded-lg bg-white dark:bg-[#0B0D22] border border-[#E2E8F0] dark:border-[#2B2F49]">
+                          <div className="min-w-0">
+                            <p className="text-[9px] text-[#64748B] dark:text-[#C7CAE0]/60 uppercase font-medium">
+                              {language === 'sk' ? 'Váš kód' : 'Your Code'}
+                            </p>
+                            <p className="font-mono font-bold text-xs text-[#6633EE] dark:text-[#A78BFA] tracking-wider truncate">
+                              {profile.referral_code || '—'}
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              if (!profile.referral_code) return;
+                              try {
+                                await navigator.clipboard.writeText(profile.referral_code);
+                                setCodeCopied(true);
+                                setTimeout(() => setCodeCopied(false), 2000);
+                              } catch {}
+                            }}
+                            className="p-1.5 rounded-md text-[#64748B] dark:text-[#C7CAE0]/70 hover:text-[#6633EE] dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#010314] transition-all cursor-pointer active:scale-90 shrink-0"
+                            title={language === 'sk' ? 'Kopírovať kód' : 'Copy code'}
+                          >
+                            {codeCopied ? <Check size={14} className="text-emerald-500" /> : <Copy size={14} />}
+                          </button>
                         </div>
-                      )}
-                    </button>
+
+                        {referrerInfo && (
+                          <div className="text-[10px] text-[#64748B] dark:text-[#C7CAE0] font-normal px-1">
+                            {language === 'sk' ? 'Odporučil vás: ' : 'Referred by: '}
+                            <strong className="text-[#0B0D22] dark:text-[#FFFFFF]">
+                              {referrerInfo.full_name || referrerInfo.email}
+                            </strong>
+                          </div>
+                        )}
+
+                        <div className="p-2 rounded-lg bg-white/60 dark:bg-[#0B0D22]/60 border border-[#E2E8F0]/70 dark:border-[#2B2F49]/40 text-[10px] text-[#64748B] dark:text-[#C7CAE0]/70">
+                          <p className="font-medium text-[#0B0D22] dark:text-white mb-0.5">
+                            {language === 'sk' ? 'Ako to funguje?' : 'How it works?'}
+                          </p>
+                          <p>
+                            {language === 'sk' 
+                              ? 'Priateľ pri registrácii zadá váš kód. Zľava sa aktivuje automaticky po jeho návšteve.'
+                              : 'Friend enters your code at signup. 10% discount activates automatically after their session.'}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* PRAVÁ STRANA: 5 SLOTOV PRIATEĽOV AKO STATUSOVÉ TAGY (CHIPY) */}
+                      <div className="space-y-1.5">
+                        <div className="flex items-center justify-between px-0.5">
+                          <p className="text-[11px] font-semibold text-[#0B0D22] dark:text-[#FFFFFF]">
+                            {language === 'sk' ? 'Priatelia (max 5):' : 'Friends (max 5):'}
+                          </p>
+                          <span className="text-[10px] font-mono text-[#64748B] dark:text-[#C7CAE0]/60">
+                            {referredPeople.filter(p => p.hasMassage).length} / 5
+                          </span>
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+                          {Array.from({ length: 5 }).map((_, idx) => {
+                            const friend = referredPeople[idx];
+                            const isCompleted = friend?.hasMassage;
+                            const isPending = friend && !friend.hasMassage;
+                            const displayName = friend ? (friend.full_name || friend.email.split('@')[0]) : null;
+
+                            if (isCompleted) {
+                              return (
+                                <span
+                                  key={idx}
+                                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-[11px] font-bold shadow-2xs"
+                                  title={`${displayName} - ${language === 'sk' ? 'Absolvoval masáž (zľava aktívna)' : 'Completed massage'}`}
+                                >
+                                  <Check size={11} className="text-emerald-500 shrink-0 stroke-[2.5]" />
+                                  <span className="truncate max-w-[100px]">{displayName}</span>
+                                </span>
+                              );
+                            }
+
+                            if (isPending) {
+                              return (
+                                <span
+                                  key={idx}
+                                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-600 dark:text-amber-400 text-[11px] font-bold shadow-2xs"
+                                  title={`${displayName} - ${language === 'sk' ? 'Čaká na masáž' : 'Pending massage'}`}
+                                >
+                                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0 animate-pulse" />
+                                  <span className="truncate max-w-[100px]">{displayName}</span>
+                                </span>
+                              );
+                            }
+
+                            return (
+                              <span
+                                key={idx}
+                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 dark:bg-[#010314] border border-dashed border-slate-300 dark:border-[#2B2F49] text-[#64748B]/60 dark:text-[#C7CAE0]/40 text-[10.5px] font-medium select-none"
+                                title={language === 'sk' ? `Voľný slot ${idx + 1}` : `Free slot ${idx + 1}`}
+                              >
+                                <span>+ {language === 'sk' ? 'Voľný slot' : 'Free slot'}</span>
+                              </span>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
 
             {/* ============================================================= */}
-            {/* TAB 2: BENEFITY (KOLO ŠŤASTIA & VIP VÝHODY)                   */}
+            {/* TAB 3: BENEFITY (KOLO ŠŤASTIA, DARČEKY & VIP VÝHODY)          */}
             {/* ============================================================= */}
             {activeTab === 'benefits' && (
-              <div className="space-y-4 text-left animate-in fade-in duration-200">
+              <div key="benefits" className="space-y-4 text-left animate-fadeIn">
                 {/* Pútavá karta Kolesa Šťastia */}
-                <div className="p-5 rounded-2xl bg-gradient-to-br from-amber-500/15 via-[#6633EE]/15 to-[#EC4899]/15 border border-amber-500/30 shadow-md space-y-3 relative overflow-hidden">
+                <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-amber-500/15 via-[#6633EE]/15 to-[#EC4899]/15 border border-amber-500/30 shadow-md space-y-3 relative overflow-hidden">
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-3">
                       <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-amber-400 to-amber-200 text-[#0F172A] flex items-center justify-center font-bold shadow-md shrink-0">
@@ -544,137 +823,164 @@ export default function SettingsModal({
                   <button
                     type="button"
                     onClick={() => setIsWheelOpen(true)}
-                    className="w-full py-3 rounded-xl font-bold text-xs uppercase tracking-wider text-[#0F172A] bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 hover:from-amber-300 hover:to-amber-200 transition shadow-md flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"
+                    className="w-full py-2.5 sm:py-3 rounded-xl font-bold text-xs uppercase tracking-wider text-[#0F172A] bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 hover:from-amber-300 hover:to-amber-200 transition shadow-md flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"
                   >
                     <Sparkles size={14} />
                     <span>{language === 'sk' ? 'Roztočiť Kolo Šťastia' : 'Spin Lucky Wheel'}</span>
                   </button>
                 </div>
 
-                {/* Prehľad benefitov */}
-                <div className="space-y-2">
-                  <label className="text-xs font-semibold text-[#6633EE] dark:text-[#A78BFA] block uppercase tracking-wider">
-                    {language === 'sk' ? 'Vaše členské výhody' : 'Your Member Benefits'}
-                  </label>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                    <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-[#010314] border border-[#E2E8F0] dark:border-[#2B2F49] space-y-1">
-                      <div className="flex items-center gap-1.5 text-xs font-bold text-[#0B0D22] dark:text-white">
-                        <Gift size={14} className="text-[#6633EE] dark:text-[#A78BFA]" />
-                        <span>{language === 'sk' ? 'Vernostné Pečiatky' : 'Loyalty Stamps'}</span>
+                {/* 🎁 MOJE AKTÍVNE DARČEKY A ZĽAVOVÉ KÓDY */}
+                {(() => {
+                  const activeGiftsList = gifts.filter((g) => !g.used && !g.revoked_at);
+                  return (
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <label className="text-xs font-semibold text-[#6633EE] dark:text-[#A78BFA] block uppercase tracking-wider">
+                          {language === 'sk' ? 'Moje aktívne darčeky & zľavy' : 'My Active Gifts & Discounts'}
+                        </label>
+                        {activeGiftsList.length > 0 && (
+                          <span className="px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold">
+                            {activeGiftsList.length} {language === 'sk' ? 'aktívne' : 'active'}
+                          </span>
+                        )}
                       </div>
-                      <p className="text-[11px] text-[#64748B] dark:text-[#C7CAE0]/70">
-                        {language === 'sk' ? 'Každá 10. masáž zdarma alebo zľava na procedúru.' : 'Every 10th session free or discounted.'}
-                      </p>
-                    </div>
 
-                    <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-[#010314] border border-[#E2E8F0] dark:border-[#2B2F49] space-y-1">
-                      <div className="flex items-center gap-1.5 text-xs font-bold text-[#0B0D22] dark:text-white">
-                        <Cake size={14} className="text-[#EC4899]" />
-                        <span>{language === 'sk' ? 'Narodeninový Darček' : 'Birthday Gift'}</span>
-                      </div>
-                      <p className="text-[11px] text-[#64748B] dark:text-[#C7CAE0]/70">
-                        {language === 'sk' ? 'Zadajte dátum narodenia a získajte špeciálnu narodeninovú zľavu.' : 'Add your birth date to receive a special birthday discount.'}
-                      </p>
-                    </div>
+                      {activeGiftsList.length > 0 ? (
+                        <div className="divide-y divide-[#E2E8F0] dark:divide-[#2B2F49]/60 max-h-48 overflow-y-auto no-scrollbar pr-0.5">
+                          {activeGiftsList.map((g) => {
+                            const is5Pct = g.custom_code?.startsWith('KOLO5');
+                            const is10Pct = g.custom_code?.startsWith('KOLO10') || g.custom_code === 'KOLO10PCT';
+                            const is15Pct = g.custom_code?.startsWith('KOLO15');
+                            const isGift = g.custom_code?.startsWith('DARCEK') || g.gift_type === 'next_visit_gift';
 
-                    <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-[#010314] border border-[#E2E8F0] dark:border-[#2B2F49] space-y-1">
-                      <div className="flex items-center gap-1.5 text-xs font-bold text-[#0B0D22] dark:text-white">
-                        <UserPlus size={14} className="text-[#10B981]" />
-                        <span>{language === 'sk' ? 'Odmeňovanie Priateľov' : 'Referral Rewards'}</span>
-                      </div>
-                      <p className="text-[11px] text-[#64748B] dark:text-[#C7CAE0]/70">
-                        {language === 'sk' ? 'Zdieľajte svoj kód a získajte -15 € za každého nového klienta.' : 'Share your code and get 15 € for every new client.'}
-                      </p>
-                    </div>
+                            let benefitTitle = language === 'sk' ? 'Zľava na masáž' : 'Massage Discount';
+                            if (is5Pct) benefitTitle = language === 'sk' ? '+ 5% Zľava na masáž' : '+ 5% Massage Discount';
+                            else if (is10Pct) benefitTitle = language === 'sk' ? '+ 10% Zľava na masáž' : '+ 10% Massage Discount';
+                            else if (is15Pct) benefitTitle = language === 'sk' ? '+ 15% Zľava na masáž' : '+ 15% Massage Discount';
+                            else if (isGift) benefitTitle = language === 'sk' ? 'Darček k masáži' : 'Massage Gift';
 
-                    <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-[#010314] border border-[#E2E8F0] dark:border-[#2B2F49] space-y-1">
-                      <div className="flex items-center gap-1.5 text-xs font-bold text-[#0B0D22] dark:text-white">
-                        <Crown size={14} className="text-amber-400" />
-                        <span>{language === 'sk' ? 'VIP Senzuálny Program' : 'VIP Sensual Program'}</span>
-                      </div>
-                      <p className="text-[11px] text-[#64748B] dark:text-[#C7CAE0]/70">
-                        {language === 'sk' ? 'Prístup k exkluzívnym VIP technikám a aromaterapii.' : 'Access to exclusive VIP techniques & aroma oil.'}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
+                            return (
+                              <div
+                                key={g.id}
+                                className="py-2.5 first:pt-1 last:pb-1 flex items-center justify-between gap-2"
+                              >
+                                <div className="space-y-0.5 min-w-0">
+                                  <div className="flex items-center gap-1.5">
+                                    {isGift ? (
+                                      <Gift size={13} className="text-amber-500 dark:text-amber-400 shrink-0" />
+                                    ) : (
+                                      <Percent size={13} className="text-[#6633EE] dark:text-[#A78BFA] shrink-0" />
+                                    )}
+                                    <span className="font-bold text-xs text-[#0B0D22] dark:text-white truncate">
+                                      {benefitTitle}
+                                    </span>
+                                  </div>
 
-            {/* ============================================================= */}
-            {/* TAB 3: NARODENINY                                             */}
-            {/* ============================================================= */}
-            {activeTab === 'birthday' && (
-              <div className="space-y-4 text-left animate-in fade-in duration-200">
+                                  {g.custom_code && (
+                                    <div className="flex items-center gap-2 pl-4">
+                                      <span className="text-[10px] text-[#64748B] dark:text-[#C7CAE0]/60 uppercase font-medium tracking-wider">
+                                        {language === 'sk' ? 'Kód:' : 'Code:'}
+                                      </span>
+                                      <span className="font-mono text-xs font-bold text-[#6633EE] dark:text-[#A78BFA] tracking-wider">
+                                        {g.custom_code}
+                                      </span>
+                                    </div>
+                                  )}
+                                </div>
+
+                                <div className="flex items-center gap-2 shrink-0">
+                                  {g.custom_code && (
+                                    <button
+                                      type="button"
+                                      onClick={async () => {
+                                        if (!g.custom_code) return;
+                                        try {
+                                          await navigator.clipboard.writeText(g.custom_code);
+                                          setCopiedGiftCodeId(g.id);
+                                          setTimeout(() => setCopiedGiftCodeId(null), 2000);
+                                        } catch {}
+                                      }}
+                                      className="p-1.5 rounded-lg text-[#64748B] dark:text-[#C7CAE0]/70 hover:text-[#6633EE] dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#010314] transition-all cursor-pointer active:scale-90"
+                                      title={language === 'sk' ? 'Kopírovať kód' : 'Copy code'}
+                                    >
+                                      {copiedGiftCodeId === g.id ? (
+                                        <Check size={16} className="text-emerald-500" />
+                                      ) : (
+                                        <Copy size={16} />
+                                      )}
+                                    </button>
+                                  )}
+
+                                  <span className="px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 text-[9px] font-bold">
+                                    {language === 'sk' ? 'Pripravené' : 'Ready'}
+                                  </span>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <div className="p-4 rounded-xl bg-slate-50 dark:bg-[#010314] border border-[#E2E8F0] dark:border-[#2B2F49] text-center">
+                          <p className="text-xs text-[#64748B] dark:text-[#C7CAE0]/70">
+                            {language === 'sk'
+                              ? 'Zatiaľ nemáte žiadne aktívne zľavové kódy z kolesa.'
+                              : 'You have no active discount codes from the wheel yet.'}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
+
+                {/* 🌟 INFORMAČNÁ TABUĽKA: VIP SENSUAL PROGRAM */}
                 <div className="p-4 rounded-xl bg-slate-50 dark:bg-[#010314] border border-[#E2E8F0] dark:border-[#2B2F49] space-y-2">
                   <div className="flex items-center gap-2">
-                    <div className="p-1.5 rounded-full bg-[#6633EE]/15 text-[#6633EE] dark:text-[#A78BFA]">
-                      <Cake size={16} />
+                    <div className="p-1.5 rounded-full bg-amber-500/15 text-amber-500">
+                      <Crown size={16} />
                     </div>
                     <div>
                       <p className="text-xs font-semibold text-[#0B0D22] dark:text-[#FFFFFF]">
-                        {language === 'sk' ? 'Dátum vašich narodenín' : 'Your Date of Birth'}
+                        {language === 'sk' ? 'VIP Sensual Program' : 'VIP Sensual Program'}
                       </p>
                       <p className="text-[11px] text-[#64748B] dark:text-[#C7CAE0]/70 font-normal">
                         {language === 'sk'
-                          ? 'V deň narodenín odomknete špeciálny odznak a masážny darček.'
-                          : 'Unlocks a special achievement badge and birthday surprise.'}
+                          ? 'Automatické výhody pre verných klientov'
+                          : 'Automatic benefits for frequent clients'}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 pt-1 text-[11px]">
+                    <div className="p-2.5 rounded-lg bg-white dark:bg-[#0B0D22] border border-[#E2E8F0] dark:border-[#2B2F49] space-y-0.5">
+                      <p className="font-semibold text-[#6633EE] dark:text-[#A78BFA] flex items-center gap-1">
+                        <Sparkles size={12} />
+                        <span>{language === 'sk' ? 'VIP Klient' : 'VIP Client'}</span>
+                      </p>
+                      <p className="text-[#64748B] dark:text-[#C7CAE0]/70 text-[10px]">
+                        {language === 'sk' ? 'Od 5 absolvovaných návštev' : 'From 5 completed visits'}
+                      </p>
+                    </div>
+
+                    <div className="p-2.5 rounded-lg bg-white dark:bg-[#0B0D22] border border-[#E2E8F0] dark:border-[#2B2F49] space-y-0.5">
+                      <p className="font-semibold text-amber-500 dark:text-amber-400 flex items-center gap-1">
+                        <Crown size={12} />
+                        <span>{language === 'sk' ? 'Vernostné Pečiatky' : 'Loyalty Stamps'}</span>
+                      </p>
+                      <p className="text-[#64748B] dark:text-[#C7CAE0]/70 text-[10px]">
+                        {language === 'sk' ? '10. masáž zdarma s darčekom' : '10th massage free + gift'}
                       </p>
                     </div>
                   </div>
                 </div>
-
-                {/* Segmented Picker */}
-                <ModernBirthdayPicker
-                  value={birthDate}
-                  onChange={(newIso) => setBirthDate(newIso)}
-                  disabled={savingBirthDate}
-                  language={language}
-                />
-
-                {birthDateMsg && (
-                  <p className="text-xs font-medium text-[#6633EE] dark:text-[#A78BFA] bg-[#6633EE]/10 dark:bg-[#6633EE]/15 p-2.5 rounded-xl border border-[#6633EE]/30 flex items-center gap-1.5">
-                    <Check size={15} />
-                    <span>{birthDateMsg}</span>
-                  </p>
-                )}
-
-                <button
-                  type="button"
-                  disabled={savingBirthDate || !birthDate}
-                  onClick={async () => {
-                    setSavingBirthDate(true);
-                    setBirthDateMsg('');
-                    try {
-                      const res = await fetch('/api/user/settings', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ userId: profile.id, birth_date: birthDate }),
-                      });
-                      if (res.ok) {
-                        setBirthDateMsg(language === 'sk' ? 'Dátum narodenín bol úspešne uložený! 🎉' : 'Birthday date saved successfully! 🎉');
-                        setTimeout(() => setBirthDateMsg(''), 3500);
-                      }
-                    } catch (err) {
-                      console.error('Chyba ukladania narodenín:', err);
-                    } finally {
-                      setSavingBirthDate(false);
-                    }
-                  }}
-                  className="w-full btn-primary text-xs uppercase tracking-wider font-medium flex items-center justify-center gap-1.5"
-                >
-                  <Cake size={14} />
-                  <span>{savingBirthDate ? (language === 'sk' ? 'Ukladám...' : 'Saving...') : (language === 'sk' ? 'Uložiť dátum narodenín' : 'Save Birthday Date')}</span>
-                </button>
               </div>
             )}
 
             {/* ============================================================= */}
-            {/* TAB 3: UPOZORNENIA & PWA APLIKÁCIA                            */}
+            {/* TAB 4: UPOZORNENIA & PWA APLIKÁCIA                            */}
             {/* ============================================================= */}
             {activeTab === 'notifications' && (
-              <div className="space-y-3.5 text-left animate-in fade-in duration-200">
+              <div key="notifications" className="space-y-3.5 text-left animate-fadeIn">
                 {/* E-mailové notifikácie */}
                 <div className="flex items-center justify-between p-3.5 rounded-xl bg-slate-50 dark:bg-[#010314] border border-[#E2E8F0] dark:border-[#2B2F49]">
                   <div className="flex items-center gap-2.5">
@@ -718,7 +1024,7 @@ export default function SettingsModal({
                 <div className="flex items-center justify-between p-3.5 rounded-xl bg-slate-50 dark:bg-[#010314] border border-[#E2E8F0] dark:border-[#2B2F49]">
                   <div className="flex items-center gap-2.5">
                     <div className="p-2 rounded-lg bg-[#6633EE]/10 text-[#6633EE] dark:text-[#A78BFA]">
-                      <SparklesIcon size={16} />
+                      <Sparkles size={16} />
                     </div>
                     <div>
                       <p className="text-xs font-semibold text-[#0B0D22] dark:text-[#FFFFFF]">
@@ -813,110 +1119,10 @@ export default function SettingsModal({
             )}
 
             {/* ============================================================= */}
-            {/* TAB 4: REFERRAL PROGRAM & STATS                                */}
-            {/* ============================================================= */}
-            {activeTab === 'referral' && (
-              <div className="space-y-4 text-left animate-in fade-in duration-200">
-                {/* Highlight Stats Banner */}
-                <div className="grid grid-cols-2 gap-2.5">
-                  <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-[#010314] border border-[#E2E8F0] dark:border-[#2B2F49] text-center space-y-1">
-                    <p className="text-[10px] uppercase tracking-wider text-[#64748B] dark:text-[#C7CAE0]/70 font-medium">
-                      {language === 'sk' ? 'Odporúčaní priatelia' : 'Referred friends'}
-                    </p>
-                    <p className="text-2xl font-bold text-[#6633EE] dark:text-[#A78BFA]">
-                      {referredPeople.length}
-                    </p>
-                  </div>
-
-                  <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-[#010314] border border-[#E2E8F0] dark:border-[#2B2F49] text-center space-y-1">
-                    <p className="text-[10px] uppercase tracking-wider text-[#64748B] dark:text-[#C7CAE0]/70 font-medium">
-                      {language === 'sk' ? 'Absolvovali masáž' : 'Completed visit'}
-                    </p>
-                    <p className="text-2xl font-bold text-emerald-500">
-                      {referredPeople.filter((p) => p.hasMassage).length}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Kód na kopírovanie */}
-                <div className="flex items-center justify-between gap-2 p-3.5 rounded-xl bg-slate-50 dark:bg-[#010314] border border-[#E2E8F0] dark:border-[#2B2F49]">
-                  <div className="min-w-0">
-                    <p className="text-[10px] text-[#64748B] dark:text-[#C7CAE0]/60 uppercase font-medium">
-                      {language === 'sk' ? 'Váš odporúčací kód' : 'Your Referral Code'}
-                    </p>
-                    <p className="font-mono font-bold text-base text-[#0B0D22] dark:text-[#FFFFFF] tracking-widest truncate">
-                      {profile.referral_code || '—'}
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={async () => {
-                      if (!profile.referral_code) return;
-                      try {
-                        await navigator.clipboard.writeText(profile.referral_code);
-                        setCodeCopied(true);
-                        setTimeout(() => setCodeCopied(false), 2000);
-                      } catch {}
-                    }}
-                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-white dark:bg-[#0B0D22] border border-[#E2E8F0] dark:border-[#2B2F49] text-xs font-semibold text-[#0B0D22] dark:text-[#FFFFFF] hover:border-[#6633EE]/50 transition shrink-0 cursor-pointer shadow-xs"
-                  >
-                    {codeCopied ? <Check size={13} className="text-emerald-500" /> : <Copy size={13} />}
-                    <span>{codeCopied ? (language === 'sk' ? 'Skopírované' : 'Copied') : (language === 'sk' ? 'Kopírovať' : 'Copy')}</span>
-                  </button>
-                </div>
-
-                {referrerInfo && (
-                  <div className="text-xs text-[#64748B] dark:text-[#C7CAE0] font-normal px-1">
-                    {language === 'sk' ? 'Odporučil vás: ' : 'You were referred by: '}
-                    <strong className="text-[#0B0D22] dark:text-[#FFFFFF]">
-                      {referrerInfo.full_name || referrerInfo.email}
-                    </strong>
-                  </div>
-                )}
-
-                {/* Zoznam odporučených osôb */}
-                <div>
-                  <p className="text-xs font-medium text-[#0B0D22] dark:text-[#FFFFFF] mb-2">
-                    {language === 'sk' ? 'Zoznam ľudí, ktorí použili váš kód:' : 'People who used your code:'}
-                  </p>
-                  {referredPeople.length === 0 ? (
-                    <div className="p-4 rounded-xl bg-slate-50 dark:bg-[#010314] border border-[#E2E8F0] dark:border-[#2B2F49] text-center text-xs text-[#94A3B8] dark:text-[#C7CAE0]/60">
-                      {language === 'sk' ? 'Zatiaľ nikto nepoužil váš kód. Zdieľajte ho s priateľmi!' : 'No one has used your code yet. Share it with your friends!'}
-                    </div>
-                  ) : (
-                    <div className="space-y-1.5 max-h-40 overflow-y-auto no-scrollbar pr-1">
-                      {referredPeople.map((r) => (
-                        <div
-                          key={r.id}
-                          className="flex items-center justify-between gap-2 p-2.5 rounded-lg bg-slate-50 dark:bg-[#010314] text-xs border border-[#E2E8F0] dark:border-[#2B2F49]"
-                        >
-                          <span className="truncate text-[#1E293B] dark:text-[#DDE0F2] font-medium">
-                            {r.full_name || r.email}
-                          </span>
-                          <span
-                            className={`shrink-0 text-[10px] font-semibold px-2.5 py-0.5 rounded-full ${
-                              r.hasMassage
-                                ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'
-                                : 'bg-slate-200 dark:bg-[#0B0D22] text-[#64748B] dark:text-[#C7CAE0]/50 border border-slate-300 dark:border-[#2B2F49]'
-                            }`}
-                          >
-                            {r.hasMassage
-                              ? (language === 'sk' ? 'Absolvoval masáž' : 'Completed massage')
-                              : (language === 'sk' ? 'Čaká na termín' : 'Awaiting visit')}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* ============================================================= */}
             {/* TAB 5: NEBEZPEČNÁ ZÓNA (DANGER ZONE)                          */}
             {/* ============================================================= */}
             {activeTab === 'danger' && (
-              <div className="space-y-4 text-left animate-in fade-in duration-200">
+              <div key="danger" className="space-y-4 text-left animate-fadeIn">
                 <div className="p-4 sm:p-5 rounded-xl bg-rose-50/90 dark:bg-[#FF5A7A]/10 border border-rose-200 dark:border-[#FF5A7A]/30 space-y-3">
                   <div className="flex items-center gap-2 text-rose-600 dark:text-[#FF5A7A]">
                     <ShieldAlert size={18} />
@@ -953,6 +1159,7 @@ export default function SettingsModal({
                 </div>
               </div>
             )}
+              </div>
 
             {/* Bottom Close Button */}
             <div className="pt-2 border-t border-[#E2E8F0] dark:border-[#2B2F49]">

@@ -12,12 +12,13 @@ import { useAvatar } from '../lib/AvatarContext';
 import { ProfilePageSkeleton } from '../components/ui/Skeleton';
 import LuckyWheelModal from '../components/LuckyWheelModal';
 import ReviewModal from '../components/ReviewModal';
+import BlobatarAvatar from '../components/BlobatarAvatar';
 import {
   User, Flower2, Leaf, Sparkles as SparklesIcon, Sun, Moon,
   Heart, Feather, Droplets, Coffee, Cat, Star,
   Settings, LogOut, History, Calendar, Clock, Tag, Plus,
   CalendarX, CheckCircle2, AlertCircle, Sparkles, ChevronRight, ShieldCheck,
-  Gift, Percent, Copy, Check, MessageSquarePlus
+  Gift, Percent, Copy, Check, MessageSquarePlus, Globe, UserPlus, Cake, Loader2
 } from 'lucide-react';
 
 interface Profile {
@@ -30,6 +31,7 @@ interface Profile {
   referral_code: string | null;
   referred_by: string | null;
   is_banned?: boolean;
+  birth_date?: string | null;
 }
 
 interface Stamp {
@@ -62,15 +64,10 @@ interface ClientRankingItem {
   claimedRewardsCount: number;
 }
 
-const ICON_MAP: Record<string, React.ElementType> = {
-  User, Flower2, Leaf, Sparkles: SparklesIcon, Sun, Moon,
-  Heart, Feather, Droplets, Coffee, Cat, Star
-};
-
 export default function ProfilPage() {
   const router = useRouter();
-  const { language, toggleLanguage, t } = useLanguage();
-  const { theme, toggleTheme } = useTheme();
+  const { language, setLanguage, toggleLanguage, t } = useLanguage();
+  const { theme, setTheme, toggleTheme } = useTheme();
   const { avatarIcon } = useAvatar();
 
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -87,15 +84,8 @@ export default function ProfilPage() {
   const [isWheelOpen, setIsWheelOpen] = useState(false);
   const [wheelEnabled, setWheelEnabled] = useState<boolean>(true);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
-  const [copiedCodeId, setCopiedCodeId] = useState<string | null>(null);
   const [selectedCancelBooking, setSelectedCancelBooking] = useState<any>(null);
   const [showCancelModal, setShowCancelModal] = useState(false);
-
-  const handleCopyCode = (id: string, code: string) => {
-    navigator.clipboard.writeText(code);
-    setCopiedCodeId(id);
-    setTimeout(() => setCopiedCodeId(null), 2000);
-  };
 
   const formatFullDateText = (isoString: string) => {
     const d = new Date(isoString);
@@ -120,14 +110,14 @@ export default function ProfilPage() {
 
     let { data: profileData } = await supabase
       .from('profiles')
-      .select('id, full_name, email, role, avatar_icon, avatar_color, referral_code, referred_by, is_banned')
+      .select('id, full_name, email, role, avatar_icon, avatar_color, referral_code, referred_by, is_banned, birth_date')
       .eq('id', session.user.id)
       .maybeSingle();
 
     if (!profileData) {
       const { data: fallback } = await supabase
         .from('profiles')
-        .select('id, full_name, email, role, avatar_icon, avatar_color, referral_code, referred_by')
+        .select('id, full_name, email, role, avatar_icon, avatar_color, referral_code, referred_by, birth_date')
         .eq('id', session.user.id)
         .maybeSingle();
       profileData = fallback ? { ...fallback, is_banned: false } : null;
@@ -241,7 +231,6 @@ export default function ProfilPage() {
     return <ProfilePageSkeleton />;
   }
 
-  const CurrentIconComponent = ICON_MAP[avatarIcon] || ICON_MAP['User'];
   const isAdmin = profile.role === 'admin';
 
   // Zoradenie rebríčka pre admina
@@ -282,10 +271,15 @@ export default function ProfilPage() {
             <button
               type="button"
               onClick={() => setIsSettingsOpen(true)}
-              className="w-14 h-14 rounded-full flex items-center justify-center bg-slate-50 dark:bg-[#010314] text-[#6633EE] dark:text-[#A78BFA] shrink-0 border border-[#E2E8F0] dark:border-[#2B2F49] hover:border-[#6633EE] transition cursor-pointer shadow-sm relative group"
+              className="w-14 h-14 rounded-full flex items-center justify-center bg-slate-50 dark:bg-[#010314] shrink-0 border border-[#E2E8F0] dark:border-[#2B2F49] hover:border-[#6633EE] hover:shadow-[0_0_12px_rgba(102,51,238,0.3)] transition-all cursor-pointer shadow-sm relative group p-1"
               title={language === 'sk' ? 'Upraviť profil' : 'Edit profile'}
             >
-              <CurrentIconComponent size={28} strokeWidth={1.8} />
+              <BlobatarAvatar
+                name={avatarIcon || profile.email || 'ZenUser'}
+                size={46}
+                animate="always"
+                className="rounded-full"
+              />
               <span className="absolute -bottom-0.5 -right-0.5 w-4.5 h-4.5 rounded-full bg-[#6633EE] text-white flex items-center justify-center shadow-xs">
                 <Settings size={10} />
               </span>
@@ -596,144 +590,6 @@ export default function ProfilPage() {
                     <Plus size={13} />
                     <span>{language === 'sk' ? 'Rezervovať novú masáž' : 'Book a Massage'}</span>
                   </Link>
-                </div>
-              )}
-            </div>
-
-            {/* 2.5. MOJE BENEFITY & ZĽAVOVÉ KÓDY (KOLO ŠŤASTIA / VERNOSTNÉ ZĽAVY) */}
-            <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#0B0D22] border border-[#E2E8F0] dark:border-[#2B2F49] shadow-sm dark:shadow-md space-y-3.5 text-left">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Gift size={16} className="text-[#6633EE] dark:text-[#A78BFA]" />
-                  <h3 className="font-semibold text-xs text-[#0B0D22] dark:text-[#FFFFFF] uppercase tracking-wider">
-                    {language === 'sk' ? 'Moje aktívne benefity & zľavy' : 'My Active Benefits & Discounts'}
-                  </h3>
-                </div>
-                
-                {activeGifts.length > 0 && (
-                  <button
-                    type="button"
-                    onClick={() => setIsWheelOpen(true)}
-                    className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider transition cursor-pointer shadow-xs ${
-                      wheelEnabled
-                        ? 'bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950'
-                        : 'bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400 border border-amber-300 dark:border-amber-700'
-                    }`}
-                  >
-                    <Sparkles size={12} />
-                    <span>
-                      {wheelEnabled 
-                        ? (language === 'sk' ? 'Kolo šťastia' : 'Wheel of Fortune')
-                        : (language === 'sk' ? 'Kolo (V rekonštrukcii)' : 'Wheel (In Maintenance)')}
-                    </span>
-                  </button>
-                )}
-              </div>
-
-              {activeGifts.length > 0 ? (
-                <div className="space-y-2.5">
-                  {activeGifts.map((g) => {
-                    const is5Pct = g.custom_code?.startsWith('KOLO5');
-                    const is10Pct = g.custom_code?.startsWith('KOLO10') || g.custom_code === 'KOLO10PCT';
-                    const is15Pct = g.custom_code?.startsWith('KOLO15');
-                    const isGift = g.custom_code?.startsWith('DARCEK') || g.gift_type === 'next_visit_gift';
-
-                    let benefitTitle = language === 'sk' ? 'Zľava na masáž' : 'Massage Discount';
-                    if (is5Pct) benefitTitle = language === 'sk' ? '+ 5% Zľava na masáž' : '+ 5% Massage Discount';
-                    else if (is10Pct) benefitTitle = language === 'sk' ? '+ 10% Zľava na masáž' : '+ 10% Massage Discount';
-                    else if (is15Pct) benefitTitle = language === 'sk' ? '+ 15% Zľava na masáž' : '+ 15% Massage Discount';
-                    else if (isGift) benefitTitle = language === 'sk' ? 'Darček k masáži' : 'Massage Gift';
-
-                    return (
-                      <div
-                        key={g.id}
-                        className="p-3.5 rounded-xl bg-gradient-to-r from-[#6633EE]/10 via-[#6633EE]/5 to-transparent dark:from-[#6633EE]/20 dark:via-[#6633EE]/10 dark:to-transparent border border-[#6633EE]/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs"
-                      >
-                        <div className="space-y-1 min-w-0">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <span className="font-bold text-xs sm:text-sm text-[#0B0D22] dark:text-white flex items-center gap-1.5">
-                              {isGift ? (
-                                <Gift size={14} className="text-amber-500 dark:text-amber-400" />
-                              ) : (
-                                <Percent size={14} className="text-[#6633EE] dark:text-[#A78BFA]" />
-                              )}
-                              <span>{benefitTitle}</span>
-                            </span>
-                            <span className="px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-500 dark:text-emerald-400 text-[10px] font-bold">
-                              {language === 'sk' ? 'Aktívny benefit' : 'Active Benefit'}
-                            </span>
-                          </div>
-                          
-                          <p className="text-[11px] text-[#64748B] dark:text-[#C7CAE0]/80">
-                            {isGift 
-                              ? (language === 'sk' ? 'Darček z Kolesa šťastia pripravený k vašej návšteve.' : 'Fortune Wheel gift ready for your visit.')
-                              : (language === 'sk' ? 'Zľavový kupón z Kolesa šťastia pripravený na uplatnenie v rezervácii.' : 'Fortune Wheel discount voucher ready to apply.')}
-                          </p>
-
-                          {g.custom_code && (
-                            <div className="flex items-center gap-2 pt-0.5">
-                              <span className="font-mono text-xs font-bold text-[#6633EE] dark:text-[#A78BFA] bg-white dark:bg-[#0B0D22] px-2.5 py-1 rounded-md border border-[#6633EE]/30">
-                                {g.custom_code}
-                              </span>
-                              <button
-                                type="button"
-                                onClick={() => handleCopyCode(g.id, g.custom_code!)}
-                                className="p-1.5 rounded-md bg-slate-100 dark:bg-[#010314] hover:bg-slate-200 dark:hover:bg-[#1E2238] text-slate-500 dark:text-slate-300 transition cursor-pointer"
-                                title={language === 'sk' ? 'Kopírovať kód' : 'Copy code'}
-                              >
-                                {copiedCodeId === g.id ? (
-                                  <Check size={13} className="text-emerald-500" />
-                                ) : (
-                                  <Copy size={13} />
-                                )}
-                              </button>
-                            </div>
-                          )}
-                        </div>
-
-                        <Link
-                          href="/"
-                          className="w-full sm:w-auto px-4 py-2 rounded-xl bg-[#6633EE] hover:bg-[#7C3AED] text-white text-xs font-bold uppercase tracking-wider text-center transition cursor-pointer shadow-xs shrink-0"
-                        >
-                          {language === 'sk' ? 'Uplatniť v rezervácii' : 'Apply in Booking'}
-                        </Link>
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="p-4 rounded-xl bg-slate-50 dark:bg-[#010314] border border-[#E2E8F0] dark:border-[#2B2F49] text-center space-y-2.5">
-                  {!wheelEnabled && (
-                    <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30">
-                      <Sparkles size={11} />
-                      <span>{language === 'sk' ? 'V rekonštrukcii' : 'Under Reconstruction'}</span>
-                    </div>
-                  )}
-                  <p className="text-xs text-[#64748B] dark:text-[#C7CAE0]/80 font-normal leading-relaxed">
-                    {wheelEnabled 
-                      ? (language === 'sk'
-                          ? 'Zatiaľ nemáte žiadny aktívny zľavový kód. Roztočte Koleso Šťastia a získajte zľavu až do 15% alebo darček k masáži!'
-                          : 'You do not have any active discount code yet. Spin the Wheel of Fortune and win up to 15% discount or a massage gift!')
-                      : (language === 'sk'
-                          ? 'Koleso šťastia je momentálne v rekonštrukcii. Pripravujeme pre vás nové zľavy a benefity. Skúste to prosím neskôr.'
-                          : 'The Lucky Wheel is currently under reconstruction. Please try again later.')}
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() => setIsWheelOpen(true)}
-                    className={`inline-flex items-center gap-1.5 px-4 py-2.5 rounded-full text-xs font-bold uppercase tracking-wider shadow-sm transition cursor-pointer active:scale-95 ${
-                      wheelEnabled
-                        ? 'bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950'
-                        : 'bg-slate-100 dark:bg-[#151938] hover:bg-slate-200 dark:hover:bg-[#1E234B] text-slate-700 dark:text-[#DDE0F2] border border-slate-200 dark:border-[#2B2F49]'
-                    }`}
-                  >
-                    <Sparkles size={14} className={wheelEnabled ? '' : 'text-amber-500'} />
-                    <span>
-                      {wheelEnabled 
-                        ? (language === 'sk' ? 'Roztočiť Koleso Šťastia' : 'Spin Wheel of Fortune')
-                        : (language === 'sk' ? 'Zobraziť stav Kolesa šťastia' : 'Check Lucky Wheel status')}
-                    </span>
-                  </button>
                 </div>
               )}
             </div>

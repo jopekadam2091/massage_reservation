@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import 'blobatar/motion.css';
 import { ThemeProvider } from './lib/ThemeContext';
 import { LanguageProvider } from './lib/LanguageContext';
 import { AvatarProvider } from './lib/AvatarContext';

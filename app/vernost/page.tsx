@@ -13,7 +13,7 @@ import { LoyaltyPageSkeleton } from '../components/ui/Skeleton';
 import LuckyWheelModal from '../components/LuckyWheelModal';
 import { 
   QrCode, X, Gift, Sparkles, CheckCircle2, AlertCircle,
-  Percent, Calendar, Tag, RotateCw, LogIn, ArrowRight
+  Percent, Calendar, Tag, RotateCw, LogIn, ArrowRight, Copy, Check
 } from 'lucide-react';
 
 interface Profile {
@@ -62,9 +62,18 @@ export default function VernostPage() {
   const [refreshing, setRefreshing] = useState(false);
   const [isQrOpen, setIsQrOpen] = useState(false);
   const [isWheelOpen, setIsWheelOpen] = useState(false);
+  const [copiedCodeId, setCopiedCodeId] = useState<string | null>(null);
 
   const [referredPeople, setReferredPeople] = useState<ReferredPerson[]>([]);
   const [revealedGiftStates, setRevealedGiftStates] = useState<Record<string, { status: 'ineligible' | 'revealed'; code?: string; name?: string }>>({});
+
+  const handleCopyCode = async (id: string, code: string) => {
+    try {
+      await navigator.clipboard.writeText(code);
+      setCopiedCodeId(id);
+      setTimeout(() => setCopiedCodeId(null), 2000);
+    } catch {}
+  };
 
   const loadLoyaltyData = async () => {
     const { data: { session } } = await supabase.auth.getSession();
@@ -260,26 +269,81 @@ export default function VernostPage() {
 
         {/* AKTÍVNE DARČEKY & ZĽAVY */}
         {activeGifts.length > 0 && (
-          <div className="p-4 rounded-2xl bg-white dark:bg-[#0B0D22] border border-[#E2E8F0] dark:border-[#2B2F49] shadow-sm dark:shadow-md space-y-2.5 text-left">
-            <div className="flex items-center gap-2">
-              <Gift size={16} className="text-[#6633EE] dark:text-[#A78BFA]" />
-              <h3 className="font-semibold text-xs text-[#0B0D22] dark:text-[#FFFFFF] uppercase tracking-wider">
-                {language === 'sk' ? 'Dostupné odmeny & darčeky' : 'Available Rewards & Gifts'}
-              </h3>
+          <div className="p-4 rounded-2xl bg-white dark:bg-[#0B0D22] border border-[#E2E8F0] dark:border-[#2B2F49] shadow-sm dark:shadow-md space-y-3 text-left">
+            <div className="flex items-center justify-between pb-2 border-b border-[#E2E8F0] dark:border-[#2B2F49]/70">
+              <div className="flex items-center gap-2">
+                <Gift size={16} className="text-[#6633EE] dark:text-[#A78BFA]" />
+                <h3 className="font-semibold text-xs text-[#0B0D22] dark:text-[#FFFFFF] uppercase tracking-wider">
+                  {language === 'sk' ? 'Dostupné odmeny & darčeky' : 'Available Rewards & Gifts'}
+                </h3>
+              </div>
+              <span className="px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold">
+                {activeGifts.length} {language === 'sk' ? 'aktívne' : 'active'}
+              </span>
             </div>
 
-            <div className="space-y-2">
+            <div className="divide-y divide-[#E2E8F0] dark:divide-[#2B2F49]/60">
               {activeGifts.map((gift) => {
                 const state = revealedGiftStates[gift.id];
+                const is5Pct = gift.custom_code?.startsWith('KOLO5');
+                const is10Pct = gift.custom_code?.startsWith('KOLO10') || gift.custom_code === 'KOLO10PCT';
+                const is15Pct = gift.custom_code?.startsWith('KOLO15');
+                const isGift = gift.custom_code?.startsWith('DARCEK') || gift.gift_type === 'next_visit_gift';
+
+                let benefitTitle = language === 'sk' ? 'Zľava na masáž' : 'Massage Discount';
+                if (is5Pct) benefitTitle = language === 'sk' ? '+ 5% Zľava na masáž' : '+ 5% Massage Discount';
+                else if (is10Pct) benefitTitle = language === 'sk' ? '+ 10% Zľava na masáž' : '+ 10% Massage Discount';
+                else if (is15Pct) benefitTitle = language === 'sk' ? '+ 15% Zľava na masáž' : '+ 15% Massage Discount';
+                else if (isGift) benefitTitle = language === 'sk' ? 'Darček k masáži' : 'Massage Gift';
+                else if (gift.gift_type === 'vip_upgrade') benefitTitle = language === 'sk' ? 'VIP Upgrade' : 'VIP Upgrade';
+                else if (gift.gift_type === 'free_stamp') benefitTitle = language === 'sk' ? 'Bonusová pečiatka' : 'Bonus Stamp';
+                else if (gift.gift_type !== 'discount_code') benefitTitle = getGiftLabel(gift);
+
                 return (
                   <div
                     key={gift.id}
-                    className="p-3 rounded-xl bg-slate-50 dark:bg-[#010314] border border-[#E2E8F0] dark:border-[#2B2F49] space-y-2"
+                    className="py-2.5 first:pt-1 last:pb-1 flex items-center justify-between gap-3"
                   >
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="text-xs font-medium text-[#1E293B] dark:text-[#DDE0F2]">
-                        {getGiftLabel(gift)}
-                      </span>
+                    <div className="min-w-0 space-y-1">
+                      <div className="flex items-center gap-1.5">
+                        {isGift ? (
+                          <Gift size={13} className="text-amber-500 dark:text-amber-400 shrink-0" />
+                        ) : (
+                          <Percent size={13} className="text-[#6633EE] dark:text-[#A78BFA] shrink-0" />
+                        )}
+                        <span className="text-xs font-semibold text-[#0B0D22] dark:text-white truncate">
+                          {benefitTitle}
+                        </span>
+                      </div>
+
+                      {gift.custom_code && (
+                        <div className="flex items-center gap-2 pl-4">
+                          <span className="text-[10px] text-[#64748B] dark:text-[#C7CAE0]/60 uppercase font-medium tracking-wider">
+                            {language === 'sk' ? 'Váš kód:' : 'Your code:'}
+                          </span>
+                          <span className="font-mono text-xs font-bold text-[#6633EE] dark:text-[#A78BFA] tracking-wider">
+                            {gift.custom_code}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      {gift.custom_code && (
+                        <button
+                          type="button"
+                          onClick={() => handleCopyCode(gift.id, gift.custom_code!)}
+                          className="p-1.5 rounded-lg text-[#64748B] dark:text-[#C7CAE0]/70 hover:text-[#6633EE] dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#010314] transition-all cursor-pointer active:scale-90"
+                          title={language === 'sk' ? 'Kopírovať kód' : 'Copy code'}
+                        >
+                          {copiedCodeId === gift.id ? (
+                            <Check size={16} className="text-emerald-500" />
+                          ) : (
+                            <Copy size={16} />
+                          )}
+                        </button>
+                      )}
+
                       {gift.referred_user_id && !state && (
                         <button
                           type="button"
@@ -292,14 +356,24 @@ export default function VernostPage() {
                     </div>
 
                     {state?.status === 'revealed' && (
-                      <div className="p-2 rounded-lg bg-[#6633EE]/15 border border-[#6633EE]/30 text-xs text-[#6633EE] dark:text-[#A78BFA] font-mono font-bold flex items-center justify-between">
-                        <span>{language === 'sk' ? 'Váš kód:' : 'Your code:'} {state.code}</span>
-                        <CheckCircle2 size={14} className="text-[#6633EE] dark:text-[#A78BFA]" />
+                      <div className="flex items-center justify-between gap-2 text-xs text-[#6633EE] dark:text-[#A78BFA] pl-4">
+                        <span className="font-mono font-bold">{state.code}</span>
+                        <button
+                          type="button"
+                          onClick={() => handleCopyCode(`state-${gift.id}`, state.code || '')}
+                          className="p-1 rounded text-[#64748B] dark:text-[#C7CAE0]/70 hover:text-[#6633EE] dark:hover:text-white cursor-pointer"
+                        >
+                          {copiedCodeId === `state-${gift.id}` ? (
+                            <Check size={14} className="text-emerald-500" />
+                          ) : (
+                            <Copy size={14} />
+                          )}
+                        </button>
                       </div>
                     )}
 
                     {state?.status === 'ineligible' && (
-                      <div className="p-2 rounded-lg bg-[#FF5A7A]/15 border border-[#FF5A7A]/30 text-[11px] text-[#FF5A7A]">
+                      <div className="text-[11px] text-[#FF5A7A] pl-4">
                         {language === 'sk'
                           ? `Odporúčaný priateľ (${state.name}) ešte neabsolvoval svoju prvú masáž.`
                           : `The referred person (${state.name}) has not completed their first massage yet.`}

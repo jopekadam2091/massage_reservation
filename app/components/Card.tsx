@@ -1,13 +1,16 @@
 'use client';
 
 import { useLanguage } from '../lib/LanguageContext';
+import { useAvatar } from '../lib/AvatarContext';
+import BlobatarAvatar from './BlobatarAvatar';
 import { QrCode, RotateCw } from 'lucide-react';
 
 interface CardProps {
   fullName: string;
   programType?: '5_stamps' | '10_stamps';
   activeStampsPrices: number[];
-  avatarColor: string;
+  avatarColor?: string;
+  avatarIcon?: string;
   onOpenQr?: () => void;
   onRefresh?: () => void;
   refreshing?: boolean;
@@ -28,12 +31,18 @@ export default function Card({
   fullName, 
   programType = '10_stamps', 
   activeStampsPrices, 
-  avatarColor,
+  avatarColor: propAvatarColor,
+  avatarIcon: propAvatarIcon,
   onOpenQr,
   onRefresh,
   refreshing
 }: CardProps) {
   const { t, language } = useLanguage();
+  const { avatarIcon: ctxAvatarIcon, avatarColor: ctxAvatarColor } = useAvatar();
+
+  const effectiveAvatarIcon = propAvatarIcon || ctxAvatarIcon || 'User';
+  const effectiveAvatarColor = propAvatarColor || ctxAvatarColor || '#A78BFA';
+
   const maxStamps = 10;
   const stampsCount = activeStampsPrices.length;
   const isFull = stampsCount >= maxStamps;
@@ -45,7 +54,7 @@ export default function Card({
 
   const formattedAverage = averageValue.toFixed(2).replace('.', ',');
 
-  const { hueStart, hueEnd } = STAMP_GRADIENTS[avatarColor] || DEFAULT_GRADIENT;
+  const { hueStart, hueEnd } = STAMP_GRADIENTS[effectiveAvatarColor] || DEFAULT_GRADIENT;
 
   return (
     <div className="relative overflow-hidden w-full max-w-md p-6 sm:p-8 rounded-2xl backdrop-blur-2xl border border-[#E2E8F0] dark:border-[#2B2F49] bg-white dark:bg-[#0B0D22] shadow-xl dark:shadow-2xl transition-all duration-300 text-[#1E293B] dark:text-[#DDE0F2]">
@@ -56,19 +65,12 @@ export default function Card({
       {/* Hlavička karty s integrovanými akčnými tlačidlami */}
       <div className="flex items-center justify-between mb-6 relative z-10">
         <div className="flex items-center gap-3">
-          <div className="w-11 h-11 bg-slate-50 dark:bg-[#010314] rounded-full border border-[#E2E8F0] dark:border-[#2B2F49] shadow-sm flex items-center justify-center shrink-0">
-            <div
-              className="w-6 h-6 bg-[#6633EE] dark:bg-[#A78BFA] transition-colors duration-300"
-              style={{
-                maskImage: 'url("/logo_massage.svg")',
-                WebkitMaskImage: 'url("/logo_massage.svg")',
-                maskSize: 'contain',
-                WebkitMaskSize: 'contain',
-                maskRepeat: 'no-repeat',
-                WebkitMaskRepeat: 'no-repeat',
-                maskPosition: 'center',
-                WebkitMaskPosition: 'center',
-              }}
+          <div className="w-11 h-11 bg-slate-50 dark:bg-[#010314] rounded-full border border-[#E2E8F0] dark:border-[#2B2F49] shadow-sm flex items-center justify-center shrink-0 overflow-hidden">
+            <BlobatarAvatar
+              name={effectiveAvatarIcon}
+              color={effectiveAvatarColor}
+              size={36}
+              animate="hover"
             />
           </div>
           <div className="text-left">

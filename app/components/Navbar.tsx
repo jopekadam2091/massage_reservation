@@ -10,6 +10,7 @@ import SettingsModal from './SettingsModal';
 import UserHistoryModal from './UserHistoryModal';
 import AdminUserManagementModal from './admin/AdminUserManagementModal';
 
+import BlobatarAvatar from './BlobatarAvatar';
 import { 
   Calendar, CreditCard, ShieldCheck, User, Sun, Moon, Settings,
   Flower2, Leaf, Sparkles, Heart, Feather, Droplets, Coffee, Cat, Star, ArrowLeft, Globe
@@ -36,18 +37,21 @@ function getNavbarSvgPath(activeIdx: number, totalTabs: number) {
   const height = 64;
   const tabWidth = width / totalTabs;
   const xc = (activeIdx + 0.5) * tabWidth;
-  const notchR = 32; // Cutout half-width
-  const notchDepth = 25; // Circular socket dip depth
   const topY = 14;
 
-  const leftX = xc - notchR;
-  const rightX = xc + notchR;
+  // Exact circular cradle coordinates embracing the round ball
+  const leftShoulderX = xc - 34;
+  const leftArcX = xc - 23.5;
+  const arcY = topY + 5.5;
+  const rightArcX = xc + 23.5;
+  const rightShoulderX = xc + 34;
 
   return `
     M 16 ${topY}
-    L ${leftX} ${topY}
-    C ${xc - 20} ${topY}, ${xc - 16} ${topY + notchDepth}, ${xc} ${topY + notchDepth}
-    C ${xc + 16} ${topY + notchDepth}, ${xc + 20} ${topY}, ${rightX} ${topY}
+    L ${leftShoulderX} ${topY}
+    C ${xc - 28} ${topY}, ${leftArcX - 2} ${topY + 1.5}, ${leftArcX} ${arcY}
+    A 25.5 25.5 0 0 0 ${rightArcX} ${arcY}
+    C ${rightArcX + 2} ${topY + 1.5}, ${xc + 28} ${topY}, ${rightShoulderX} ${topY}
     L ${width - 16} ${topY}
     A 16 16 0 0 1 ${width} ${topY + 16}
     L ${width} ${height - 16}
@@ -149,6 +153,8 @@ export default function Navbar() {
 
   const activeTabIdx = getActiveTabIdx();
 
+  const isBlobActive = Boolean(sessionUser && !isAdmin && activeTabIdx === 2);
+
   // Active Icon Renderer inside the elevated circle ball (Gulička)
   const renderActiveBallIcon = () => {
     if (!sessionUser) {
@@ -165,10 +171,8 @@ export default function Navbar() {
         ) : (
           <CreditCard size={18} strokeWidth={2.5} className="text-white" />
         );
-      case 2: {
-        const IconComp = ICON_MAP[avatarIcon || 'User'] || ICON_MAP['User'];
-        return <IconComp size={18} strokeWidth={2.5} className="text-white" />;
-      }
+      case 2:
+        return <User size={18} strokeWidth={2.5} className="text-white" />;
       default:
         return <Calendar size={18} strokeWidth={2.5} className="text-white" />;
     }
@@ -257,16 +261,39 @@ export default function Navbar() {
           {/* ⚡ 2. FLOATING ACTIVE ELEVATED CIRCLE BALL & TABS CONTAINER */}
           <div suppressHydrationWarning className="relative z-10 w-full h-full flex items-center justify-around">
             
-            {/* Sliding Ball Container */}
+            {/* Sliding Ball / Blob Container */}
             <div 
               className={`absolute top-0 bottom-0 left-0 flex items-center justify-center pointer-events-none transition-transform duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${
                 sessionUser ? 'w-1/3' : 'w-1/2'
               }`}
               style={{ transform: `translateX(${activeTabIdx * 100}%)` }}
             >
-              {/* Elevated Floating Ball with Electric Violet Glow */}
-              <div className="absolute -top-3.5 w-11 h-11 rounded-full bg-gradient-to-tr from-[#6633EE] via-[#7C3AED] to-[#A78BFA] shadow-[0_0_22px_rgba(102,51,238,0.75)] flex items-center justify-center border-2 border-white dark:border-[#0B0D22] transition-all duration-300 animate-in zoom-in-75 ring-1 ring-[#A78BFA]/40">
-                {renderActiveBallIcon()}
+              <div className="absolute -top-3.5 w-11 h-11 flex items-center justify-center">
+                {/* 1. Permanent Circular Gradient Ball (Always rounded-full to prevent any square flash) */}
+                <div 
+                  className={`absolute inset-0 rounded-full bg-gradient-to-tr from-[#6633EE] via-[#7C3AED] to-[#A78BFA] shadow-[0_0_22px_rgba(102,51,238,0.75)] border-2 border-white dark:border-[#0B0D22] ring-1 ring-[#A78BFA]/40 flex items-center justify-center transition-all duration-300 ease-out ${
+                    isBlobActive ? 'opacity-0 scale-75 pointer-events-none' : 'opacity-100 scale-100'
+                  }`}
+                >
+                  {renderActiveBallIcon()}
+                </div>
+
+                {/* 2. Full Blobatar Avatar for Profile Tab */}
+                {sessionUser && !isAdmin && (
+                  <div 
+                    className={`absolute -top-0.5 w-12 h-12 flex items-center justify-center transition-all duration-300 ease-out ${
+                      isBlobActive ? 'opacity-100 scale-100' : 'opacity-0 scale-50 pointer-events-none'
+                    }`}
+                  >
+                    <BlobatarAvatar
+                      name={avatarIcon || 'User'}
+                      color={avatarColor}
+                      size={44}
+                      animate="always"
+                      className="drop-shadow-[0_6px_14px_rgba(0,0,0,0.35)]"
+                    />
+                  </div>
+                )}
               </div>
             </div>
 
@@ -350,10 +377,17 @@ export default function Navbar() {
                   className="z-20 w-1/3 h-full flex flex-col items-center justify-end pb-2 text-[10px] font-medium active:scale-95 cursor-pointer transition-all duration-300"
                 >
                   {activeTabIdx !== 2 && (
-                    (() => {
-                      const IconComp = ICON_MAP[avatarIcon || 'User'] || ICON_MAP['User'];
-                      return <IconComp size={18} strokeWidth={1.8} className="text-[#64748B] dark:text-[#C7CAE0]/60 mb-0.5" />;
-                    })()
+                    isAdmin ? (
+                      <User size={18} strokeWidth={1.8} className="text-[#64748B] dark:text-[#C7CAE0]/60 mb-0.5" />
+                    ) : (
+                      <BlobatarAvatar
+                        name={avatarIcon || 'User'}
+                        color={avatarColor}
+                        size={20}
+                        animate="hover"
+                        className="mb-0.5 rounded-full opacity-80"
+                      />
+                    )
                   )}
                   <span className={activeTabIdx === 2 ? 'text-[#0B0D22] dark:text-[#FFFFFF] font-semibold text-[11px]' : 'text-[#64748B] dark:text-[#C7CAE0]/60'}>
                     {isAdmin ? (language === 'sk' ? 'Ranking & Profil' : 'Ranking') : (language === 'sk' ? 'Profil' : 'Profile')}
