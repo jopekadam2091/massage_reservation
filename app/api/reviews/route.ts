@@ -22,13 +22,16 @@ export async function POST(req: Request) {
 
     const validRating = Math.max(1, Math.min(5, Math.round(Number(rating))));
 
+    const isAnon = Boolean(is_anonymous) || !user_name || typeof user_name !== 'string' || !user_name.trim();
+    const finalUserName = isAnon ? 'Anonymný užívateľ' : user_name.trim();
+
     const newRev = await addReview({
       user_id: user_id || null,
-      user_name: is_anonymous ? 'Anonymný užívateľ' : (user_name?.trim() || 'Klient salónu'),
+      user_name: finalUserName,
       rating: validRating,
       comment: comment.trim(),
       status: 'pending', // Po odoslaní ide na schválenie do admin panelu
-      is_anonymous: Boolean(is_anonymous),
+      is_anonymous: isAnon,
       source: source || 'profile',
     });
 

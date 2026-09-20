@@ -37,7 +37,7 @@ export async function POST(req: Request) {
 
       const created = await addReview({
         user_id: null,
-        user_name: is_anonymous ? 'Anonymný klient' : (user_name?.trim() || 'Klient salónu'),
+        user_name: is_anonymous ? 'Anonymný užívateľ' : (user_name?.trim() || 'Klient'),
         rating: Math.max(1, Math.min(5, Math.round(Number(rating)))),
         comment: comment.trim(),
         status: 'approved', // Ručne pridaná recenzia adminom je rovno schválená

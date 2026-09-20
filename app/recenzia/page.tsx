@@ -2,8 +2,44 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Star, CheckCircle2, Sparkles, MessageSquare, ArrowLeft, Heart } from 'lucide-react';
+import { Star, CheckCircle2, Sparkles, MessageSquare, ArrowLeft, Heart, Shield, User } from 'lucide-react';
 import { useLanguage } from '../lib/LanguageContext';
+
+function formatNameWithInitial(input: string, prev: string = ''): string {
+  // Ak používateľ maže znaky
+  if (input.length < prev.length) {
+    // Ak zmazal bodku z "Meno X.", zmažeme aj iniciál a necháme "Meno "
+    if (/\s\S\.$/.test(prev) && input === prev.slice(0, -1)) {
+      return prev.slice(0, -2);
+    }
+    return input;
+  }
+
+  // Odstránenie počiatočných medzier
+  const val = input.replace(/^\s+/, '');
+  if (!val) return '';
+
+  const spaceIndex = val.indexOf(' ');
+  if (spaceIndex === -1) {
+    return val;
+  }
+
+  const firstName = val.slice(0, spaceIndex);
+  const remainder = val.slice(spaceIndex + 1).replace(/^\s+/, '');
+
+  if (remainder.length === 0) {
+    return `${firstName} `;
+  }
+
+  // Prvý znak po medzere – povolíme len jedno písmeno a automaticky pridáme bodku
+  const initialChar = remainder.charAt(0);
+  if (!/\p{L}/u.test(initialChar)) {
+    return `${firstName} `;
+  }
+
+  const upperInitial = initialChar.toUpperCase();
+  return `${firstName} ${upperInitial}.`;
+}
 
 export default function PublicReviewPage() {
   const { language } = useLanguage();
@@ -28,15 +64,17 @@ export default function PublicReviewPage() {
     setLoading(true);
     setError('');
 
+    const isAnon = isAnonymous || !name.trim();
+
     try {
       const res = await fetch('/api/reviews', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          user_name: isAnonymous ? null : (name.trim() || null),
+          user_name: isAnon ? null : name.trim(),
           rating,
           comment: comment.trim(),
-          is_anonymous: isAnonymous,
+          is_anonymous: isAnon,
           source: 'qr_code',
         }),
       });
@@ -66,10 +104,10 @@ export default function PublicReviewPage() {
             className="inline-flex items-center gap-1.5 text-xs text-[#A78BFA] hover:text-white transition"
           >
             <ArrowLeft size={14} />
-            <span>{isSK ? 'Späť na salón' : 'Back to salon'}</span>
+            <span>{isSK ? 'Späť na úvod' : 'Back to home'}</span>
           </Link>
           <span className="px-2.5 py-0.5 rounded-full bg-[#6633EE]/20 border border-[#6633EE]/40 text-[#A78BFA] text-[10px] font-bold uppercase tracking-wider">
-            {isSK ? 'Hodnotenie salónu' : 'Salon Review'}
+            {isSK ? 'Hodnotenie masáže' : 'Massage Review'}
           </span>
         </div>
 
@@ -140,39 +178,41 @@ export default function PublicReviewPage() {
               </div>
             </div>
 
-            {/* Meno (ak nie je anonymné) */}
-            {!isAnonymous && (
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-slate-300 block">
-                  {isSK ? 'Vaše meno (alebo iniciály)' : 'Your name (or initials)'}
+            {/* Identita a voľba anonymity */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between gap-2">
+                <label className={`text-xs font-semibold flex items-center gap-1 transition-colors ${isAnonymous ? 'text-slate-500' : 'text-slate-300'}`}>
+                  <User size={12} className={isAnonymous ? 'text-slate-500' : 'text-[#A78BFA]'} />
+                  <span>{isSK ? 'Meno a iniciál priezviska' : 'Name and surname initial'}</span>
                 </label>
-                <input
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder={isSK ? 'napr. Martin K.' : 'e.g. Martin K.'}
-                  className="w-full p-3 rounded-xl bg-[#010314] border border-[#2B2F49] text-xs text-white placeholder-slate-500 focus:outline-none focus:border-[#6633EE] transition"
-                />
-              </div>
-            )}
 
-            {/* Prepínač anonymity */}
-            <label className="flex items-center gap-2.5 p-3 rounded-xl bg-[#010314] border border-[#2B2F49] cursor-pointer select-none">
-              <input
-                type="checkbox"
-                checked={isAnonymous}
-                onChange={(e) => setIsAnonymous(e.target.checked)}
-                className="w-4 h-4 rounded border-slate-700 text-[#6633EE] focus:ring-[#6633EE] cursor-pointer"
-              />
-              <div className="min-w-0">
-                <span className="text-xs font-semibold text-white block">
-                  {isSK ? 'Hodnotiť úplne anonymne' : 'Submit fully anonymously'}
-                </span>
-                <span className="text-[10px] text-slate-400 block">
-                  {isSK ? 'Vaše meno nebude zverejnené' : 'Your identity will not be displayed'}
-                </span>
+                <label className="flex items-center gap-1.5 cursor-pointer select-none group">
+                  <input
+                    type="checkbox"
+                    checked={isAnonymous}
+                    onChange={(e) => setIsAnonymous(e.target.checked)}
+                    className="w-3.5 h-3.5 rounded border-slate-700 text-[#6633EE] focus:ring-[#6633EE] cursor-pointer"
+                  />
+                  <span className="text-xs font-semibold text-[#A78BFA] group-hover:underline flex items-center gap-1">
+                    <Shield size={12} />
+                    <span>{isSK ? 'Uverejniť anonymne' : 'Publish anonymously'}</span>
+                  </span>
+                </label>
               </div>
-            </label>
+
+              <input
+                type="text"
+                disabled={isAnonymous}
+                value={isAnonymous ? '' : name}
+                onChange={(e) => setName(formatNameWithInitial(e.target.value, name))}
+                placeholder={isAnonymous ? (isSK ? 'Anonymný užívateľ' : 'Anonymous user') : (isSK ? 'napr. Martin K.' : 'e.g. Martin K.')}
+                className={`w-full p-2.5 rounded-xl border text-xs transition ${
+                  isAnonymous
+                    ? 'bg-slate-900/60 border-slate-800 text-slate-500 placeholder-slate-600 cursor-not-allowed opacity-60 select-none'
+                    : 'bg-[#010314] border-[#2B2F49] text-white placeholder-slate-500 focus:outline-none focus:border-[#6633EE]'
+                }`}
+              />
+            </div>
 
             {/* Text recenzie */}
             <div className="space-y-1">

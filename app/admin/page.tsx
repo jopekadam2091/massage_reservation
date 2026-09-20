@@ -577,7 +577,7 @@ export default function AdminPage() {
             </div>
             <div className="text-left">
               <h1 className="font-semibold text-[#0B0D22] dark:text-[#FFFFFF] text-base leading-tight">
-                {language === 'sk' ? 'Administrácia salónu' : 'Salon Management'}
+                {language === 'sk' ? 'Administrácia' : 'Administration'}
               </h1>
               <p className="text-xs text-[#64748B] dark:text-[#C7CAE0]/60 font-normal">
                 {language === 'sk' ? 'Kompletná správa klientov, vernostných kariet a rezervácií' : 'Client loyalty cards & booking management'}

@@ -2,11 +2,10 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { 
-  Star, Check, X, Trash2, Plus, QrCode, RefreshCw, 
+  Star, Check, X, Trash2, Plus, RefreshCw, 
   MessageSquare, User, CheckCircle2, AlertCircle, Copy, ExternalLink, ShieldCheck,
   Filter, ArrowUpDown, Calendar, Clock
 } from 'lucide-react';
-import { QRCodeSVG } from 'qrcode.react';
 import { formatCreationTime, isWithinRegistrationPeriod } from '@/app/utils/bookingUtils';
 
 interface ReviewItem {
@@ -38,7 +37,6 @@ export default function AdminReviewsSection({ language }: AdminReviewsSectionPro
 
   // Modály
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [isQrModalOpen, setIsQrModalOpen] = useState(false);
 
   // Formulár pre ručné pridanie
   const [manualName, setManualName] = useState('');
@@ -47,14 +45,7 @@ export default function AdminReviewsSection({ language }: AdminReviewsSectionPro
   const [manualAnonymous, setManualAnonymous] = useState(false);
   const [modalSubmitting, setModalSubmitting] = useState(false);
 
-  // QR Kód URL
-  const [qrUrl, setQrUrl] = useState('');
-  const [copiedLink, setCopiedLink] = useState(false);
-
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      setQrUrl(`${window.location.origin}/recenzia`);
-    }
     fetchReviews();
   }, []);
 
@@ -151,13 +142,7 @@ export default function AdminReviewsSection({ language }: AdminReviewsSectionPro
     }
   };
 
-  const handleCopyQrLink = () => {
-    if (qrUrl) {
-      navigator.clipboard.writeText(qrUrl);
-      setCopiedLink(true);
-      setTimeout(() => setCopiedLink(false), 2000);
-    }
-  };
+
 
   const pendingReviews = reviews.filter((r) => r.status === 'pending');
   const approvedReviews = reviews.filter((r) => r.status === 'approved');
@@ -216,21 +201,12 @@ export default function AdminReviewsSection({ language }: AdminReviewsSectionPro
           </div>
           <p className="text-xs text-[#64748B] dark:text-[#C7CAE0]/70">
             {isSK 
-              ? 'Schvaľujte prichádzajúce recenzie, pridávajte nové ručne alebo zdieľajte QR kód pre klientov.' 
-              : 'Approve incoming reviews, add reviews manually or share a QR code for clients.'}
+              ? 'Schvaľujte prichádzajúce recenzie alebo pridávajte nové ručne.' 
+              : 'Approve incoming reviews or add reviews manually.'}
           </p>
         </div>
 
         <div className="flex items-center gap-2 flex-wrap w-full sm:w-auto">
-          <button
-            type="button"
-            onClick={() => setIsQrModalOpen(true)}
-            className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-[#010314] text-[#0B0D22] dark:text-white border border-[#E2E8F0] dark:border-[#2B2F49] hover:border-[#6633EE] text-xs font-semibold transition cursor-pointer"
-          >
-            <QrCode size={14} className="text-[#6633EE] dark:text-[#A78BFA]" />
-            <span>{isSK ? 'QR Kód na recenzie' : 'Review QR Code'}</span>
-          </button>
-
           <button
             type="button"
             onClick={() => setIsAddModalOpen(true)}
@@ -448,7 +424,7 @@ export default function AdminReviewsSection({ language }: AdminReviewsSectionPro
                           </span>
                         )}
                         <span>•</span>
-                        <span>{rev.source === 'qr_code' ? 'QR Kód' : rev.source === 'admin_manual' ? (isSK ? 'Ručne vložené' : 'Manual') : (isSK ? 'Klientsky profil' : 'Profile')}</span>
+                        <span>{rev.source === 'qr_code' ? (isSK ? 'Webový formulár' : 'Web form') : rev.source === 'admin_manual' ? (isSK ? 'Ručne vložené' : 'Manual') : (isSK ? 'Klientsky profil' : 'Profile')}</span>
                       </div>
                     </div>
 
@@ -638,70 +614,7 @@ export default function AdminReviewsSection({ language }: AdminReviewsSectionPro
         </div>
       )}
 
-      {/* ================================================================ */}
-      {/* MODAL: QR KÓD PRE ANONYMNÉ / RÝCHLE RECENZIE NA RECEPCII        */}
-      {/* ================================================================ */}
-      {isQrModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs animate-fadeIn">
-          <div className="relative w-full max-w-sm rounded-3xl bg-white dark:bg-[#0B0D22] border border-[#E2E8F0] dark:border-[#2B2F49] p-6 text-center space-y-4 shadow-2xl">
-            <button
-              type="button"
-              onClick={() => setIsQrModalOpen(false)}
-              className="absolute top-4 right-4 text-slate-400 hover:text-[#0B0D22] dark:hover:text-white"
-            >
-              <X size={18} />
-            </button>
 
-            <div className="space-y-1 pt-1">
-              <h3 className="font-extrabold text-base text-[#0B0D22] dark:text-white">
-                {isSK ? 'QR Kód na zber recenzií' : 'Review QR Code'}
-              </h3>
-              <p className="text-xs text-[#64748B] dark:text-[#C7CAE0]/70">
-                {isSK 
-                  ? 'Umiestnite tento QR kód na recepcii salónu. Klient ho po masáži naskenuje a pošle hodnotenie.' 
-                  : 'Display this QR code at your reception for clients to scan and review.'}
-              </p>
-            </div>
-
-            {/* QR Kód v čistom bielom ráme */}
-            <div className="p-4 rounded-2xl bg-white border border-slate-200 inline-block shadow-lg mx-auto">
-              <QRCodeSVG
-                value={qrUrl || 'https://massage-reservation.sk/recenzia'}
-                size={190}
-                level="H"
-                includeMargin={false}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-[#010314] border border-[#E2E8F0] dark:border-[#2B2F49] text-[11px] font-mono text-[#6633EE] dark:text-[#A78BFA] truncate">
-                {qrUrl}
-              </div>
-
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={handleCopyQrLink}
-                  className="flex-1 py-2 px-3 rounded-xl bg-slate-100 dark:bg-[#010314] hover:bg-slate-200 dark:hover:bg-[#1A1F36] text-xs font-semibold text-[#0B0D22] dark:text-white border border-[#E2E8F0] dark:border-[#2B2F49] flex items-center justify-center gap-1.5 transition cursor-pointer"
-                >
-                  {copiedLink ? <Check size={13} className="text-emerald-400" /> : <Copy size={13} />}
-                  <span>{copiedLink ? (isSK ? 'Skopírované!' : 'Copied!') : (isSK ? 'Kopírovať odkaz' : 'Copy link')}</span>
-                </button>
-
-                <a
-                  href="/recenzia"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="p-2 rounded-xl bg-[#6633EE]/10 hover:bg-[#6633EE]/20 text-[#6633EE] dark:text-[#A78BFA] border border-[#6633EE]/30 transition"
-                  title={isSK ? 'Otvoriť stránku' : 'Open page'}
-                >
-                  <ExternalLink size={15} />
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
     </div>
   );

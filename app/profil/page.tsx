@@ -241,7 +241,7 @@ export default function ProfilPage() {
     return b.visitsCount - a.visitsCount || b.totalSpent - a.totalSpent;
   });
 
-  // Salónne metriky pre admina
+  // Súhrnné metriky pre admina
   const totalSaloonMassages = clientRankings.reduce((sum, c) => sum + c.visitsCount, 0);
   const totalSaloonRevenue = clientRankings.reduce((sum, c) => sum + c.totalSpent, 0);
   const avgSaloonSpend = clientRankings.length > 0 ? (totalSaloonRevenue / clientRankings.length).toFixed(1) : '0';
@@ -287,7 +287,7 @@ export default function ProfilPage() {
 
             <div className="min-w-0 flex-1">
               <h2 className="font-semibold text-base sm:text-lg text-[#0B0D22] dark:text-[#FFFFFF] truncate tracking-tight">
-                {profile.full_name || (isAdmin ? 'Administrátor salónu' : 'Vážený klient')}
+                {profile.full_name || (isAdmin ? (language === 'sk' ? 'Administrátor' : 'Administrator') : 'Vážený klient')}
               </h2>
               <p className="text-xs text-[#64748B] dark:text-[#C7CAE0]/80 truncate font-normal">
                 {profile.email}
@@ -342,7 +342,7 @@ export default function ProfilPage() {
         {isAdmin ? (
           <div className="space-y-4">
 
-            {/* Salónne Štatistiky */}
+            {/* Štatistiky */}
             <div className="grid grid-cols-3 gap-2.5">
               <div className="p-3.5 rounded-2xl bg-white dark:bg-[#0B0D22] border border-[#E2E8F0] dark:border-[#2B2F49] text-center space-y-1 shadow-xs">
                 <span className="text-xl font-bold text-[#6633EE] dark:text-[#A78BFA] tabular-nums">{totalSaloonMassages}</span>
@@ -503,7 +503,7 @@ export default function ProfilPage() {
                   href="/admin"
                   className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#6633EE] dark:text-[#A78BFA] hover:underline"
                 >
-                  <span>{language === 'sk' ? 'Prejsť do Administrácie salónu' : 'Go to Salon Admin'}</span>
+                  <span>{language === 'sk' ? 'Prejsť do Administrácie' : 'Go to Admin Dashboard'}</span>
                   <ChevronRight size={14} />
                 </Link>
               </div>

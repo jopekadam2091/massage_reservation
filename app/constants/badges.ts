@@ -57,7 +57,7 @@ export class BadgeRegistry {
       categoryLabel: { sk: 'Vernosť a komunita', en: 'Loyalty & Community' },
       title: { sk: 'Ambasádor', en: 'Wingman' },
       description: { 
-        sk: 'Priveď do salónu nového klienta pomocou svojho pozývacieho kódu.', 
+        sk: 'Odporuč masáž novému klientovi pomocou svojho pozývacieho kódu.', 
         en: 'Refer a new client using your referral code.' 
       },
       iconName: 'GiWingedShield',
@@ -129,7 +129,7 @@ export class BadgeRegistry {
       categoryLabel: { sk: 'Skúšanie služieb', en: 'Trying Services' },
       title: { sk: 'Objaviteľ', en: 'Explorer' },
       description: { 
-        sk: 'Vyskúšaj postupne 3 rôzne druhy masáží z ponuky salónu.', 
+        sk: 'Vyskúšaj postupne 3 rôzne druhy masáží z ponuky.', 
         en: 'Try 3 different types of massage procedures from our menu.' 
       },
       iconName: 'GiCompass',
@@ -234,7 +234,7 @@ export class BadgeRegistry {
       title: { sk: 'Záchranca víkendu', en: 'Weekend Warrior' },
       description: { 
         sk: 'Príď na masáž v piatok poobede alebo počas víkendu.', 
-        en: 'Visit the salon on Friday afternoon or over the weekend.' 
+        en: 'Come for a massage on Friday afternoon or over the weekend.' 
       },
       iconName: 'GiPartyFlags',
       unlockedBg: 'from-emerald-500 via-green-600 to-teal-800',
