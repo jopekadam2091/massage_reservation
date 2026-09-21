@@ -19,11 +19,25 @@ const CALENDAR_ID = process.env.GOOGLE_CALENDAR_ID as string;
 
 const FSM_REGEX = /fsm/i;
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
+    const { searchParams } = new URL(req.url);
+    const includePast = searchParams.get('includePast') === 'true';
+
+    let timeMin: string;
+    if (includePast) {
+      // Pre admin kalendár: načítame od začiatku aktuálneho mesiaca (00:00:00)
+      const startOfMonth = new Date();
+      startOfMonth.setDate(1);
+      startOfMonth.setHours(0, 0, 0, 0);
+      timeMin = startOfMonth.toISOString();
+    } else {
+      timeMin = new Date().toISOString();
+    }
+
     const response = await calendar.events.list({
       calendarId: CALENDAR_ID,
-      timeMin: new Date().toISOString(),
+      timeMin,
       singleEvents: true,
       orderBy: 'startTime',
     });

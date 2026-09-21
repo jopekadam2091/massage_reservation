@@ -1,6 +1,6 @@
 'use client';
 
-import { Camera, AlertCircle, X } from 'lucide-react';
+import { QrCode, AlertCircle, X } from 'lucide-react';
 
 const PRESET_PRICES = [30, 40, 45, 65, 75, 90];
 
@@ -26,60 +26,68 @@ export default function ScanPriceModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-6 animate-in fade-in duration-200 font-sans">
-      <div className="w-full max-w-sm p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-2xl space-y-4 relative text-center">
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition"
-        >
-          <X size={20} />
-        </button>
-
-        <div className="flex flex-col items-center gap-1.5">
-          <div className="w-12 h-12 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shadow">
-            <Camera size={22} />
+    <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200 font-sans">
+      <div className="w-full max-w-sm bg-white dark:bg-[#0B0D22] border border-[#E2E8F0] dark:border-[#2B2F49] rounded-3xl p-6 shadow-2xl space-y-5 text-center animate-in zoom-in-95 duration-200">
+        
+        {/* Hlavička */}
+        <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-full bg-[#6633EE]/10 dark:bg-[#6633EE]/20 text-[#6633EE] dark:text-[#A78BFA] flex items-center justify-center">
+              <QrCode size={18} />
+            </div>
+            <h3 className="font-bold text-slate-800 dark:text-slate-100 text-sm">
+              {language === 'sk' ? 'Hodnota masáže' : 'Massage Price'}
+            </h3>
           </div>
-          <h3 className="font-bold text-base text-slate-800 dark:text-slate-100">
-            {language === 'sk' ? 'Naskenovať pečiatku' : 'Scan Stamp'}
-          </h3>
-          <p className="text-xs text-slate-400 dark:text-slate-500">
-            {language === 'sk' ? 'Najprv zvoľte cenu masáže' : 'First select the massage price'}
-          </p>
+          <button 
+            onClick={onClose}
+            className="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+          >
+            <X size={18} />
+          </button>
         </div>
 
-        <div className="text-left space-y-1.5">
-          <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400">
-            {language === 'sk' ? 'Rýchly výber ceny:' : 'Quick price select:'}
+        <p className="text-xs text-slate-500 dark:text-slate-400 text-left">
+          {language === 'sk' 
+            ? 'Zadajte alebo zvoľte sumu masáže, ktorú klient absolvoval. Po potvrdení sa otvorí kamera na naskenovanie jeho QR kódu.' 
+            : 'Enter or choose the price of the massage. After confirming, the camera will open to scan the client\'s QR code.'}
+        </p>
+
+        {/* Rýchle predvoľby */}
+        <div className="space-y-1.5 text-left">
+          <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+            {language === 'sk' ? 'Rýchly výber sumy:' : 'Quick Select:'}
           </label>
-          <div className="grid grid-cols-4 gap-2">
-            {PRESET_PRICES.map((price) => (
+          <div className="grid grid-cols-3 gap-2">
+            {PRESET_PRICES.map((p) => (
               <button
-                key={price}
+                key={p}
                 type="button"
-                onClick={() => setScanStampPrice(price.toString())}
-                className={`py-2 text-xs font-bold rounded-xl border transition ${
-                  scanStampPrice === price.toString()
-                    ? 'bg-indigo-600 border-indigo-600 text-white shadow-sm'
-                    : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300'
+                onClick={() => setScanStampPrice(String(p))}
+                className={`py-2 rounded-xl text-xs font-bold border transition ${
+                  scanStampPrice === String(p)
+                    ? 'bg-[#6633EE] text-white border-[#6633EE] shadow-sm'
+                    : 'bg-slate-50 dark:bg-slate-800/60 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700/60 hover:border-[#6633EE]/50'
                 }`}
               >
-                {price}€
+                {p} €
               </button>
             ))}
           </div>
         </div>
 
-        <div className="text-left space-y-1.5">
-          <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400">
-            {language === 'sk' ? 'Alebo vlastná cena (€):' : 'Or custom price (€):'}
+        {/* Manuálny vstup */}
+        <div className="space-y-1.5 text-left">
+          <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+            {language === 'sk' ? 'Alebo zadajte vlastnú sumu (€):' : 'Or enter custom amount (€):'}
           </label>
           <input
-            type="text"
-            inputMode="decimal"
-            placeholder="napr. 45"
+            type="number"
+            step="0.5"
+            placeholder="Napr. 45"
             value={scanStampPrice}
             onChange={(e) => setScanStampPrice(e.target.value)}
-            className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium text-center text-lg"
+            className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#6633EE] font-medium text-center text-lg"
           />
         </div>
 
@@ -90,19 +98,31 @@ export default function ScanPriceModal({
           </div>
         )}
 
-        <div className="flex gap-3 pt-2">
+        <div className="flex gap-2.5 pt-2">
           <button
+            type="button"
             onClick={onClose}
-            className="flex-1 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-semibold text-xs hover:bg-slate-200 dark:hover:bg-slate-700 transition"
+            className="flex-1 py-3 px-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 font-semibold text-xs transition cursor-pointer active:scale-95"
           >
             {language === 'sk' ? 'Zrušiť' : 'Cancel'}
           </button>
           <button
+            type="button"
             onClick={onConfirm}
-            className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-indigo-600 text-white font-semibold text-xs hover:bg-indigo-700 transition shadow-sm"
+            className="flex-[1.4] flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl bg-[#6633EE] hover:bg-[#5324d6] text-white font-bold text-xs transition shadow-md active:scale-95 cursor-pointer text-center"
           >
-            <Camera size={14} />
-            {language === 'sk' ? 'Pokračovať a naskenovať' : 'Continue & scan'}
+            <QrCode size={22} className="shrink-0 text-white" />
+            <span className="leading-tight text-center">
+              {language === 'sk' ? (
+                <>
+                  Pokračovať a<br />naskenovať
+                </>
+              ) : (
+                <>
+                  Continue &<br />scan
+                </>
+              )}
+            </span>
           </button>
         </div>
       </div>

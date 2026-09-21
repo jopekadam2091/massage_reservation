@@ -11,6 +11,22 @@ const auth = new google.auth.JWT(
 const calendar = google.calendar({ version: 'v3', auth });
 const CALENDAR_ID = process.env.GOOGLE_CALENDAR_ID as string;
 
+function getBratislavaOffset(dateStr: string): string {
+  try {
+    const dObj = new Date(`${dateStr}T12:00:00Z`);
+    const dtf = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'Europe/Bratislava',
+      timeZoneName: 'longOffset',
+    });
+    const parts = dtf.formatToParts(dObj);
+    const tzPart = parts.find((p) => p.type === 'timeZoneName');
+    const match = tzPart ? tzPart.value.match(/GMT([+-]\d{2}:\d{2})/) : null;
+    return match ? match[1] : '+02:00';
+  } catch {
+    return '+02:00';
+  }
+}
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();
@@ -36,8 +52,9 @@ export async function POST(req: Request) {
 
     // 🚀 PREJDEME VŠETKY DNI V POLE A PRE KAŽDÝ VYTVORÍME BLOK V GOOGLE KALENDÁRI
     for (const d of targetDates) {
-      const startIso = new Date(`${d}T${startTime}:00`).toISOString();
-      const endIso = new Date(`${d}T${endTime}:00`).toISOString();
+      const offset = getBratislavaOffset(d);
+      const startIso = `${d}T${startTime}:00${offset}`;
+      const endIso = `${d}T${endTime}:00${offset}`;
 
       const event = {
         summary: summary,

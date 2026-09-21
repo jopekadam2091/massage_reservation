@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { supabase } from '@/app/lib/supabase';
 import FuturisticRadialMenu from './FuturisticRadialMenu';
 import { 
@@ -47,15 +47,69 @@ const DAYS_OF_WEEK = [
 ];
 
 const PROMO_TAGS = [
-  { label: '-0%', value: '0', color: 'bg-slate-500/15 text-slate-600 dark:text-slate-300 border-slate-500/40 hover:bg-slate-600 hover:text-white' },
-  { label: '-5%', value: '5', color: 'bg-sky-500/15 text-sky-600 dark:text-sky-400 border-sky-500/40 hover:bg-sky-500 hover:text-white' },
-  { label: '-10%', value: '10', color: 'bg-teal-500/15 text-teal-600 dark:text-teal-400 border-teal-500/40 hover:bg-teal-500 hover:text-white' },
-  { label: '-15%', value: '15', color: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/40 hover:bg-emerald-500 hover:text-white' },
-  { label: '-20%', value: '20', color: 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/40 hover:bg-amber-500 hover:text-white' },
-  { label: '-30%', value: '30', color: 'bg-orange-500/15 text-orange-600 dark:text-orange-400 border-orange-500/40 hover:bg-orange-500 hover:text-white' },
-  { label: '-50%', value: '50', color: 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/40 hover:bg-rose-500 hover:text-white' },
-  { label: '-75%', value: '75', color: 'bg-purple-500/15 text-purple-600 dark:text-[#A78BFA] border-purple-500/40 hover:bg-purple-500 hover:text-white' },
-  { label: '-100%', value: '100', color: 'bg-red-600/15 text-red-600 dark:text-red-400 border-red-600/40 hover:bg-red-600 hover:text-white' },
+  { 
+    label: '0', 
+    name: '0',
+    value: '0', 
+    idle: 'bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-800/60 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700', 
+    active: 'bg-slate-800 dark:bg-slate-100 text-white dark:text-slate-900 border-slate-900 dark:border-white shadow-md shadow-slate-900/20 font-bold'
+  },
+  { 
+    label: '-5%', 
+    name: '-5%',
+    value: '5', 
+    idle: 'bg-sky-50 hover:bg-sky-100/80 dark:bg-sky-950/40 dark:hover:bg-sky-900/50 text-sky-700 dark:text-sky-300 border-sky-200 dark:border-sky-800/80', 
+    active: 'bg-sky-500 text-white border-sky-600 shadow-md shadow-sky-500/30 font-bold'
+  },
+  { 
+    label: '-10%', 
+    name: '-10%',
+    value: '10', 
+    idle: 'bg-teal-50 hover:bg-teal-100/80 dark:bg-teal-950/40 dark:hover:bg-teal-900/50 text-teal-700 dark:text-teal-300 border-teal-200 dark:border-teal-800/80', 
+    active: 'bg-teal-500 text-white border-teal-600 shadow-md shadow-teal-500/30 font-bold'
+  },
+  { 
+    label: '-15%', 
+    name: '-15%',
+    value: '15', 
+    idle: 'bg-emerald-50 hover:bg-emerald-100/80 dark:bg-emerald-950/40 dark:hover:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/80', 
+    active: 'bg-emerald-500 text-white border-emerald-600 shadow-md shadow-emerald-500/30 font-bold'
+  },
+  { 
+    label: '-20%', 
+    name: '-20%',
+    value: '20', 
+    idle: 'bg-amber-50 hover:bg-amber-100/80 dark:bg-amber-950/40 dark:hover:bg-amber-900/50 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800/80', 
+    active: 'bg-amber-500 text-white border-amber-600 shadow-md shadow-amber-500/30 font-bold'
+  },
+  { 
+    label: '-30%', 
+    name: '-30%',
+    value: '30', 
+    idle: 'bg-orange-50 hover:bg-orange-100/80 dark:bg-orange-950/40 dark:hover:bg-orange-900/50 text-orange-700 dark:text-orange-300 border-orange-200 dark:border-orange-800/80', 
+    active: 'bg-orange-500 text-white border-orange-600 shadow-md shadow-orange-500/30 font-bold'
+  },
+  { 
+    label: '-50%', 
+    name: '-50%',
+    value: '50', 
+    idle: 'bg-rose-50 hover:bg-rose-100/80 dark:bg-rose-950/40 dark:hover:bg-rose-900/50 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800/80', 
+    active: 'bg-rose-500 text-white border-rose-600 shadow-md shadow-rose-500/30 font-bold'
+  },
+  { 
+    label: '-75%', 
+    name: '-75%',
+    value: '75', 
+    idle: 'bg-purple-50 hover:bg-purple-100/80 dark:bg-purple-950/40 dark:hover:bg-purple-900/50 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800/80', 
+    active: 'bg-purple-600 text-white border-purple-700 shadow-md shadow-purple-600/30 font-bold'
+  },
+  { 
+    label: '-100%', 
+    name: '-100%',
+    value: '100', 
+    idle: 'bg-red-50 hover:bg-red-100/80 dark:bg-red-950/40 dark:hover:bg-red-900/50 text-red-700 dark:text-red-300 border-red-200 dark:border-red-800/80', 
+    active: 'bg-red-600 text-white border-red-700 shadow-md shadow-red-600/30 font-bold'
+  },
 ];
 
 const getDiscountBadgeStyle = (percent: number | string | null | undefined, variant: 'solid' | 'subtle' = 'subtle') => {
@@ -188,7 +242,11 @@ export default function AdminReservationDashboard({ language }: Props) {
 
     try {
       const savedVacations = localStorage.getItem('zenflow_admin_vacations');
-      if (savedVacations) setVacationDates(JSON.parse(savedVacations));
+      if (savedVacations) {
+        const parsed: string[] = JSON.parse(savedVacations);
+        const upcoming = parsed.filter((v) => v >= todayStr);
+        setVacationDates(upcoming);
+      }
     } catch {}
 
     const loadClients = async () => {
@@ -202,7 +260,7 @@ export default function AdminReservationDashboard({ language }: Props) {
   const fetchCalendarOverview = async () => {
     setLoadingCalEvents(true);
     try {
-      const res = await fetch('/api/appointments');
+      const res = await fetch('/api/appointments?includePast=true');
       const data = await res.json();
       if (res.ok && data.events) {
         setAllCalendarEvents(data.events);
@@ -259,7 +317,7 @@ export default function AdminReservationDashboard({ language }: Props) {
     }
   };
 
-  const handleUpdateHourDiscount = async (date: string, hourStr: string, discountPercent: string) => {
+  const handleUpdateHourDiscount = async (date: string, hourStr: string, discountPercent: string, eventId?: string) => {
     const key = `${date}_${hourStr}`;
     setUpdatingDiscountSlotId(key);
     try {
@@ -267,6 +325,7 @@ export default function AdminReservationDashboard({ language }: Props) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          eventId,
           date,
           selectedHours: [hourStr],
           discountPercent,
@@ -289,13 +348,15 @@ export default function AdminReservationDashboard({ language }: Props) {
     if (targetDates.length === 0) return;
     setLoadingBatchDiscount(true);
     try {
-      for (const d of targetDates) {
-        await fetch('/api/admin/update-fsm-slot', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ date: d, discountPercent }),
-        });
-      }
+      await Promise.all(
+        targetDates.map((d) =>
+          fetch('/api/admin/update-fsm-slot', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ date: d, discountPercent }),
+          })
+        )
+      );
       await fetchCalendarOverview();
     } catch {
       alert('Chyba pri hromadnej zmene zliav.');
@@ -339,9 +400,21 @@ export default function AdminReservationDashboard({ language }: Props) {
   const monthNamesSK = ['Január', 'Február', 'Marec', 'Apríl', 'Máj', 'Jún', 'Júl', 'August', 'September', 'Október', 'November', 'December'];
   const monthNamesEN = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
-  // Kliknutie na deň
+  // Kliknutie na deň (podpora pre double-click aj double-tap na mobile)
+  const lastClickTimeRef = useRef<{ [dateKey: string]: number }>({});
+
   const handleDayClick = (dateKey: string) => {
     if (dateKey < todayIso) return;
+
+    const now = Date.now();
+    const lastClick = lastClickTimeRef.current[dateKey] || 0;
+    const isDoubleTap = now - lastClick < 350;
+    lastClickTimeRef.current[dateKey] = now;
+
+    if (isDoubleTap) {
+      setScheduleModalDate(dateKey);
+      return;
+    }
 
     if (activeRadialTool === 'direct') {
       setDirectDate(dateKey);
@@ -399,19 +472,28 @@ export default function AdminReservationDashboard({ language }: Props) {
       return;
     }
 
-    // 🚀 OBMEDZENIE: Iba dni s existujúcimi voľnými FSM slotmi
-    const dayEvs = eventsByDateKey[dateKey];
-    const hasFsmSlots = (dayEvs?.fsm?.length || 0) > 0;
-    if (!hasFsmSlots) {
-      alert(language === 'sk' 
-        ? 'Na tento deň nie je otvorený žiadny voľný FSM slot. Akciu je možné priradiť iba k dňom s existujúcimi voľnými slotmi.' 
-        : 'Cannot apply action tag. No free FSM slots on this day.');
-      return;
-    }
-
     const droppedValue = e.dataTransfer.getData('text/promo-tag');
     const droppedLabel = e.dataTransfer.getData('text/promo-label') || `-${droppedValue}%`;
     if (!droppedValue) return;
+
+    // 🚀 Ak na tento deň nie je otvorený voľný FSM slot, opýtame sa či chce vytvoriť nový slot
+    const dayEvs = eventsByDateKey[dateKey];
+    const hasFsmSlots = (dayEvs?.fsm?.length || 0) > 0;
+    if (!hasFsmSlots) {
+      const formattedDate = new Date(dateKey).toLocaleDateString('sk-SK', { day: 'numeric', month: 'numeric', year: 'numeric' });
+      const confirmCreate = confirm(
+        language === 'sk' 
+          ? `V tento deň (${formattedDate}) zatiaľ nie je otvorený žiadny voľný slot.\n\nŽeláte si pre tento deň vytvoriť nový voľný slot so zľavou ${droppedLabel}?`
+          : `No free slot on this day (${formattedDate}).\n\nDo you want to create a new free slot with discount ${droppedLabel}?`
+      );
+      if (confirmCreate) {
+        setSelectedDates([dateKey]);
+        setActivePromoTag(droppedValue);
+        setDateCustomDiscounts((d) => ({ ...d, [dateKey]: droppedValue }));
+        setActiveRadialTool('timeslot');
+      }
+      return;
+    }
 
     // Vždy otvoríme časové okno pre daný deň na vyklikanie konkrétnych hodín alebo všetkých hodín naraz
     setDropPromoModal({
@@ -420,6 +502,18 @@ export default function AdminReservationDashboard({ language }: Props) {
       tagLabel: droppedLabel,
       selectedHours: [],
     });
+  };
+
+  const addVacations = (datesToAdd: string[]) => {
+    setVacationDates((prev) => {
+      const set = new Set([...prev, ...datesToAdd]);
+      const next = Array.from(set);
+      try {
+        localStorage.setItem('zenflow_admin_vacations', JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+    setSelectedDates((prev) => prev.filter((d) => !datesToAdd.includes(d)));
   };
 
   const toggleVacation = (dateKey: string) => {
@@ -434,9 +528,37 @@ export default function AdminReservationDashboard({ language }: Props) {
     setSelectedDates((prev) => prev.filter((d) => d !== dateKey));
   };
 
-  // Rýchle predvoľby (automaticky preskakujú dovolenky)
+  // Rýchle predvoľby (platia pre voľné sloty, dovolenku aj mazanie podľa otvorenej karty)
   const applyPresetTodayAfterWork = (startTime = '17:00') => {
     const todayStr = getLocalDateKey(new Date());
+
+    // 1. REŽIM VOĽNO / DOVOLENKA: označí dnešok ako voľno
+    if (activeRadialTool === 'vacation') {
+      addVacations([todayStr]);
+      return;
+    }
+
+    // 2. REŽIM MAZANIE: označí všetky sloty dnešného dňa na zmazanie
+    if (activeRadialTool === 'delete') {
+      const dayEvs = eventsByDateKey[todayStr];
+      const daySlotIds = [
+        ...(dayEvs?.fsm.map((e: any) => e.id) || []),
+        ...(dayEvs?.bookings.map((e: any) => e.id) || []),
+      ];
+      if (daySlotIds.length > 0) {
+        setSelectedSlotIdsToDelete((prev) => Array.from(new Set([...prev, ...daySlotIds])));
+      }
+      return;
+    }
+
+    // 3. REŽIM PRIAMA REZERVÁCIA: predvolí dnešný dátum a čas
+    if (activeRadialTool === 'direct') {
+      setDirectDate(todayStr);
+      setDirectTime(startTime);
+      return;
+    }
+
+    // 4. REŽIM VOĽNÉ SLOTY: predvolí dnešný deň
     if (vacationDates.includes(todayStr)) {
       alert(language === 'sk' ? 'Dnes máte nastavenú dovolenku.' : 'Today is vacation.');
       return;
@@ -444,14 +566,14 @@ export default function AdminReservationDashboard({ language }: Props) {
     setSelectedDates([todayStr]);
     setFsmStart(startTime);
     setFsmEnd('20:00');
-    setActiveRadialTool(null);
+    if (!activeRadialTool) {
+      setActiveRadialTool('timeslot');
+    }
   };
 
   const applyPresetHomeOffice = (rangeType: 'today' | 'this_week' | 'this_month') => {
     const now = new Date();
     const todayStr = getLocalDateKey(now);
-    setFsmStart('09:00');
-    setFsmEnd('15:00');
 
     let dates: string[] = [];
     if (rangeType === 'today') {
@@ -478,10 +600,45 @@ export default function AdminReservationDashboard({ language }: Props) {
       }
     }
 
+    setShowHomeOfficeModal(false);
+
+    // 1. REŽIM VOĽNO / DOVOLENKA: označí celý vybraný rozsah ako dovolenku
+    if (activeRadialTool === 'vacation') {
+      addVacations(dates);
+      return;
+    }
+
+    // 2. REŽIM MAZANIE: označí všetky sloty v dňoch rozsahu na zmazanie
+    if (activeRadialTool === 'delete') {
+      const allSlotIds: string[] = [];
+      dates.forEach((dKey) => {
+        const dayEvs = eventsByDateKey[dKey];
+        if (dayEvs) {
+          dayEvs.fsm.forEach((e: any) => allSlotIds.push(e.id));
+          dayEvs.bookings.forEach((e: any) => allSlotIds.push(e.id));
+        }
+      });
+      if (allSlotIds.length > 0) {
+        setSelectedSlotIdsToDelete((prev) => Array.from(new Set([...prev, ...allSlotIds])));
+      }
+      return;
+    }
+
+    // 3. REŽIM PRIAMA REZERVÁCIA
+    if (activeRadialTool === 'direct') {
+      setDirectDate(dates[0] || todayStr);
+      setDirectTime('09:00');
+      return;
+    }
+
+    // 4. REŽIM VOĽNÉ SLOTY: predvolí vybrané dni a časy 09:00–15:00
     const nonVacation = dates.filter((d) => !vacationDates.includes(d));
     setSelectedDates(nonVacation);
-    setShowHomeOfficeModal(false);
-    setActiveRadialTool(null);
+    setFsmStart('09:00');
+    setFsmEnd('15:00');
+    if (!activeRadialTool) {
+      setActiveRadialTool('timeslot');
+    }
   };
 
   const applyPresetThisWeek = () => {
@@ -501,7 +658,7 @@ export default function AdminReservationDashboard({ language }: Props) {
       }
     }
     setSelectedDates(dates);
-    setActiveRadialTool(null);
+    setActiveRadialTool('timeslot');
   };
 
   const applyPresetThisMonth = (onlyWorkdays = false) => {
@@ -520,7 +677,7 @@ export default function AdminReservationDashboard({ language }: Props) {
       }
     }
     setSelectedDates(dates);
-    setActiveRadialTool(null);
+    setActiveRadialTool('timeslot');
   };
 
   // Vygenerovanie voľných FSM slotov
@@ -706,18 +863,8 @@ export default function AdminReservationDashboard({ language }: Props) {
     }
   };
 
-  // Zoznam radiálnych tlačidiel
-  const RADIAL_BUTTONS = [
-    { id: 'presets', icon: Zap, label: 'Presets', color: 'hover:bg-[#6633EE] hover:text-white', activeColor: 'bg-[#6633EE] text-white ring-2 ring-[#6633EE]/40' },
-    { id: 'tags', icon: Flame, label: 'Akcie', color: 'hover:bg-rose-500 hover:text-white', activeColor: 'bg-rose-500 text-white ring-2 ring-rose-500/40' },
-    { id: 'timeslot', icon: Clock, label: 'Čas', color: 'hover:bg-indigo-600 hover:text-white', activeColor: 'bg-indigo-600 text-white ring-2 ring-indigo-500/40' },
-    { id: 'delete', icon: Trash2, label: 'Zmazať', color: 'hover:bg-rose-600 hover:text-white', activeColor: 'bg-rose-600 text-white ring-2 ring-rose-600/40' },
-    { id: 'vacation', icon: Palmtree, label: 'Voľno', color: 'hover:bg-amber-500 hover:text-white', activeColor: 'bg-amber-500 text-white ring-2 ring-amber-500/40' },
-    { id: 'more', icon: MoreHorizontal, label: 'Viac', color: 'hover:bg-slate-700 hover:text-white', activeColor: 'bg-slate-700 text-white ring-2 ring-slate-700/40' },
-  ];
-
   return (
-    <div className="w-full max-w-6xl mx-auto space-y-4 font-sans text-left text-[#1E293B] dark:text-[#DDE0F2] pb-24 relative">
+    <div className="w-full max-w-6xl mx-auto space-y-4 font-sans text-left text-[#1E293B] dark:text-[#DDE0F2] pb-24 relative pt-4 sm:pt-6">
       
       {/* 🚀 1. HORNÝ COMMAND HUB: FUTURISTICKÉ RADIAL MENU + GLOW SPOJKA + POD-MENU */}
       <FuturisticRadialMenu
@@ -737,12 +884,10 @@ export default function AdminReservationDashboard({ language }: Props) {
           <div className="space-y-3">
             <div className="flex items-center justify-between border-b border-[#E2E8F0] dark:border-[#2B2F49] pb-2">
               <h3 className="font-semibold text-xs sm:text-sm text-[#0B0D22] dark:text-[#FFFFFF] flex items-center gap-2">
-                {activeRadialTool === 'presets' && <><Zap size={15} className="text-[#3B82F6]" /><span>1. Rýchle predvoľby (Presets)</span></>}
-                {activeRadialTool === 'tags' && <><Flame size={15} className="text-[#F97316]" /><span>2. Akciové tagy & Zľavy (Drag & Drop)</span></>}
-                {activeRadialTool === 'timeslot' && <><Clock size={15} className="text-[#10B981]" /><span>3. Pridať sloty (07:00 – 23:00)</span></>}
-                {activeRadialTool === 'delete' && <><Trash2 size={15} className="text-[#EF4444]" /><span>4. Zmazať sloty</span></>}
-                {activeRadialTool === 'vacation' && <><Palmtree size={15} className="text-[#EAB308]" /><span>5. Dovolenka & Voľno</span></>}
-                {activeRadialTool === 'direct' && <><UserPlus size={15} className="text-[#8B5CF6]" /><span>6. Priama rezervácia klienta</span></>}
+                {activeRadialTool === 'direct' && <><UserPlus size={15} className="text-[#8B5CF6]" /><span>Priama rezervácia klienta</span></>}
+                {activeRadialTool === 'timeslot' && <><Clock size={15} className="text-[#10B981]" /><span>Pridať voľné sloty</span></>}
+                {activeRadialTool === 'vacation' && <><Palmtree size={15} className="text-[#EAB308]" /><span>Voľno a dovolenka</span></>}
+                {activeRadialTool === 'delete' && <><Trash2 size={15} className="text-[#EF4444]" /><span>Zmazať sloty z kalendára</span></>}
               </h3>
 
               <button
@@ -755,144 +900,10 @@ export default function AdminReservationDashboard({ language }: Props) {
               </button>
             </div>
 
-              {/* 1. PRESETS (VIZUÁL AKO AKCIOVÉ TAGY) */}
-              {activeRadialTool === 'presets' && (
-                <div className="space-y-2">
-                  <p className="text-xs text-[#64748B] dark:text-[#C7CAE0]/60">
-                    💡 Rýchle predvoľby automaticky vyklikajú dni v kalendári (dovolenky sú automaticky preskočené):
-                  </p>
-                  
-                  <div className="flex flex-wrap gap-2 pt-1">
-                    <button
-                      type="button"
-                      onClick={() => applyPresetTodayAfterWork('17:00')}
-                      className="px-3 py-2 rounded-2xl border-2 border-blue-500/30 bg-blue-500/10 hover:bg-blue-500 hover:text-white text-blue-600 dark:text-blue-400 text-xs font-bold transition-all duration-200 hover:scale-105 shadow-xs flex items-center gap-2 cursor-pointer select-none group"
-                      title="Dnes od 17:00 do 20:00"
-                    >
-                      <div className="w-6 h-6 rounded-full bg-blue-500/20 group-hover:bg-white/20 flex items-center justify-center text-xs">
-                        💼
-                      </div>
-                      <span>Dnes po práci (17–20h)</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => setShowHomeOfficeModal(true)}
-                      className="px-3 py-2 rounded-2xl border-2 border-cyan-500/30 bg-cyan-500/10 hover:bg-cyan-500 hover:text-white text-cyan-600 dark:text-cyan-400 text-xs font-bold transition-all duration-200 hover:scale-105 shadow-xs flex items-center gap-2 cursor-pointer select-none group"
-                      title="Home Office od 09:00 do 15:00"
-                    >
-                      <div className="w-6 h-6 rounded-full bg-cyan-500/20 group-hover:bg-white/20 flex items-center justify-center text-xs">
-                        🏠
-                      </div>
-                      <span>Mám Home Office (09–15h)</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={applyPresetThisWeek}
-                      className="px-3 py-2 rounded-2xl border-2 border-indigo-500/30 bg-indigo-500/10 hover:bg-indigo-500 hover:text-white text-indigo-600 dark:text-indigo-400 text-xs font-bold transition-all duration-200 hover:scale-105 shadow-xs flex items-center gap-2 cursor-pointer select-none group"
-                      title="Tento týždeň od pondelka do piatka"
-                    >
-                      <div className="w-6 h-6 rounded-full bg-indigo-500/20 group-hover:bg-white/20 flex items-center justify-center text-xs">
-                        📅
-                      </div>
-                      <span>Tento týždeň (PO–PI)</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => applyPresetThisMonth(false)}
-                      className="px-3 py-2 rounded-2xl border-2 border-violet-500/30 bg-violet-500/10 hover:bg-violet-500 hover:text-white text-violet-600 dark:text-violet-400 text-xs font-bold transition-all duration-200 hover:scale-105 shadow-xs flex items-center gap-2 cursor-pointer select-none group"
-                      title="Tento mesiac všetky dni"
-                    >
-                      <div className="w-6 h-6 rounded-full bg-violet-500/20 group-hover:bg-white/20 flex items-center justify-center text-xs">
-                        🗓️
-                      </div>
-                      <span>Tento mesiac (Všetky dni)</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => applyPresetThisMonth(true)}
-                      className="px-3 py-2 rounded-2xl border-2 border-sky-500/30 bg-sky-500/10 hover:bg-sky-500 hover:text-white text-sky-600 dark:text-sky-400 text-xs font-bold transition-all duration-200 hover:scale-105 shadow-xs flex items-center gap-2 cursor-pointer select-none group"
-                      title="Tento mesiac iba pracovné dni"
-                    >
-                      <div className="w-6 h-6 rounded-full bg-sky-500/20 group-hover:bg-white/20 flex items-center justify-center text-xs">
-                        🏢
-                      </div>
-                      <span>Tento mesiac (Iba PO–PI)</span>
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* 2. AKCIE & ZĽAVOVÉ TAGY (DRAG & DROP) */}
-              {activeRadialTool === 'tags' && (
-                <div className="space-y-3">
-                  <p className="text-xs text-[#64748B] dark:text-[#C7CAE0]/60">
-                    💡 <strong>Potiahnite (Drag & Drop)</strong> kruhový tag na deň v kalendári pre otvorenie časového okna, alebo kliknite:
-                  </p>
-
-                  <div className="flex flex-wrap items-center gap-2 pt-1">
-                    {PROMO_TAGS.map((tag) => (
-                      <div
-                        key={tag.label}
-                        draggable
-                        onDragStart={(e) => {
-                          e.dataTransfer.setData('text/promo-tag', tag.value);
-                          e.dataTransfer.setData('text/promo-label', tag.label);
-                        }}
-                        onClick={() => {
-                          setActivePromoTag(tag.value);
-                          if (selectedDates.length > 0) {
-                            const updated = { ...dateCustomDiscounts };
-                            selectedDates.forEach((d) => {
-                              updated[d] = tag.value;
-                            });
-                            setDateCustomDiscounts(updated);
-                          }
-                        }}
-                        className={`w-11 h-11 sm:w-12 sm:h-12 rounded-full border-2 text-xs font-bold font-mono cursor-grab active:cursor-grabbing transition-all duration-200 hover:scale-110 flex items-center justify-center shadow-sm select-none ${tag.color} ${
-                          activePromoTag === tag.value ? 'ring-3 ring-[#F97316] scale-105 shadow-md' : ''
-                        }`}
-                        title={`Pretiahnuť ${tag.label} na deň v kalendári`}
-                      >
-                        <span>{tag.label}</span>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* RÝCHLA APLIKÁCIA / ODOBRATIE AKCIE NA EXISTUJÚCE TERMÍNY VO VYBRANÝCH DŇOCH */}
-                  {selectedDates.length > 0 && (
-                    <div className="pt-2 border-t border-[#E2E8F0] dark:border-[#2B2F49] flex items-center justify-between gap-2">
-                      <span className="text-[11px] text-[#64748B] dark:text-[#C7CAE0]/70">
-                        Označené dni ({selectedDates.length}):
-                      </span>
-                      <button
-                        type="button"
-                        disabled={loadingBatchDiscount}
-                        onClick={() => handleUpdateDatesDiscount(selectedDates, activePromoTag)}
-                        className="px-3 py-1.5 rounded-xl bg-[#F97316] hover:bg-[#EA580C] text-white text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-xs disabled:opacity-40"
-                      >
-                        {loadingBatchDiscount ? <Loader2 size={13} className="animate-spin" /> : <Sparkles size={13} />}
-                        <span>
-                          {activePromoTag !== '0'
-                            ? `Uložiť zľavu (-${activePromoTag}%) pre existujúce sloty v (${selectedDates.length}) dňoch`
-                            : `Odobrať akciu zo všetkých slotov v (${selectedDates.length}) dňoch`}
-                        </span>
-                      </button>
-                    </div>
-                  )}
-                </div>
-              )}
-
               {/* 3. PRIDAŤ VOĽNÉ SLOTY DO SYSTÉMU S MOŽNOSŤOU AKCIE */}
               {activeRadialTool === 'timeslot' && (
                 <form onSubmit={handleCreateFsm} className="space-y-3.5">
-                  <p className="text-xs text-[#64748B] dark:text-[#C7CAE0]/70">
-                    💡 Vyberte deň (dni) v kalendári nižšie, nastavte časový interval a voliteľne priraďte akciu:
-                  </p>
-
+                  {/* 1. ČASOVÝ INTERVAL */}
                   <div className="grid grid-cols-2 gap-2">
                     <div>
                       <label className="block text-[11px] font-semibold text-[#0B0D22] dark:text-[#FFFFFF] mb-1">
@@ -925,6 +936,45 @@ export default function AdminReservationDashboard({ language }: Props) {
                     </div>
                   </div>
 
+                  {/* 2. MODERNÉ TLAČIDLÁ PRE ZĽAVY / AKCIE (1 RIADOK, MODERNÝ SANS FONT) */}
+                  <div className="pt-2 border-t border-[#E2E8F0] dark:border-[#2B2F49]">
+                    <div className="flex items-center justify-between gap-1 sm:gap-1.5 w-full overflow-x-auto no-scrollbar py-0.5">
+                      {PROMO_TAGS.map((tag) => {
+                        const isSelected = activePromoTag === tag.value;
+                        return (
+                          <button
+                            key={tag.label}
+                            type="button"
+                            draggable
+                            onDragStart={(e) => {
+                              e.dataTransfer.setData('text/promo-tag', tag.value);
+                              e.dataTransfer.setData('text/promo-label', tag.label);
+                            }}
+                            onClick={() => {
+                              setActivePromoTag(tag.value);
+                              if (selectedDates.length > 0) {
+                                const updated = { ...dateCustomDiscounts };
+                                selectedDates.forEach((d) => {
+                                  updated[d] = tag.value;
+                                });
+                                setDateCustomDiscounts(updated);
+                              }
+                            }}
+                            className={`group relative flex-1 min-w-[28px] sm:min-w-[34px] py-1.5 px-1 sm:px-1.5 rounded-xl border text-[11px] sm:text-xs font-bold tracking-tight transition-all duration-200 active:scale-95 cursor-pointer select-none flex items-center justify-center shrink-0 sm:shrink ${
+                              isSelected
+                                ? `${tag.active} scale-105 ring-2 ring-offset-1 ring-offset-white dark:ring-offset-[#0B0D22] z-10`
+                                : `${tag.idle} hover:-translate-y-0.5 shadow-2xs`
+                            }`}
+                            title={tag.value === '0' ? (language === 'sk' ? 'Bez zľavy (0)' : 'No discount (0)') : `Akcia ${tag.label}`}
+                          >
+                            <span>{tag.label}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* 4. OZNAČENÉ DNI & SUBMIT */}
                   <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-xs font-semibold flex items-center justify-between">
                     <span>Označené dni v kalendári:</span>
                     <span className="text-[#10B981] font-bold font-mono text-sm">
@@ -954,7 +1004,7 @@ export default function AdminReservationDashboard({ language }: Props) {
                     {loadingFsm ? <Loader2 size={16} className="animate-spin" /> : <CalendarPlus size={16} />}
                     <span>
                       {selectedDates.filter((d) => !vacationDates.includes(d)).length > 0
-                        ? `Pridať voľné sloty do systému (${fsmStart}–${fsmEnd}) pre (${selectedDates.filter((d) => !vacationDates.includes(d)).length}) dní`
+                        ? `Pridať voľné sloty do systému (${fsmStart}–${fsmEnd})${activePromoTag !== '0' ? ` so zľavou -${activePromoTag}%` : ''} pre (${selectedDates.filter((d) => !vacationDates.includes(d)).length}) dní`
                         : 'Vyberte dni v kalendári nižšie pre pridanie slotov'}
                     </span>
                   </button>
@@ -1033,26 +1083,66 @@ export default function AdminReservationDashboard({ language }: Props) {
 
               {/* 5. DOVOLENKA & VOĽNO */}
               {activeRadialTool === 'vacation' && (
-                <div className="space-y-2.5">
-                  <p className="text-xs text-[#64748B] dark:text-[#C7CAE0]/60">
-                    💡 Klikaním na dni v kalendári nižšie ich označíte / odznačíte ako <strong>Dovolenka</strong>.
+                <div className="space-y-3">
+                  <p className="text-xs text-[#64748B] dark:text-[#C7CAE0]/70">
+                    💡 Klikaním na dni v kalendári nižšie ich označíte / odznačíte ako <strong>Voľno</strong>.
                   </p>
-                  {vacationDates.length > 0 && (
-                    <div className="p-2 rounded-xl bg-slate-50 dark:bg-[#010314] border border-[#E2E8F0] dark:border-[#2B2F49] space-y-1">
-                      <span className="text-[11px] font-bold text-amber-600">Dovolenky ({vacationDates.length}):</span>
-                      <div className="flex flex-wrap gap-1 max-h-20 overflow-y-auto">
-                        {vacationDates.map((v) => (
-                          <span key={v} className="px-2 py-0.5 rounded bg-amber-500/20 text-[10px] font-bold">
-                            {v}
+                  {(() => {
+                    const upcomingVacations = vacationDates.filter((v) => v >= todayIso).sort();
+                    if (upcomingVacations.length === 0) {
+                      return (
+                        <div className="p-3 rounded-xl bg-slate-50 dark:bg-[#010314] border border-[#E2E8F0] dark:border-[#2B2F49] text-xs text-[#64748B] text-center">
+                          Zatiaľ nemáte vybrané žiadne nadchádzajúce voľno.
+                        </div>
+                      );
+                    }
+                    return (
+                      <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-[#010314] border border-[#E2E8F0] dark:border-[#2B2F49] space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-amber-600 dark:text-amber-400">
+                            Vybrané voľno ({upcomingVacations.length}):
                           </span>
-                        ))}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setVacationDates((prev) => {
+                                const next = prev.filter((v) => v < todayIso);
+                                try {
+                                  localStorage.setItem('zenflow_admin_vacations', JSON.stringify(next));
+                                } catch {}
+                                return next;
+                              });
+                            }}
+                            className="text-[11px] font-semibold text-[#64748B] hover:text-rose-500 hover:underline cursor-pointer"
+                          >
+                            Zrušiť všetko
+                          </button>
+                        </div>
+                        <div className="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto">
+                          {upcomingVacations.map((v) => (
+                            <span
+                              key={v}
+                              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-500/15 border border-amber-500/30 text-xs font-semibold text-amber-700 dark:text-amber-300 shadow-2xs"
+                            >
+                              <span>{formatFullDateText(v)}</span>
+                              <button
+                                type="button"
+                                onClick={() => toggleVacation(v)}
+                                className="text-amber-600 hover:text-rose-600 dark:text-amber-400 dark:hover:text-rose-400 p-0.5 rounded cursor-pointer"
+                                title="Odstrániť voľno"
+                              >
+                                <X size={13} />
+                              </button>
+                            </span>
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    );
+                  })()}
                   <button
                     type="button"
                     onClick={() => setActiveRadialTool(null)}
-                    className="w-full py-2 rounded-xl bg-[#EAB308] text-black font-bold text-xs transition cursor-pointer"
+                    className="w-full py-2.5 rounded-xl bg-[#EAB308] hover:bg-[#CA8A04] text-black font-bold text-xs transition cursor-pointer shadow-xs active:scale-98"
                   >
                     Hotovo
                   </button>
@@ -1219,51 +1309,100 @@ export default function AdminReservationDashboard({ language }: Props) {
         </FuturisticRadialMenu>
 
         {/* 🚀 2. PLNOFORMÁTOVÝ VEĽKÝ KALENDÁR (100% ŠÍRKA) */}
-        <div className="calendar-container w-full p-5 sm:p-6 rounded-2xl bg-white dark:bg-[#0B0D22] border border-[#E2E8F0] dark:border-[#2B2F49] shadow-sm space-y-4 relative">
+        <div className="calendar-container w-full p-2.5 sm:p-5 lg:p-6 rounded-2xl bg-white dark:bg-[#0B0D22] border border-[#E2E8F0] dark:border-[#2B2F49] shadow-sm space-y-3 sm:space-y-4 relative">
         
         {/* Hlavička kalendára */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-[#E2E8F0] dark:border-[#2B2F49] pb-4">
-          <div>
-            <div className="flex items-center gap-2">
-              <Calendar size={22} className="text-[#6633EE] dark:text-[#A78BFA]" />
-              <h2 className="font-semibold text-lg sm:text-xl text-[#0B0D22] dark:text-[#FFFFFF]">
-                {language === 'sk' ? monthNamesSK[calMonth] : monthNamesEN[calMonth]} {calYear}
-              </h2>
-            </div>
+        <div className="border-b border-[#E2E8F0] dark:border-[#2B2F49] pb-3.5 space-y-2.5">
+          
+          {/* NÁZOV MESIACA */}
+          <div className="flex items-center gap-2">
+            <Calendar size={22} className="text-[#6633EE] dark:text-[#A78BFA]" />
+            <h2 className="font-semibold text-lg sm:text-xl text-[#0B0D22] dark:text-[#FFFFFF]">
+              {language === 'sk' ? monthNamesSK[calMonth] : monthNamesEN[calMonth]} {calYear}
+            </h2>
           </div>
 
-          {/* Ovládanie mesiacov */}
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setCalCurrentDate(new Date(calYear, calMonth - 1, 1))}
-              className="p-2 rounded-xl bg-slate-100 dark:bg-[#010314] text-[#64748B] dark:text-[#C7CAE0] hover:text-[#0B0D22] dark:hover:text-white transition cursor-pointer border border-[#E2E8F0] dark:border-[#2B2F49]"
-              title={language === 'sk' ? 'Predchádzajúci mesiac' : 'Previous month'}
-            >
-              <ChevronLeft size={18} />
-            </button>
+          {/* V JEDNEJ ÚROVNI (V ROVNAKEJ LINKE): VĽAVO SUITCASE & HOME | VPRAVO DNES A ŠÍPKY */}
+          <div className="flex items-center justify-between gap-2 w-full">
+            {/* ĽAVÁ STRANA: SUITCASE & HOME */}
+            <div className="flex items-center gap-1.5">
+              {/* RÝCHLA PREDVOĽBA: PO PRÁCI (Briefcase - Modrá) */}
+              <button
+                type="button"
+                onClick={() => applyPresetTodayAfterWork('17:00')}
+                className="p-2 rounded-xl bg-blue-500/10 hover:bg-blue-500 text-blue-600 hover:text-white dark:bg-blue-500/20 dark:text-blue-400 dark:hover:bg-blue-500 dark:hover:text-white border border-blue-500/30 transition-all duration-200 cursor-pointer flex items-center justify-center shadow-xs active:scale-95"
+                title={
+                  activeRadialTool === 'vacation'
+                    ? 'Nastaviť dnešok ako voľno'
+                    : activeRadialTool === 'delete'
+                    ? 'Označiť dnešné sloty na zmazanie'
+                    : language === 'sk'
+                    ? 'Rýchla predvoľba: Po práci (Dnes 17:00 – 20:00)'
+                    : 'Quick preset: After work (Today 17:00 – 20:00)'
+                }
+                aria-label={language === 'sk' ? 'Po práci' : 'After work'}
+              >
+                <Briefcase size={16} />
+              </button>
 
-            <button
-              type="button"
-              onClick={() => setCalCurrentDate(new Date())}
-              className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-[#010314] text-xs font-semibold text-[#0B0D22] dark:text-[#FFFFFF] border border-[#E2E8F0] dark:border-[#2B2F49] hover:border-[#6633EE] transition cursor-pointer"
-            >
-              {language === 'sk' ? 'Dnes' : 'Today'}
-            </button>
+              {/* RÝCHLA PREDVOĽBA: HOME OFFICE (HomeIcon - Smaragdová) */}
+              <button
+                type="button"
+                onClick={() => {
+                  if (!activeRadialTool) {
+                    setActiveRadialTool('timeslot');
+                  }
+                  setShowHomeOfficeModal(true);
+                }}
+                className="p-2 rounded-xl bg-emerald-500/10 hover:bg-emerald-500 text-emerald-600 hover:text-white dark:bg-emerald-500/20 dark:text-emerald-400 dark:hover:bg-emerald-500 dark:hover:text-white border border-emerald-500/30 transition-all duration-200 cursor-pointer flex items-center justify-center shadow-xs active:scale-95"
+                title={
+                  activeRadialTool === 'vacation'
+                    ? 'Rýchly výber dní pre voľno'
+                    : activeRadialTool === 'delete'
+                    ? 'Rýchly výber dní na zmazanie'
+                    : language === 'sk'
+                    ? 'Rýchla predvoľba: Home Office (09:00 – 15:00)'
+                    : 'Quick preset: Home Office (09:00 – 15:00)'
+                }
+                aria-label="Home Office"
+              >
+                <HomeIcon size={16} />
+              </button>
+            </div>
 
-            <button
-              type="button"
-              onClick={() => setCalCurrentDate(new Date(calYear, calMonth + 1, 1))}
-              className="p-2 rounded-xl bg-slate-100 dark:bg-[#010314] text-[#64748B] dark:text-[#C7CAE0] hover:text-[#0B0D22] dark:hover:text-white transition cursor-pointer border border-[#E2E8F0] dark:border-[#2B2F49]"
-              title={language === 'sk' ? 'Nasledujúci mesiac' : 'Next month'}
-            >
-              <ChevronRight size={18} />
-            </button>
+            {/* PRAVÁ STRANA: NAVIGÁCIA (ŠÍPKY A DNES) */}
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <button
+                type="button"
+                onClick={() => setCalCurrentDate(new Date(calYear, calMonth - 1, 1))}
+                className="p-2 rounded-xl bg-slate-100 dark:bg-[#010314] text-[#64748B] dark:text-[#C7CAE0] hover:text-[#0B0D22] dark:hover:text-white transition cursor-pointer border border-[#E2E8F0] dark:border-[#2B2F49]"
+                title={language === 'sk' ? 'Predchádzajúci mesiac' : 'Previous month'}
+              >
+                <ChevronLeft size={18} />
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setCalCurrentDate(new Date())}
+                className="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-[#010314] text-xs font-semibold text-[#0B0D22] dark:text-[#FFFFFF] border border-[#E2E8F0] dark:border-[#2B2F49] hover:border-[#6633EE] transition cursor-pointer shadow-2xs"
+              >
+                {language === 'sk' ? 'Dnes' : 'Today'}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setCalCurrentDate(new Date(calYear, calMonth + 1, 1))}
+                className="p-2 rounded-xl bg-slate-100 dark:bg-[#010314] text-[#64748B] dark:text-[#C7CAE0] hover:text-[#0B0D22] dark:hover:text-white transition cursor-pointer border border-[#E2E8F0] dark:border-[#2B2F49]"
+                title={language === 'sk' ? 'Nasledujúci mesiac' : 'Next month'}
+              >
+                <ChevronRight size={18} />
+              </button>
+            </div>
           </div>
         </div>
 
         {/* Názvy dní v týždni */}
-        <div className="grid grid-cols-7 gap-2 text-center font-semibold text-xs text-[#64748B] dark:text-[#C7CAE0]/70 pb-1">
+        <div className="grid grid-cols-7 gap-1 sm:gap-1.5 md:gap-2 text-center font-semibold text-[11px] sm:text-xs text-[#64748B] dark:text-[#C7CAE0]/70 pb-1">
           {DAYS_OF_WEEK.map((d) => (
             <span key={`dayname-${d.id}`} className="hidden sm:inline">{language === 'sk' ? d.sk : d.en}</span>
           ))}
@@ -1273,9 +1412,9 @@ export default function AdminReservationDashboard({ language }: Props) {
         </div>
 
         {/* Mriežka dní (Plná šírka s veľkými bunkami) */}
-        <div className="grid grid-cols-7 gap-2">
+        <div className="grid grid-cols-7 gap-1 sm:gap-1.5 md:gap-2">
           {emptyCells.map((_, i) => (
-            <div key={`empty-cell-${i}`} className="min-h-[85px] sm:min-h-[95px] rounded-2xl opacity-0 pointer-events-none" />
+            <div key={`empty-cell-${i}`} className="min-h-[64px] sm:min-h-[85px] md:min-h-[95px] rounded-xl sm:rounded-2xl opacity-0 pointer-events-none" />
           ))}
 
           {daysArray.map((day) => {
@@ -1311,9 +1450,16 @@ export default function AdminReservationDashboard({ language }: Props) {
               <div
                 key={`calendar-cell-${dateKey}`}
                 onClick={() => handleDayClick(dateKey)}
+                onDoubleClick={(e) => {
+                  e.stopPropagation();
+                  if (dateKey >= todayIso) {
+                    setScheduleModalDate(dateKey);
+                  }
+                }}
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={(e) => handleDropPromoTag(e, dateKey)}
-                className={`group min-h-[85px] sm:min-h-[95px] p-2 sm:p-2.5 rounded-2xl border flex flex-col justify-between text-left transition-all duration-200 relative select-none ${
+                title={!isPast ? (language === 'sk' ? 'Dvojklik pre hodinový rozpis (07:00–23:00)' : 'Double click for hourly schedule') : undefined}
+                className={`group min-h-[64px] sm:min-h-[85px] md:min-h-[95px] p-1 sm:p-2 md:p-2.5 rounded-xl sm:rounded-2xl border flex flex-col justify-between text-left transition-all duration-200 relative select-none overflow-hidden ${
                   isPast
                     ? 'opacity-35 border-transparent bg-slate-100/50 dark:bg-[#010314]/30 cursor-not-allowed text-[#94A3B8]'
                     : isDeleteMode
@@ -1340,8 +1486,8 @@ export default function AdminReservationDashboard({ language }: Props) {
                 }`}
               >
                 {/* Horný riadok: Číslo dňa, Akcia a Ikonka Času / Checkbox Mazania */}
-                <div className="flex items-start justify-between w-full gap-1">
-                  <div className="flex items-center gap-1.5">
+                <div className="flex items-start justify-between w-full gap-0.5 sm:gap-1">
+                  <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
                     <span className={`text-xs sm:text-sm font-bold tabular-nums ${
                       isDeleteMode && isDayFullyDeleteSelected
                         ? 'text-rose-600 dark:text-rose-400'
@@ -1358,11 +1504,11 @@ export default function AdminReservationDashboard({ language }: Props) {
                       {day}
                     </span>
                     {isToday && (
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#6633EE]" title="Dnes" />
+                      <span className="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-[#6633EE] shrink-0" title="Dnes" />
                     )}
                   </div>
 
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
                     {/* Priradená akcia (z reálnych Google Calendar FSM slotov alebo custom výberu) */}
                     {!isDeleteMode && (() => {
                       const fsmDiscounts = dayEvents.fsm
@@ -1374,7 +1520,7 @@ export default function AdminReservationDashboard({ language }: Props) {
                         if (uniqueDiscounts.length === 1) {
                           return (
                             <span
-                              className={`text-[9px] font-bold px-1.5 py-0.2 rounded-full border font-mono shadow-2xs ${getDiscountBadgeStyle(uniqueDiscounts[0], 'subtle')}`}
+                              className={`text-[9px] font-bold tracking-tight px-1.5 py-0.5 rounded-md border shadow-2xs ${getDiscountBadgeStyle(uniqueDiscounts[0], 'subtle')}`}
                               title={`Akcia -${uniqueDiscounts[0]}%`}
                             >
                               -{uniqueDiscounts[0]}%
@@ -1384,7 +1530,7 @@ export default function AdminReservationDashboard({ language }: Props) {
                           // Viacero rôznych zliav v daný deň: zobrazíme len štýlový info tag "%"
                           return (
                             <span
-                              className="text-[9px] font-bold px-1.5 py-0.2 rounded-full border border-amber-500/50 bg-amber-500/15 text-amber-600 dark:text-amber-300 font-mono shadow-2xs flex items-center justify-center min-w-[20px]"
+                              className="text-[9px] font-bold tracking-tight px-1.5 py-0.5 rounded-md border border-amber-500/50 bg-amber-500/15 text-amber-600 dark:text-amber-300 shadow-2xs flex items-center justify-center min-w-[20px]"
                               title={`Rôzne zľavy v tento deň (${uniqueDiscounts.map((d) => `-${d}%`).join(', ')}). Kliknite pre podrobný rozpis hodín.`}
                             >
                               %
@@ -1395,7 +1541,7 @@ export default function AdminReservationDashboard({ language }: Props) {
 
                       if (customDiscount && customDiscount !== '0') {
                         return (
-                          <span className={`text-[9px] font-bold px-1.5 py-0.2 rounded-full border font-mono shadow-2xs ${getDiscountBadgeStyle(customDiscount, 'subtle')}`}>
+                          <span className={`text-[9px] font-bold tracking-tight px-1.5 py-0.5 rounded-md border shadow-2xs ${getDiscountBadgeStyle(customDiscount, 'subtle')}`}>
                             -{customDiscount}%
                           </span>
                         );
@@ -1405,7 +1551,7 @@ export default function AdminReservationDashboard({ language }: Props) {
                       if (daySlotDiscounts.length > 0) {
                         const firstVal = slotCustomDiscounts[daySlotDiscounts[0]];
                         return (
-                          <span className={`text-[9px] font-bold px-1.5 py-0.2 rounded-full border font-mono shadow-2xs ${getDiscountBadgeStyle(firstVal, 'subtle')}`}>
+                          <span className={`text-[9px] font-bold tracking-tight px-1.5 py-0.5 rounded-md border shadow-2xs ${getDiscountBadgeStyle(firstVal, 'subtle')}`}>
                             -{firstVal}% ({daySlotDiscounts.length}x)
                           </span>
                         );
@@ -1413,64 +1559,39 @@ export default function AdminReservationDashboard({ language }: Props) {
                       return null;
                     })()}
 
-                    {/* V REŽIME MAZANIA: CHECKBOX PRE CELÝ DEŇ + TLAČIDLO HODINOVÉHO ROZPISU */}
+                    {/* V REŽIME MAZANIA: CHECKBOX PRE CELÝ DEŇ */}
                     {isDeleteMode && hasSlots && (
-                      <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                      <div className="flex items-center" onClick={(e) => e.stopPropagation()}>
                         <input
                           type="checkbox"
                           checked={isDayFullyDeleteSelected}
-                          onChange={(e) => {
+                          onChange={() => {
                             if (isDayFullyDeleteSelected) {
                               setSelectedSlotIdsToDelete((prev) => prev.filter((id) => !daySlotIds.includes(id)));
                             } else {
                               setSelectedSlotIdsToDelete((prev) => Array.from(new Set([...prev, ...daySlotIds])));
                             }
                           }}
-                          className="w-4 h-4 rounded text-rose-600 focus:ring-rose-500 cursor-pointer accent-rose-600"
+                          className="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded text-rose-600 focus:ring-rose-500 cursor-pointer accent-rose-600 shrink-0"
                           title={isDayFullyDeleteSelected ? "Odznačiť celý deň" : "Označiť všetky sloty dňa na zmazanie"}
                         />
                       </div>
-                    )}
-
-                    {/* 🕒 IKONKA ČASU (V režime mazania aj v bežnom režime) */}
-                    {!isPast && hasSlots && (
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setScheduleModalDate(dateKey);
-                        }}
-                        className={`p-1 rounded-md border transition shadow-2xs cursor-pointer ${
-                          isDeleteMode
-                            ? 'bg-white dark:bg-[#0B0D22] border-rose-200 dark:border-rose-900/40 text-rose-500 hover:bg-rose-500 hover:text-white'
-                            : 'bg-white dark:bg-[#0B0D22] border-[#E2E8F0] dark:border-[#2B2F49] text-[#6633EE] dark:text-[#A78BFA] hover:bg-[#6633EE] hover:text-white opacity-80 sm:opacity-0 group-hover:opacity-100'
-                        }`}
-                        title={
-                          isDeleteMode
-                            ? 'Vybrať konkrétne hodiny / sloty na zmazanie (07:00–23:00)'
-                            : language === 'sk'
-                            ? 'Hodinový rozpis (07:00–23:00)'
-                            : 'Hourly schedule (07:00–23:00)'
-                        }
-                      >
-                        <Clock size={12} />
-                      </button>
                     )}
                   </div>
                 </div>
 
                 {/* Dovolenka Badge */}
                 {isVacation && (
-                  <div className="px-1.5 py-0.5 rounded-md bg-amber-500/20 text-amber-700 dark:text-amber-300 text-[9.5px] font-bold flex items-center gap-1">
-                    <Palmtree size={11} />
+                  <div className="px-1 sm:px-1.5 py-0.5 rounded-md bg-amber-500/20 text-amber-700 dark:text-amber-300 text-[8px] sm:text-[9.5px] font-bold flex items-center gap-1">
+                    <Palmtree size={10} className="sm:w-3 sm:h-3" />
                     <span>Dovolenka</span>
                   </div>
                 )}
 
                 {/* Indikátory slotov a rezervácií */}
-                <div className="space-y-1 w-full pt-1">
+                <div className="space-y-0.5 sm:space-y-1 w-full pt-0.5 sm:pt-1">
                   {isDeleteMode && hasSlots ? (
-                    <div className={`flex items-center justify-between px-1.5 py-0.5 rounded-md text-[10px] font-bold border transition ${
+                    <div className={`flex items-center justify-between px-1 sm:px-1.5 py-0.5 rounded-md text-[9px] sm:text-[10px] font-bold border transition ${
                       isDayFullyDeleteSelected
                         ? 'bg-rose-600 text-white border-rose-600'
                         : isDayPartiallyDeleteSelected
@@ -1478,27 +1599,38 @@ export default function AdminReservationDashboard({ language }: Props) {
                         : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/30'
                     }`}>
                       <span className="truncate">
-                        {isDayFullyDeleteSelected
-                          ? `Všetkých ${daySlotIds.length} vybratých`
-                          : isDayPartiallyDeleteSelected
-                          ? `Vybraté ${selectedSlotIdsInDay.length} z ${daySlotIds.length}`
-                          : `${daySlotIds.length} slotov (klik pre hodiny)`}
+                        <span className="sm:hidden font-mono">
+                          {isDayFullyDeleteSelected ? 'Všetky' : isDayPartiallyDeleteSelected ? `${selectedSlotIdsInDay.length}/${daySlotIds.length}` : `${daySlotIds.length}x`}
+                        </span>
+                        <span className="hidden sm:inline">
+                          {isDayFullyDeleteSelected
+                            ? `Všetkých ${daySlotIds.length}`
+                            : isDayPartiallyDeleteSelected
+                            ? `Vybraté ${selectedSlotIdsInDay.length}/${daySlotIds.length}`
+                            : `${daySlotIds.length} slotov`}
+                        </span>
                       </span>
-                      <span className="text-[9px] font-mono font-bold">DEL</span>
+                      <span className="text-[8px] sm:text-[9px] font-mono font-bold shrink-0">DEL</span>
                     </div>
                   ) : (
                     <>
                       {fsmCount > 0 && (
-                        <div className="flex items-center justify-between px-1.5 py-0.5 rounded-md bg-[#10B981]/15 text-[#10B981] text-[10px] font-bold border border-[#10B981]/30">
-                          <span className="truncate">{fsmCount} voľných</span>
-                          <span className="text-[9px] font-mono">FSM</span>
+                        <div className="flex items-center justify-between px-1 sm:px-1.5 py-0.5 rounded-md bg-[#10B981]/15 text-[#10B981] text-[9px] sm:text-[10px] font-bold border border-[#10B981]/30">
+                          <span className="truncate">
+                            <span className="sm:hidden font-mono">{fsmCount}x</span>
+                            <span className="hidden sm:inline">{fsmCount} voľných</span>
+                          </span>
+                          <span className="text-[8px] sm:text-[9px] font-mono shrink-0">FSM</span>
                         </div>
                       )}
 
                       {bookingCount > 0 && (
-                        <div className="flex items-center justify-between px-1.5 py-0.5 rounded-md bg-[#6633EE]/15 text-[#6633EE] dark:text-[#A78BFA] text-[10px] font-bold border border-[#6633EE]/30">
-                          <span className="truncate">{bookingCount} rezerv.</span>
-                          <span className="text-[9px] font-mono">RES</span>
+                        <div className="flex items-center justify-between px-1 sm:px-1.5 py-0.5 rounded-md bg-[#6633EE]/15 text-[#6633EE] dark:text-[#A78BFA] text-[9px] sm:text-[10px] font-bold border border-[#6633EE]/30">
+                          <span className="truncate">
+                            <span className="sm:hidden font-mono">{bookingCount}x</span>
+                            <span className="hidden sm:inline">{bookingCount} rezerv.</span>
+                          </span>
+                          <span className="text-[8px] sm:text-[9px] font-mono shrink-0">RES</span>
                         </div>
                       )}
                     </>
@@ -1527,7 +1659,7 @@ export default function AdminReservationDashboard({ language }: Props) {
           </div>
 
           <span className="text-[11px] italic">
-            {language === 'sk' ? '💡 Ikonka 🕒 v rohu dňa zobrazí rozpis 07:00–23:00' : 'Click 🕒 icon for 07:00–23:00 hourly schedule'}
+            {language === 'sk' ? '💡 Dvojklik na deň zobrazí hodinový rozpis 07:00–23:00' : '💡 Double click day for 07:00–23:00 hourly schedule'}
           </span>
         </div>
 
@@ -1631,7 +1763,7 @@ export default function AdminReservationDashboard({ language }: Props) {
                             </span>
 
                             {fsmDiscount && (
-                              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full font-mono shadow-2xs ${getDiscountBadgeStyle(fsmDiscount, 'solid')}`}>
+                              <span className={`text-[10px] font-bold tracking-tight px-2 py-0.5 rounded-md shadow-2xs ${getDiscountBadgeStyle(fsmDiscount, 'solid')}`}>
                                 -{fsmDiscount}%
                               </span>
                             )}
@@ -1650,8 +1782,11 @@ export default function AdminReservationDashboard({ language }: Props) {
                                 <select
                                   value={fsmDiscount ? String(fsmDiscount) : '0'}
                                   onChange={(e) => {
+                                    const val = e.target.value;
+                                    const curVal = fsmDiscount ? String(fsmDiscount) : '0';
+                                    if (val === curVal) return;
                                     if (scheduleModalDate) {
-                                      handleUpdateHourDiscount(scheduleModalDate, hourStr, e.target.value);
+                                      handleUpdateHourDiscount(scheduleModalDate, hourStr, val, matchingEvent.id);
                                     }
                                   }}
                                   className="py-1 px-1.5 rounded-lg border border-[#E2E8F0] dark:border-[#2B2F49] bg-white dark:bg-[#0B0D22] text-[10px] font-bold cursor-pointer focus:outline-none focus:border-[#F97316]"
@@ -1667,22 +1802,6 @@ export default function AdminReservationDashboard({ language }: Props) {
                                   <option value="75">-75% Akcia</option>
                                   <option value="100">-100% Akcia</option>
                                 </select>
-                              )}
-
-                              {fsmDiscount && (
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    if (scheduleModalDate) {
-                                      handleUpdateHourDiscount(scheduleModalDate, hourStr, '0');
-                                    }
-                                  }}
-                                  disabled={updatingDiscountSlotId === `${scheduleModalDate}_${hourStr}`}
-                                  className="px-1.5 py-1 rounded-lg bg-slate-100 dark:bg-[#010314] text-[10px] font-semibold text-[#64748B] hover:text-rose-500 transition cursor-pointer"
-                                  title="Odobrať akciu z tejto hodiny"
-                                >
-                                  ❌
-                                </button>
                               )}
                             </div>
                           )}
@@ -1828,7 +1947,7 @@ export default function AdminReservationDashboard({ language }: Props) {
             
             <div className="flex items-center justify-between border-b border-[#E2E8F0] dark:border-[#2B2F49] pb-3 shrink-0">
               <div className="flex items-center gap-2.5">
-                <div className={`w-9 h-9 rounded-full font-bold font-mono text-xs flex items-center justify-center border shadow-xs ${getDiscountBadgeStyle(dropPromoModal.tagValue, 'subtle')}`}>
+                <div className={`w-9 h-9 rounded-xl font-bold tracking-tight text-xs flex items-center justify-center border shadow-xs ${getDiscountBadgeStyle(dropPromoModal.tagValue, 'subtle')}`}>
                   {dropPromoModal.tagLabel}
                 </div>
                 <div>
@@ -1944,7 +2063,7 @@ export default function AdminReservationDashboard({ language }: Props) {
                       </div>
 
                       {isChecked && (
-                        <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full font-mono shadow-xs ${getDiscountBadgeStyle(dropPromoModal.tagValue, 'solid')}`}>
+                        <span className={`text-[11px] font-bold tracking-tight px-2 py-0.5 rounded-md shadow-xs ${getDiscountBadgeStyle(dropPromoModal.tagValue, 'solid')}`}>
                           {dropPromoModal.tagLabel}
                         </span>
                       )}
@@ -2049,44 +2168,54 @@ export default function AdminReservationDashboard({ language }: Props) {
           <div className="p-5 rounded-2xl bg-white dark:bg-[#0B0D22] border border-[#E2E8F0] dark:border-[#2B2F49] shadow-2xl max-w-sm w-full space-y-4 text-left animate-in zoom-in-95">
             <div className="flex items-center justify-between">
               <h3 className="font-semibold text-sm text-[#0B0D22] dark:text-[#FFFFFF] flex items-center gap-1.5">
-                <HomeIcon size={16} className="text-[#6633EE]" />
-                <span>Mám Home Office (09:00–15:00)</span>
+                <HomeIcon size={16} className="text-emerald-500 dark:text-emerald-400" />
+                <span>
+                  {activeRadialTool === 'vacation'
+                    ? 'Nastaviť voľno / dovolenku'
+                    : activeRadialTool === 'delete'
+                    ? 'Označiť sloty na zmazanie'
+                    : 'Mám Home Office (09:00–15:00)'}
+                </span>
               </h3>
               <button
                 type="button"
                 onClick={() => setShowHomeOfficeModal(false)}
-                className="text-[#64748B] hover:text-[#0B0D22] dark:hover:text-white p-1"
+                className="text-[#64748B] hover:text-[#0B0D22] dark:hover:text-white p-1 cursor-pointer"
               >
                 <X size={16} />
               </button>
             </div>
             <p className="text-xs text-[#64748B] dark:text-[#C7CAE0]/60">
-              Zvoľte rozsah pre otvorenie denných termínov:
+              {activeRadialTool === 'vacation'
+                ? 'Zvoľte rozsah dní pre nastavenie voľna:'
+                : activeRadialTool === 'delete'
+                ? 'Zvoľte rozsah dní pre hromadné označenie na zmazanie:'
+                : 'Zvoľte rozsah pre otvorenie denných termínov:'}
             </p>
             <div className="space-y-2">
               <button
                 type="button"
                 onClick={() => applyPresetHomeOffice('today')}
-                className="w-full py-2.5 px-3 rounded-xl bg-slate-50 dark:bg-[#010314] hover:border-[#6633EE] border border-[#E2E8F0] dark:border-[#2B2F49] font-semibold text-xs text-left transition flex items-center justify-between"
+                className="w-full py-2.5 px-3 rounded-xl bg-slate-50 dark:bg-[#010314] hover:border-emerald-500 hover:bg-emerald-500/5 border border-[#E2E8F0] dark:border-[#2B2F49] font-semibold text-xs text-left transition flex items-center justify-between cursor-pointer"
               >
                 <span>Iba na dnešný deň</span>
-                <ChevronRight size={14} className="text-[#6633EE]" />
+                <ChevronRight size={14} className="text-emerald-500" />
               </button>
               <button
                 type="button"
                 onClick={() => applyPresetHomeOffice('this_week')}
-                className="w-full py-2.5 px-3 rounded-xl bg-slate-50 dark:bg-[#010314] hover:border-[#6633EE] border border-[#E2E8F0] dark:border-[#2B2F49] font-semibold text-xs text-left transition flex items-center justify-between"
+                className="w-full py-2.5 px-3 rounded-xl bg-slate-50 dark:bg-[#010314] hover:border-emerald-500 hover:bg-emerald-500/5 border border-[#E2E8F0] dark:border-[#2B2F49] font-semibold text-xs text-left transition flex items-center justify-between cursor-pointer"
               >
                 <span>Na celý tento týždeň (PO–PI)</span>
-                <ChevronRight size={14} className="text-[#6633EE]" />
+                <ChevronRight size={14} className="text-emerald-500" />
               </button>
               <button
                 type="button"
                 onClick={() => applyPresetHomeOffice('this_month')}
-                className="w-full py-2.5 px-3 rounded-xl bg-slate-50 dark:bg-[#010314] hover:border-[#6633EE] border border-[#E2E8F0] dark:border-[#2B2F49] font-semibold text-xs text-left transition flex items-center justify-between"
+                className="w-full py-2.5 px-3 rounded-xl bg-slate-50 dark:bg-[#010314] hover:border-emerald-500 hover:bg-emerald-500/5 border border-[#E2E8F0] dark:border-[#2B2F49] font-semibold text-xs text-left transition flex items-center justify-between cursor-pointer"
               >
                 <span>Na všetky pracovné dni v mesiaci</span>
-                <ChevronRight size={14} className="text-[#6633EE]" />
+                <ChevronRight size={14} className="text-emerald-500" />
               </button>
             </div>
           </div>
