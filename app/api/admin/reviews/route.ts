@@ -1,10 +1,22 @@
 import { NextResponse } from 'next/server';
-import { getAllReviews, updateReviewStatus, deleteReview, addReview } from '@/app/lib/reviewsStorage';
+import { getAllReviewsWithStatus, updateReviewStatus, deleteReview, addReview } from '@/app/lib/reviewsStorage';
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export async function GET() {
   try {
-    const reviews = await getAllReviews();
-    return NextResponse.json({ success: true, reviews });
+    const { reviews, isDbConnected } = await getAllReviewsWithStatus();
+    return NextResponse.json(
+      { success: true, reviews, isDbConnected },
+      {
+        headers: {
+          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0',
+        },
+      }
+    );
   } catch (error) {
     console.error('API GET /api/admin/reviews error:', error);
     return NextResponse.json({ success: false, error: 'Chyba načítania recenzií' }, { status: 500 });
@@ -21,12 +33,26 @@ export async function POST(req: Request) {
         return NextResponse.json({ success: false, error: 'Neplatný status' }, { status: 400 });
       }
       const ok = await updateReviewStatus(id, status);
-      return NextResponse.json({ success: ok });
+      return NextResponse.json(
+        { success: ok },
+        {
+          headers: {
+            'Cache-Control': 'no-store, no-cache, must-revalidate',
+          },
+        }
+      );
     }
 
     if (action === 'delete' && id) {
       const ok = await deleteReview(id);
-      return NextResponse.json({ success: ok });
+      return NextResponse.json(
+        { success: ok },
+        {
+          headers: {
+            'Cache-Control': 'no-store, no-cache, must-revalidate',
+          },
+        }
+      );
     }
 
     if (action === 'create_manual' && reviewData) {
@@ -45,7 +71,14 @@ export async function POST(req: Request) {
         source: 'admin_manual',
       });
 
-      return NextResponse.json({ success: true, review: created });
+      return NextResponse.json(
+        { success: true, review: created },
+        {
+          headers: {
+            'Cache-Control': 'no-store, no-cache, must-revalidate',
+          },
+        }
+      );
     }
 
     return NextResponse.json({ success: false, error: 'Neplatná akcia' }, { status: 400 });

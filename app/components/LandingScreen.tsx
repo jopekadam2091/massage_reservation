@@ -180,13 +180,13 @@ export default function LandingScreen({ onEnter, sessionUser }: Props) {
   const { language, toggleLanguage } = useLanguage();
   const isSK = language === 'sk';
 
-  const [dynamicReviews, setDynamicReviews] = useState<any[]>([]);
+  const [dynamicReviews, setDynamicReviews] = useState<any[] | null>(null);
 
   useEffect(() => {
-    fetch('/api/reviews')
+    fetch('/api/reviews', { cache: 'no-store' })
       .then((res) => res.json())
       .then((data) => {
-        if (data.success && Array.isArray(data.reviews) && data.reviews.length > 0) {
+        if (data.success && Array.isArray(data.reviews)) {
           const mapped = data.reviews.map((r: any) => ({
             id: r.id,
             name: r.user_name,
@@ -197,13 +197,17 @@ export default function LandingScreen({ onEnter, sessionUser }: Props) {
             verified: true,
           }));
           setDynamicReviews(mapped);
+        } else {
+          setDynamicReviews([]);
         }
       })
-      .catch(() => { });
+      .catch(() => {
+        setDynamicReviews([]);
+      });
   }, [isSK]);
 
-  const defaultList = isSK ? REVIEWS_DATA.SK : REVIEWS_DATA.EN;
-  const reviewsList = dynamicReviews.length > 0 ? dynamicReviews : defaultList;
+  // Používame výhradne reálne schválené recenzie z databázy (ak boli všetky vymazané, zoznam je prázdny)
+  const reviewsList = dynamicReviews !== null ? dynamicReviews : [];
 
   const [showAuthChoice, setShowAuthChoice] = useState(false);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
@@ -301,13 +305,13 @@ export default function LandingScreen({ onEnter, sessionUser }: Props) {
     resetAutoScroll();
   };
 
-  // 4-násobná sada kariet pre plynulý nekonečný wrap-around (1. buffer vľavo, 2. a 3. stred, 4. buffer vpravo)
-  const infiniteReviews = [
+  // 4-násobná sada kariet pre plynulý nekonečný wrap-around (iba ak máme recenzie)
+  const infiniteReviews = reviewsList.length > 0 ? [
     ...reviewsList,
     ...reviewsList,
     ...reviewsList,
     ...reviewsList,
-  ];
+  ] : [];
 
   const getCardStep = () => {
     if (!scrollContainerRef.current) return 380;
@@ -320,7 +324,7 @@ export default function LandingScreen({ onEnter, sessionUser }: Props) {
   };
 
   const getSingleSetWidth = () => {
-    if (!scrollContainerRef.current) return 0;
+    if (!scrollContainerRef.current || reviewsList.length === 0) return 0;
     const cards = scrollContainerRef.current.children;
     const len = reviewsList.length;
     if (cards.length > len && cards[len] && cards[0]) {
@@ -332,7 +336,7 @@ export default function LandingScreen({ onEnter, sessionUser }: Props) {
 
   // Vypočíta presný scroll pre vycentrovanie karty v kontajneri
   const getBaseCenterScroll = () => {
-    if (!scrollContainerRef.current) return 0;
+    if (!scrollContainerRef.current || reviewsList.length === 0) return 0;
     const el = scrollContainerRef.current;
     const cards = el.children;
     const len = reviewsList.length;
@@ -387,6 +391,7 @@ export default function LandingScreen({ onEnter, sessionUser }: Props) {
 
   // Inicializácia do vycentrovanej 2. sady kariet s vypočítaným zaostrením
   useEffect(() => {
+    if (reviewsList.length === 0) return;
     const el = scrollContainerRef.current;
     if (!el) return;
 
@@ -538,6 +543,7 @@ export default function LandingScreen({ onEnter, sessionUser }: Props) {
 
   // Detekcia scrollu pre tichý wrap-around a automatické docentrovanie karty po pustení prsta
   useEffect(() => {
+    if (reviewsList.length === 0) return;
     const el = scrollContainerRef.current;
     if (!el) return;
 
@@ -582,7 +588,7 @@ export default function LandingScreen({ onEnter, sessionUser }: Props) {
     if (autoScrollTimerRef.current) {
       clearTimeout(autoScrollTimerRef.current);
     }
-    if (isAutoScrollPaused) return;
+    if (isAutoScrollPaused || reviewsList.length === 0) return;
 
     autoScrollTimerRef.current = setTimeout(() => {
       if (!scrollContainerRef.current) return;
@@ -727,113 +733,141 @@ export default function LandingScreen({ onEnter, sessionUser }: Props) {
           </div>
         </div>
 
-        {/* 🌟 2. DOLNÁ ČASŤ: SEKCIA RECENZIÍ (POSUNUTÁ VYŠŠIE O POLOVICU) */}
-        <section className="relative z-10 -mx-3 sm:mx-0 w-[calc(100%+1.5rem)] sm:w-full max-w-6xl mt-0 sm:mt-auto mb-1.5 sm:mb-3 py-1 pointer-events-auto select-none shrink-0">
+        {/* 🌟 2. DOLNÁ ČASŤ: SEKCIA RECENZIÍ (ZOBRAZÍ SA LEN AK SÚ K DISPOZÍCII SCHVÁLENÉ RECENZIE) */}
+        {reviewsList.length > 0 ? (
+          <section className="relative z-10 -mx-3 sm:mx-0 w-[calc(100%+1.5rem)] sm:w-full max-w-6xl mt-0 sm:mt-auto mb-1.5 sm:mb-3 py-1 pointer-events-auto select-none shrink-0">
 
-          {/* HLAVIČKA: NÁPIS VĽAVO, ANIMOVANÝ SWIPE SYMBOL VPRAVO */}
-          <div className="flex items-center justify-between gap-3 mb-1.5 px-4 sm:px-6">
-            <div>
-              <h2 className="text-base sm:text-xl font-black text-[#0B0D22] dark:text-white tracking-tight leading-tight">
-                {isSK ? 'Čo hovoria naši ' : 'What Our '}
-                <span className="text-[#64748B] dark:text-[#94A3B8] font-semibold">
-                  {isSK ? 'klienti' : 'Clients Say'}
-                </span>
-              </h2>
+            {/* HLAVIČKA: NÁPIS VĽAVO, ANIMOVANÝ SWIPE SYMBOL VPRAVO */}
+            <div className="flex items-center justify-between gap-3 mb-1.5 px-4 sm:px-6">
+              <div>
+                <h2 className="text-base sm:text-xl font-black text-[#0B0D22] dark:text-white tracking-tight leading-tight">
+                  {isSK ? 'Čo hovoria naši ' : 'What Our '}
+                  <span className="text-[#64748B] dark:text-[#94A3B8] font-semibold">
+                    {isSK ? 'klienti' : 'Clients Say'}
+                  </span>
+                </h2>
+              </div>
+
+              {/* 👆 ANIMOVANÝ SVG SYMBOL SWIPEU PODĽA DODANÉHO VZORU (BEZ TEXTU) */}
+              <div
+                className="relative flex items-center justify-center select-none pointer-events-none p-1"
+                title={isSK ? 'Potiahnite pre ďalšie recenzie' : 'Swipe for more reviews'}
+              >
+                  <div className="relative animate-swipe-hand">
+                    <svg
+                      viewBox="0 0 100 100"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="w-7 h-7 sm:w-8 sm:h-8 text-[#6633EE] dark:text-[#A78BFA] drop-shadow-[0_0_8px_rgba(102,51,238,0.6)]"
+                    >
+                      {/* Horný oblúk so šípkou doľava */}
+                      <path d="M 58 16 C 42 12 26 16 15 25" />
+                      <path d="M 24 16 L 14 25 L 24 32" />
+
+                      {/* Ruka s vystretým ukazovákom */}
+                      <path d="M 36 29 L 45 47" />
+                      <path d="M 36 29 C 33 23 27 26 25 31 C 23 36 30 52 35 60 C 29 55 22 55 20 60 C 18 64 22 70 28 77 C 35 84 46 90 57 88 C 69 86 78 77 81 65 C 84 53 76 43 72 43 C 69 43 67 46 66 50 C 65 44 60 41 56 42 C 53 43 51 46 51 50 C 50 44 45 42 41 43 C 38 44 37 47 37 51" />
+                    </svg>
+                  </div>
+                </div>
             </div>
 
-            {/* 👆 ANIMOVANÝ SVG SYMBOL SWIPEU PODĽA DODANÉHO VZORU (BEZ TEXTU) */}
+            {/* HORIZONTÁLNY PÁS KARIET RECENZIÍ */}
             <div
-              className="relative flex items-center justify-center select-none pointer-events-none p-1"
-              title={isSK ? 'Potiahnite pre ďalšie recenzie' : 'Swipe for more reviews'}
+              ref={scrollContainerRef}
+              onPointerDown={handlePointerDown}
+              onPointerMove={handlePointerMove}
+              onPointerUp={handlePointerUp}
+              onPointerCancel={handlePointerUp}
+              onTouchStart={() => {
+                setIsAutoScrollPaused(true);
+                if (autoScrollTimerRef.current) clearTimeout(autoScrollTimerRef.current);
+              }}
+              onTouchEnd={() => {
+                setIsAutoScrollPaused(false);
+                resetAutoScroll();
+              }}
+              className="w-full overflow-x-auto no-scrollbar flex gap-3 sm:gap-5 py-2 px-4 sm:px-6 snap-x snap-mandatory cursor-grab active:cursor-grabbing select-none touch-pan-x [-webkit-overflow-scrolling:touch]"
             >
-                <div className="relative animate-swipe-hand">
-                  <svg
-                    viewBox="0 0 100 100"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="w-7 h-7 sm:w-8 sm:h-8 text-[#6633EE] dark:text-[#A78BFA] drop-shadow-[0_0_8px_rgba(102,51,238,0.6)]"
-                  >
-                    {/* Horný oblúk so šípkou doľava */}
-                    <path d="M 58 16 C 42 12 26 16 15 25" />
-                    <path d="M 24 16 L 14 25 L 24 32" />
-
-                    {/* Ruka s vystretým ukazovákom */}
-                    <path d="M 36 29 L 45 47" />
-                    <path d="M 36 29 C 33 23 27 26 25 31 C 23 36 30 52 35 60 C 29 55 22 55 20 60 C 18 64 22 70 28 77 C 35 84 46 90 57 88 C 69 86 78 77 81 65 C 84 53 76 43 72 43 C 69 43 67 46 66 50 C 65 44 60 41 56 42 C 53 43 51 46 51 50 C 50 44 45 42 41 43 C 38 44 37 47 37 51" />
-                  </svg>
-                </div>
-              </div>
-          </div>
-
-          {/* HORIZONTÁLNY PÁS KARIET RECENZIÍ */}
-          <div
-            ref={scrollContainerRef}
-            onPointerDown={handlePointerDown}
-            onPointerMove={handlePointerMove}
-            onPointerUp={handlePointerUp}
-            onPointerCancel={handlePointerUp}
-            onTouchStart={() => {
-              setIsAutoScrollPaused(true);
-              if (autoScrollTimerRef.current) clearTimeout(autoScrollTimerRef.current);
-            }}
-            onTouchEnd={() => {
-              setIsAutoScrollPaused(false);
-              resetAutoScroll();
-            }}
-            className="w-full overflow-x-auto no-scrollbar flex gap-3 sm:gap-5 py-2 px-4 sm:px-6 snap-x snap-mandatory cursor-grab active:cursor-grabbing select-none touch-pan-x [-webkit-overflow-scrolling:touch]"
-          >
-            {infiniteReviews.map((review, idx) => (
-              <div
-                key={`${review.id}-${idx}`}
-                className="w-[260px] sm:w-[320px] md:w-[340px] h-[175px] sm:h-[220px] md:h-[235px] shrink-0 p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl bg-white dark:bg-[#0B0D22] sm:bg-white/90 sm:dark:bg-[#0B0D22]/90 sm:backdrop-blur-xl border border-[#E2E8F0] dark:border-[#2B2F49] shadow-lg flex flex-col justify-between text-left hover:border-[#6633EE]/60 hover:shadow-2xl transition-[opacity,transform,border-color,box-shadow] duration-200 transform-gpu snap-center"
-              >
-                {/* Horný riadok: Meno človeka vľavo, luxury hviezdičky v pilulke vpravo */}
-                <div className="flex items-start justify-between gap-2">
-                  <div className="space-y-0.5 min-w-0">
-                    <div className="flex items-center gap-1.5">
-                      <span className="font-extrabold text-xs sm:text-base text-[#0B0D22] dark:text-white tracking-tight truncate">
-                        {formatReviewName(review.name, isSK)}
-                      </span>
-                      {review.verified && (
-                        <CheckCircle2 size={13} className="text-emerald-500 shrink-0" />
+              {infiniteReviews.map((review, idx) => (
+                <div
+                  key={`${review.id}-${idx}`}
+                  className="w-[260px] sm:w-[320px] md:w-[340px] h-[175px] sm:h-[220px] md:h-[235px] shrink-0 p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl bg-white dark:bg-[#0B0D22] sm:bg-white/90 sm:dark:bg-[#0B0D22]/90 sm:backdrop-blur-xl border border-[#E2E8F0] dark:border-[#2B2F49] shadow-lg flex flex-col justify-between text-left hover:border-[#6633EE]/60 hover:shadow-2xl transition-[opacity,transform,border-color,box-shadow] duration-200 transform-gpu snap-center"
+                >
+                  {/* Horný riadok: Meno človeka vľavo, luxury hviezdičky v pilulke vpravo */}
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="space-y-0.5 min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-extrabold text-xs sm:text-base text-[#0B0D22] dark:text-white tracking-tight truncate">
+                          {formatReviewName(review.name, isSK)}
+                        </span>
+                        {review.verified && (
+                          <CheckCircle2 size={13} className="text-emerald-500 shrink-0" />
+                        )}
+                      </div>
+                      {review.subtitle && (
+                        <p className="text-[10px] sm:text-xs text-[#64748B] dark:text-[#94A3B8] font-medium truncate">
+                          {review.subtitle}
+                        </p>
                       )}
                     </div>
-                    {review.subtitle && (
-                      <p className="text-[10px] sm:text-xs text-[#64748B] dark:text-[#94A3B8] font-medium truncate">
-                        {review.subtitle}
-                      </p>
-                    )}
+
+                    {/* Hviezdičky priamo na karte bez bubliny */}
+                    <div className="flex items-center gap-0.5 text-[#E5C158] drop-shadow-[0_0_6px_rgba(229,193,88,0.5)] shrink-0 pt-0.5">
+                      {[...Array(review.rating)].map((_, i) => (
+                        <Star key={i} size={13} className="fill-[#E5C158] stroke-[#D4AF37] stroke-[0.5]" />
+                      ))}
+                    </div>
                   </div>
 
-                  {/* Hviezdičky priamo na karte bez bubliny */}
-                  <div className="flex items-center gap-0.5 text-[#E5C158] drop-shadow-[0_0_6px_rgba(229,193,88,0.5)] shrink-0 pt-0.5">
-                    {[...Array(review.rating)].map((_, i) => (
-                      <Star key={i} size={13} className="fill-[#E5C158] stroke-[#D4AF37] stroke-[0.5]" />
-                    ))}
+                  {/* Stred: Text recenzie */}
+                  <div className="my-auto py-1 flex-1 flex items-center overflow-hidden">
+                    <p className="text-[11px] sm:text-sm font-medium text-[#0B0D22] dark:text-white leading-relaxed tracking-tight line-clamp-3 sm:line-clamp-4">
+                      &ldquo;{review.text}&rdquo;
+                    </p>
                   </div>
+
+                  {/* Spodná časť: Dátum recenzie */}
+                  {review.date && (
+                    <div className="pt-1.5 border-t border-slate-100 dark:border-[#1E2342] flex items-center justify-between text-[10px] sm:text-xs text-[#64748B] dark:text-[#94A3B8]">
+                      <span className="font-semibold text-[#6633EE] dark:text-[#A78BFA]">{isSK ? 'Overená recenzia' : 'Verified review'}</span>
+                      <span>{review.date}</span>
+                    </div>
+                  )}
                 </div>
-
-                {/* Stred: Text recenzie */}
-                <div className="my-auto py-1 flex-1 flex items-center overflow-hidden">
-                  <p className="text-[11px] sm:text-sm font-medium text-[#0B0D22] dark:text-white leading-relaxed tracking-tight line-clamp-3 sm:line-clamp-4">
-                    &ldquo;{review.text}&rdquo;
-                  </p>
-                </div>
-
-                {/* Spodná časť: Dátum recenzie */}
-                {review.date && (
-                  <div className="pt-1.5 border-t border-slate-100 dark:border-[#1E2342] flex items-center justify-between text-[10px] sm:text-xs text-[#64748B] dark:text-[#94A3B8]">
-                    <span className="font-semibold text-[#6633EE] dark:text-[#A78BFA]">{isSK ? 'Overená recenzia' : 'Verified review'}</span>
-                    <span>{review.date}</span>
-                  </div>
-                )}
+              ))}
+            </div>
+          </section>
+        ) : (
+          <section className="relative z-10 w-full max-w-md mx-auto mt-0 sm:mt-auto mb-2 sm:mb-3 px-4 text-center shrink-0">
+            <div className="p-3.5 sm:p-4 rounded-2xl bg-white/70 dark:bg-[#0B0D22]/70 border border-[#E2E8F0] dark:border-[#2B2F49] backdrop-blur-md shadow-sm space-y-2">
+              <div className="flex items-center justify-center gap-1 text-amber-400">
+                {[1, 2, 3, 4, 5].map((s) => (
+                  <Star key={s} size={14} className="fill-amber-400 text-amber-400" />
+                ))}
               </div>
-            ))}
-          </div>
-        </section>
+              <p className="text-xs sm:text-sm font-bold text-[#0B0D22] dark:text-white">
+                {isSK ? 'Zatiaľ neboli pridané žiadne recenzie' : 'No reviews yet'}
+              </p>
+              <p className="text-[11px] text-[#64748B] dark:text-[#C7CAE0] leading-tight">
+                {isSK 
+                  ? 'Boli ste u nás na masáži? Podeľte sa o skúsenosť a zanechajte prvé hodnotenie!' 
+                  : 'Visited our massage salon? Be the first to leave a review!'}
+              </p>
+              <button
+                type="button"
+                onClick={() => setIsReviewModalOpen(true)}
+                className="mt-1 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-[#6633EE] to-[#7C3AED] text-white text-xs font-bold transition hover:opacity-95 cursor-pointer shadow-sm inline-flex items-center gap-1.5 active:scale-95"
+              >
+                <MessageSquarePlus size={13} />
+                <span>{isSK ? 'Napísať prvú recenziu' : 'Write first review'}</span>
+              </button>
+            </div>
+          </section>
+        )}
 
         {/* 📌 SPODNÁ LIŠTA OBRAZOVKY: INFORMÁCIA O MOŽNOSTI PRIDAŤ RECENZIU */}
         <footer className="relative z-10 shrink-0 pt-0.5 pb-1 text-center pointer-events-auto">

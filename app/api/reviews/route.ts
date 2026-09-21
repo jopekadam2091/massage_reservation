@@ -1,10 +1,22 @@
 import { NextResponse } from 'next/server';
 import { getApprovedReviews, addReview } from '@/app/lib/reviewsStorage';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export async function GET() {
   try {
     const reviews = await getApprovedReviews();
-    return NextResponse.json({ success: true, reviews });
+    return NextResponse.json(
+      { success: true, reviews },
+      {
+        headers: {
+          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0',
+        },
+      }
+    );
   } catch (error) {
     console.error('API GET /api/reviews error:', error);
     return NextResponse.json({ success: false, error: 'Failed to fetch reviews' }, { status: 500 });
@@ -35,11 +47,18 @@ export async function POST(req: Request) {
       source: source || 'profile',
     });
 
-    return NextResponse.json({ 
-      success: true, 
-      review: newRev, 
-      message: 'Recenzia bola úspešne odoslaná na schválenie administrátorom.' 
-    });
+    return NextResponse.json(
+      { 
+        success: true, 
+        review: newRev, 
+        message: 'Recenzia bola úspešne odoslaná na schválenie administrátorom.' 
+      },
+      {
+        headers: {
+          'Cache-Control': 'no-store, no-cache, must-revalidate',
+        },
+      }
+    );
   } catch (error) {
     console.error('API POST /api/reviews error:', error);
     return NextResponse.json({ success: false, error: 'Chyba pri ukladaní recenzie.' }, { status: 500 });
