@@ -626,7 +626,7 @@ export default function AdminPage() {
   }
 
   return (
-    <main className="min-h-screen pt-[calc(env(safe-area-inset-top,44px)+5rem)] sm:pt-28 pb-12 sm:pb-16 bg-[#F4F6FB] dark:bg-[#010314] text-[#0B0D22] dark:text-[#FFFFFF] transition-colors duration-300 p-4 sm:p-6 font-sans">
+    <main className="min-h-screen pt-[calc(env(safe-area-inset-top,44px)+7.5rem)] sm:pt-36 pb-12 sm:pb-16 bg-[#F4F6FB] dark:bg-[#010314] text-[#0B0D22] dark:text-[#FFFFFF] transition-colors duration-300 p-4 sm:p-6 font-sans">
       {scanSuccessMsg && (
         <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[60] flex items-center gap-2 px-4 py-3 rounded-2xl bg-[#10B981] text-white text-xs font-semibold shadow-2xl animate-in fade-in slide-in-from-top-4 duration-300">
           <CheckCircle size={16} />
@@ -765,7 +765,7 @@ export default function AdminPage() {
             onClick={() => setIsAdminMenuOpen(false)}
           >
             <div 
-              className="w-full max-w-sm h-full sm:h-auto sm:max-h-[92vh] bg-white dark:bg-[#0B0D22] border-r sm:border border-[#E2E8F0] dark:border-[#2B2F49] sm:rounded-3xl shadow-2xl p-5 sm:p-6 pt-[calc(env(safe-area-inset-top,48px)+1.25rem)] sm:pt-6 overflow-y-auto space-y-4 text-left flex flex-col justify-between animate-in slide-in-from-left duration-300"
+              className="w-full max-w-sm h-full sm:h-auto sm:max-h-[92vh] bg-white dark:bg-[#0B0D22] border-r sm:border border-[#E2E8F0] dark:border-[#2B2F49] sm:rounded-3xl shadow-2xl p-5 sm:p-6 pt-[calc(env(safe-area-inset-top,54px)+1.5rem)] sm:pt-8 overflow-y-auto space-y-4 text-left flex flex-col justify-between animate-in slide-in-from-left duration-300"
               onClick={(e) => e.stopPropagation()}
             >
               <div>

@@ -218,7 +218,7 @@ export default function Navbar() {
       >
         {/* Plynulý gradient & backdrop-blur mask cez celú šírku hornej lišty */}
         <div 
-          className="absolute inset-x-0 top-0 h-[calc(env(safe-area-inset-top,44px)+3.5rem)] bg-gradient-to-b from-[#F4F6FB] via-[#F4F6FB]/80 to-transparent dark:from-[#010314] dark:via-[#010314]/80 dark:to-transparent backdrop-blur-[6px] [mask-image:linear-gradient(to_bottom,black_0%,black_50%,transparent_100%)] [-webkit-mask-image:linear-gradient(to_bottom,black_0%,black_50%,transparent_100%)] pointer-events-none"
+          className="absolute inset-x-0 top-0 h-[calc(env(safe-area-inset-top,44px)+2.5rem)] bg-gradient-to-b from-[#F4F6FB] via-[#F4F6FB]/80 to-transparent dark:from-[#010314] dark:via-[#010314]/80 dark:to-transparent backdrop-blur-[6px] [mask-image:linear-gradient(to_bottom,black_0%,black_50%,transparent_100%)] [-webkit-mask-image:linear-gradient(to_bottom,black_0%,black_50%,transparent_100%)] pointer-events-none"
         />
 
         {/* Samotný obsah hlavičky (tlačidlá) */}
