@@ -218,14 +218,14 @@ export default function Navbar() {
       >
         {/* Plynulý gradient & backdrop-blur mask cez celú šírku hornej lišty */}
         <div 
-          className="absolute inset-x-0 top-0 h-24 sm:h-28 bg-gradient-to-b from-[#F4F6FB] via-[#F4F6FB]/80 to-transparent dark:from-[#010314] dark:via-[#010314]/80 dark:to-transparent backdrop-blur-[6px] [mask-image:linear-gradient(to_bottom,black_0%,black_50%,transparent_100%)] [-webkit-mask-image:linear-gradient(to_bottom,black_0%,black_50%,transparent_100%)] pointer-events-none"
+          className="absolute inset-x-0 top-0 h-[calc(env(safe-area-inset-top,44px)+3.5rem)] bg-gradient-to-b from-[#F4F6FB] via-[#F4F6FB]/80 to-transparent dark:from-[#010314] dark:via-[#010314]/80 dark:to-transparent backdrop-blur-[6px] [mask-image:linear-gradient(to_bottom,black_0%,black_50%,transparent_100%)] [-webkit-mask-image:linear-gradient(to_bottom,black_0%,black_50%,transparent_100%)] pointer-events-none"
         />
 
         {/* Samotný obsah hlavičky (tlačidlá) */}
         <div 
           className="relative z-10 flex items-center justify-between"
           style={{ 
-            paddingTop: 'calc(env(safe-area-inset-top, 16px) + 0.75rem)',
+            paddingTop: 'calc(env(safe-area-inset-top, 44px) + 0.75rem)',
             paddingLeft: 'max(1.25rem, env(safe-area-inset-left, 20px))',
             paddingRight: 'max(1.25rem, env(safe-area-inset-right, 20px))',
             paddingBottom: '0.4rem'
@@ -403,7 +403,7 @@ export default function Navbar() {
                     <Calendar size={18} strokeWidth={1.8} className="text-[#64748B] dark:text-[#C7CAE0]/60 mb-0.5" />
                   )}
                   <span className={activeTabIdx === 0 ? 'text-[#0B0D22] dark:text-[#FFFFFF] font-semibold text-[11px]' : 'text-[#64748B] dark:text-[#C7CAE0]/60'}>
-                    {isAdmin ? 'Booking Slots' : t.navReservation}
+                    {isAdmin ? 'Calendar Manager' : t.navReservation}
                   </span>
                 </Link>
 

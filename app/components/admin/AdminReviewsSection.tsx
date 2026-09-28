@@ -244,87 +244,27 @@ export default function AdminReviewsSection({ language }: AdminReviewsSectionPro
 
   return (
     <div className="space-y-4 text-left">
-      {/* Horný akčný panel */}
-      <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#0B0D22] border border-[#E2E8F0] dark:border-[#2B2F49] shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2 flex-wrap">
-            <MessageSquare size={18} className="text-[#6633EE] dark:text-[#A78BFA]" />
-            <h2 className="font-bold text-sm sm:text-base text-[#0B0D22] dark:text-white uppercase tracking-wider">
-              {isSK ? 'Správa Recenzií & Hodnotení' : 'Reviews & Ratings Management'}
-            </h2>
+      {/* Rýchle akcie: Pridať recenziu & Refresh */}
+      <div className="flex items-center justify-between sm:justify-end gap-2">
+        <button
+          type="button"
+          onClick={() => setIsAddModalOpen(true)}
+          className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#6633EE] to-[#7C3AED] text-white hover:opacity-95 text-xs font-semibold transition cursor-pointer shadow-sm active:scale-95"
+        >
+          <Plus size={14} />
+          <span>{isSK ? 'Pridať recenziu' : 'Add Review'}</span>
+        </button>
 
-            {/* DB status indikátor */}
-            {isDbConnected === true ? (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
-                <Database size={10} />
-                <span>Supabase DB</span>
-              </span>
-            ) : isDbConnected === false ? (
-              <button
-                type="button"
-                onClick={() => setIsSqlModalOpen(true)}
-                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 hover:bg-amber-500/25 transition cursor-pointer"
-                title={isSK ? 'Kliknite pre aktiváciu databázy v Supabase' : 'Click to setup Supabase DB'}
-              >
-                <AlertCircle size={10} />
-                <span>{isSK ? 'Záložný súbor (Aktivovať DB)' : 'File Storage (Setup DB)'}</span>
-              </button>
-            ) : null}
-          </div>
-          <p className="text-xs text-[#64748B] dark:text-[#C7CAE0]/70">
-            {isSK 
-              ? 'Schvaľujte prichádzajúce recenzie, filtrujte ich podľa potrieb alebo pridávajte nové.' 
-              : 'Approve incoming reviews, filter them as needed or add new reviews manually.'}
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2 w-full sm:w-auto">
-          <button
-            type="button"
-            onClick={() => setIsAddModalOpen(true)}
-            className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-gradient-to-r from-[#6633EE] to-[#7C3AED] text-white hover:opacity-95 text-xs font-semibold transition cursor-pointer shadow-sm active:scale-95"
-          >
-            <Plus size={14} />
-            <span>{isSK ? 'Pridať recenziu' : 'Add Review'}</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={fetchReviews}
-            disabled={loading}
-            className="p-2.5 rounded-xl bg-slate-100 dark:bg-[#010314] text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border border-[#E2E8F0] dark:border-[#2B2F49] transition cursor-pointer active:scale-95 shrink-0"
-            title={isSK ? 'Obnoviť zoznam' : 'Refresh list'}
-          >
-            <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={fetchReviews}
+          disabled={loading}
+          className="p-2.5 rounded-xl bg-white dark:bg-[#0B0D22] text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border border-[#E2E8F0] dark:border-[#2B2F49] transition cursor-pointer active:scale-95 shadow-xs shrink-0"
+          title={isSK ? 'Obnoviť zoznam' : 'Refresh list'}
+        >
+          <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
+        </button>
       </div>
-
-      {/* Upozornenie ak Supabase tabuľka ešte nie je vytvorená */}
-      {isDbConnected === false && (
-        <div className="p-3.5 sm:p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-amber-800 dark:text-amber-300 shadow-xs">
-          <div className="flex items-start gap-2.5">
-            <AlertCircle size={17} className="text-amber-500 shrink-0 mt-0.5" />
-            <div>
-              <span className="font-bold block text-xs sm:text-sm">
-                {isSK ? 'Recenzie sa momentálne ukladajú v záložnom JSON súbore' : 'Reviews are currently stored in a fallback JSON file'}
-              </span>
-              <p className="text-[11px] opacity-90 mt-0.5 leading-relaxed">
-                {isSK 
-                  ? 'Aby sa recenzie ukladali a mazali priamo v PostgreSQL databáze (a nezmizli po reštarte hostingu), stačí spustiť 1-klikový SQL kód v Supabase SQL Editore.' 
-                  : 'To persist reviews in the PostgreSQL database, execute the prepared SQL snippet in your Supabase SQL Editor.'}
-              </p>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={() => setIsSqlModalOpen(true)}
-            className="w-full sm:w-auto px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-semibold text-xs transition cursor-pointer shrink-0 shadow-xs text-center"
-          >
-            {isSK ? 'Zobraziť SQL kód' : 'View SQL script'}
-          </button>
-        </div>
-      )}
 
       {/* SEGMENTOVANÉ ZÁLOŽKY - ROVNAKÁ ŠÍRKA NA MOBILE */}
       <div className="grid grid-cols-3 sm:flex items-center gap-1.5 p-1 bg-slate-100 dark:bg-[#0B0D22] border border-[#E2E8F0] dark:border-[#2B2F49] rounded-2xl">
@@ -399,39 +339,26 @@ export default function AdminReviewsSection({ language }: AdminReviewsSectionPro
           )}
         </div>
 
-        {/* VÝBER ČASOVÉHO OBDOBIA (HORIZONTÁLNY SCROLL NA MOBILE) */}
-        <div className="flex items-center gap-2 overflow-hidden">
-          <div className="flex items-center gap-1 text-xs font-semibold text-[#0B0D22] dark:text-[#FFFFFF] shrink-0">
-            <Filter size={13} className="text-[#6633EE] dark:text-[#A78BFA]" />
-            <span className="hidden xs:inline">{isSK ? 'Obdobie:' : 'Period:'}</span>
+        {/* 3-STĹPCOVÁ MRIEŽKA: OBDOBIE (MENU), HVIEZDIČKY (MENU), ZORADENIE (MENU) */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1 border-t border-[#E2E8F0] dark:border-[#2B2F49]/70">
+          {/* Výber obdobia ako rozbaľovacie menu */}
+          <div className="relative flex items-center">
+            <Calendar size={13} className="absolute left-2.5 text-[#6633EE] dark:text-[#A78BFA] pointer-events-none" />
+            <select
+              value={dateFilter}
+              onChange={(e) => setDateFilter(e.target.value)}
+              aria-label={isSK ? 'Filter obdobia' : 'Period filter'}
+              className="w-full text-xs font-semibold pl-7 pr-2 py-2 rounded-xl bg-slate-100 dark:bg-[#010314] text-[#1E293B] dark:text-[#DDE0F2] border border-[#E2E8F0] dark:border-[#2B2F49] focus:outline-none focus:border-[#6633EE] shadow-xs cursor-pointer truncate"
+            >
+              <option value="all">{isSK ? 'Všetky obdobia' : 'All periods'}</option>
+              <option value="today">{isSK ? 'Dnes' : 'Today'}</option>
+              <option value="week">{isSK ? 'Posledných 7 dní' : 'Last 7 days'}</option>
+              <option value="month">{isSK ? 'Posledných 30 dní' : 'Last 30 days'}</option>
+              <option value="year">{isSK ? 'Tento rok' : 'This year'}</option>
+            </select>
           </div>
 
-          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 -mx-1 px-1">
-            {[
-              { id: 'all', labelSk: 'Všetky', labelEn: 'All' },
-              { id: 'today', labelSk: 'Dnes', labelEn: 'Today' },
-              { id: 'week', labelSk: '7 dní', labelEn: '7 days' },
-              { id: 'month', labelSk: '30 dní', labelEn: '30 days' },
-              { id: 'year', labelSk: 'Tento rok', labelEn: 'This year' },
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => setDateFilter(tab.id)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer whitespace-nowrap shrink-0 ${
-                  dateFilter === tab.id
-                    ? 'bg-[#6633EE] text-white shadow-xs'
-                    : 'bg-slate-100 dark:bg-[#010314] text-[#64748B] dark:text-[#C7CAE0]/70 border border-[#E2E8F0] dark:border-[#2B2F49] hover:bg-slate-200 dark:hover:bg-[#1E2238]'
-                }`}
-              >
-                {isSK ? tab.labelSk : tab.labelEn}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* PREHĽADNÁ 2-STĹPCOVÁ MRIEŽKA PRE HODNOTENIE A ZORADENIE NA MOBILE */}
-        <div className="grid grid-cols-2 gap-2 pt-1 border-t border-[#E2E8F0] dark:border-[#2B2F49]/70">
+          {/* Filter hodnotenia (hviezdičky) */}
           <div className="relative flex items-center">
             <Star size={13} className="absolute left-2.5 text-amber-500 fill-amber-500 pointer-events-none" />
             <select
@@ -449,6 +376,7 @@ export default function AdminReviewsSection({ language }: AdminReviewsSectionPro
             </select>
           </div>
 
+          {/* Zoradenie */}
           <div className="relative flex items-center">
             <ArrowUpDown size={13} className="absolute left-2.5 text-[#6633EE] dark:text-[#A78BFA] pointer-events-none" />
             <select

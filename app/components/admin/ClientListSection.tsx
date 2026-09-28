@@ -108,6 +108,14 @@ export default function ClientListSection({
   const isSK = language === 'sk';
   const [removeStampProfile, setRemoveStampProfile] = useState<Profile | null>(null);
   const [copiedCodeId, setCopiedCodeId] = useState<string | null>(null);
+  const [expandedClientIds, setExpandedClientIds] = useState<Record<string, boolean>>({});
+
+  const toggleClientExpanded = (id: string) => {
+    setExpandedClientIds((prev) => ({
+      ...prev,
+      [id]: !prev[id],
+    }));
+  };
 
   const handleCopyCode = (code: string, id: string) => {
     if (typeof navigator !== 'undefined' && navigator.clipboard) {
@@ -121,27 +129,19 @@ export default function ClientListSection({
 
   return (
     <div className="bg-white dark:bg-[#0B0D22] border border-[#E2E8F0] dark:border-[#2B2F49] rounded-2xl shadow-sm overflow-hidden text-left font-sans text-[#1E293B] dark:text-[#DDE0F2]">
-      <button
-        type="button"
-        onClick={() => setIsClientsCollapsed(!isClientsCollapsed)}
-        className="w-full p-4 border-b border-[#E2E8F0] dark:border-[#2B2F49] bg-slate-50/50 dark:bg-[#010314]/50 flex items-center justify-between text-left hover:bg-slate-100/50 dark:hover:bg-[#010314] transition cursor-pointer"
-      >
-        <h2 className="text-xs font-bold uppercase tracking-wider text-[#6633EE] dark:text-[#A78BFA] flex items-center gap-2">
-          <Users size={15} />
+      {/* HLAVIČKA SEKCIE: Iba Zoznam klientov */}
+      <div className="w-full p-4 border-b border-[#E2E8F0] dark:border-[#2B2F49] bg-slate-50/50 dark:bg-[#010314]/50 flex items-center justify-between text-left">
+        <h2 className="text-xs sm:text-sm font-bold uppercase tracking-wider text-[#6633EE] dark:text-[#A78BFA] flex items-center gap-2">
+          <Users size={16} />
           <span>
             {isSK 
-              ? `Zoznam klientov a vernostné karty (${filteredProfiles.length}${totalProfilesCount > filteredProfiles.length ? ` z ${totalProfilesCount}` : ''})` 
-              : `Client list & loyalty cards (${filteredProfiles.length}${totalProfilesCount > filteredProfiles.length ? ` of ${totalProfilesCount}` : ''})`}
+              ? `Zoznam klientov (${filteredProfiles.length}${totalProfilesCount > filteredProfiles.length ? ` z ${totalProfilesCount}` : ''})` 
+              : `Client list (${filteredProfiles.length}${totalProfilesCount > filteredProfiles.length ? ` of ${totalProfilesCount}` : ''})`}
           </span>
         </h2>
-        <div className="text-[#64748B] dark:text-[#C7CAE0]/60 flex items-center gap-1 text-xs">
-          <span>{isClientsCollapsed ? (isSK ? 'Rozbaliť' : 'Expand') : (isSK ? 'Schovať' : 'Collapse')}</span>
-          {isClientsCollapsed ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
-        </div>
-      </button>
+      </div>
 
-      {!isClientsCollapsed && (
-        <div>
+      <div>
           {/* OVLÁDACIA LIŠTA: FILTRÁCIA REGISTRÁCIE + ZORADENIE */}
           <div className="p-3 sm:p-4 bg-slate-50/80 dark:bg-[#010314]/80 border-b border-[#E2E8F0] dark:border-[#2B2F49] space-y-3">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -258,63 +258,87 @@ export default function ClientListSection({
                   profile.referral_code
                 );
 
+                const isExpanded = !!expandedClientIds[profile.id];
+
                 return (
                   <div 
                     key={profile.id} 
-                    className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#0B0D22] border border-[#E2E8F0] dark:border-[#2B2F49] hover:border-[#6633EE]/40 transition-all shadow-xs space-y-3.5"
+                    className="rounded-2xl bg-white dark:bg-[#0B0D22] border border-[#E2E8F0] dark:border-[#2B2F49] hover:border-[#6633EE]/40 transition-all shadow-xs overflow-hidden"
                   >
-                    {/* 1. HORNÝ BLOK: MENO, ODPORÚČATEĽ, EMAIL A DÁTUM REGISTRÁCIE */}
-                    <div className="pb-2.5 border-b border-[#E2E8F0] dark:border-[#2B2F49]/60">
-                      {/* 1.1 HORNÝ RIADOK: Meno klienta vľavo s odznakmi | "Odporučil: [kto]" vpravo na mieste pôvodného tagu */}
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap min-w-0">
-                          <h3 className="font-bold text-sm sm:text-base text-[#0B0D22] dark:text-white truncate">
-                            {profile.full_name || (isSK ? 'Hosť bez mena' : 'Unnamed Guest')}
-                          </h3>
-                          {isNewClient && (
-                            <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 shrink-0">
-                              <Sparkles size={10} className="text-emerald-500 shrink-0" />
-                              <span>{isSK ? 'Nový klient' : 'New client'}</span>
-                            </span>
-                          )}
+                    {/* KLIKATEĽNÁ HLAVIČKA KLIENTA: IKONKA A MENO */}
+                    <div 
+                      onClick={() => toggleClientExpanded(profile.id)}
+                      className="p-3.5 sm:p-4 flex items-center justify-between gap-3 cursor-pointer hover:bg-slate-50/70 dark:hover:bg-[#010314]/40 transition select-none"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-10 h-10 rounded-xl bg-[#6633EE]/10 dark:bg-[#6633EE]/20 border border-[#6633EE]/25 flex items-center justify-center font-bold text-xs text-[#6633EE] dark:text-[#A78BFA] shrink-0 shadow-2xs">
+                          {profile.full_name
+                            ? profile.full_name.substring(0, 2).toUpperCase()
+                            : profile.email.substring(0, 2).toUpperCase()}
                         </div>
 
-                        {/* Odporučil tag vpravo hore na mieste pôvodného tagu - klikateľný filter */}
-                        {profile.referred_by ? (
-                          <button
-                            type="button"
-                            onClick={() => setFocusedReferrerId(profile.referred_by!)}
-                            title={isSK ? `Filtrovať profil: ${getReferrerName(profile.referred_by) || 'odporúčateľ'}` : `Filter profile: ${getReferrerName(profile.referred_by) || 'referrer'}`}
-                            className="inline-flex items-center gap-1 text-[10px] sm:text-[11px] font-medium px-2 py-0.5 rounded-md bg-slate-100 dark:bg-[#010314] hover:bg-[#6633EE]/15 hover:border-[#6633EE]/40 text-[#64748B] dark:text-[#C7CAE0]/80 hover:text-[#6633EE] dark:hover:text-[#A78BFA] border border-[#E2E8F0] dark:border-[#2B2F49] transition cursor-pointer shrink-0 group shadow-2xs whitespace-nowrap"
-                          >
-                            <span>{isSK ? 'Odporučil:' : 'Referred by:'}</span>
-                            <strong className="text-[#0B0D22] dark:text-white font-semibold group-hover:underline underline-offset-2">
-                              {getReferrerName(profile.referred_by) || '—'}
-                            </strong>
-                          </button>
-                        ) : null}
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <h3 className="font-bold text-xs sm:text-sm text-[#0B0D22] dark:text-white truncate">
+                              {profile.full_name || (isSK ? 'Hosť bez mena' : 'Unnamed Guest')}
+                            </h3>
+                            {isNewClient && (
+                              <span className="inline-flex items-center gap-0.5 text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 shrink-0">
+                                <Sparkles size={9} />
+                                <span>{isSK ? 'Nový' : 'New'}</span>
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-[11px] text-[#64748B] dark:text-[#C7CAE0]/60 truncate font-mono">
+                            {profile.email}
+                          </p>
+                        </div>
                       </div>
 
-                      {/* 1.2 SPODNÝ RIADOK: Email vľavo a presný dátum registrácie vpravo na presne rovnakej úrovni */}
-                      <div className="flex items-center justify-between gap-2 mt-1 sm:mt-1.5">
-                        {/* Emailová adresa s malým kompaktným riadkovaním od mena */}
-                        <p className="text-xs text-[#64748B] dark:text-[#C7CAE0]/70 truncate font-medium leading-none">
-                          {profile.email}
-                        </p>
-
-                        {/* Presný dátum registrácie zarovno s emailom */}
-                        {regInfo ? (
-                          <div className="flex items-center gap-1 text-[10px] sm:text-[11px] text-[#64748B] dark:text-[#C7CAE0]/70 font-medium leading-none shrink-0 whitespace-nowrap">
-                            <Calendar size={11} className="text-[#6633EE] dark:text-[#A78BFA] shrink-0" />
-                            <span>{regInfo.formattedDateTime}</span>
-                          </div>
-                        ) : (
-                          <div className="text-[10px] text-[#64748B] dark:text-[#C7CAE0]/50 shrink-0 leading-none">
-                            {isSK ? 'Registrácia neevidovaná' : 'No registration date'}
-                          </div>
-                        )}
+                      <div className="flex items-center gap-2 shrink-0">
+                        <span className="text-[11px] font-semibold px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-[#010314] text-[#64748B] dark:text-[#C7CAE0]/70 border border-[#E2E8F0] dark:border-[#2B2F49]">
+                          {currentStamps}/10
+                        </span>
+                        <div className="text-[#64748B] dark:text-[#C7CAE0]/60 p-1">
+                          {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                        </div>
                       </div>
                     </div>
+
+                    {/* DETAILNÉ INFORMÁCIE ZOBRAZENÉ PO KLIKNUTÍ */}
+                    {isExpanded && (
+                      <div className="px-4 pb-4 sm:px-5 sm:pb-5 pt-2 border-t border-[#E2E8F0] dark:border-[#2B2F49]/60 space-y-3.5 animate-in fade-in duration-150">
+                        {/* 1. HORNÝ BLOK: ODPORÚČATEĽ A DÁTUM REGISTRÁCIE */}
+                        <div className="flex items-center justify-between gap-2 pb-2.5 border-b border-[#E2E8F0] dark:border-[#2B2F49]/60 flex-wrap">
+                          {profile.referred_by ? (
+                            <button
+                              type="button"
+                              onClick={() => setFocusedReferrerId(profile.referred_by!)}
+                              title={isSK ? `Filtrovať profil: ${getReferrerName(profile.referred_by) || 'odporúčateľ'}` : `Filter profile: ${getReferrerName(profile.referred_by) || 'referrer'}`}
+                              className="inline-flex items-center gap-1 text-[10px] sm:text-[11px] font-medium px-2 py-0.5 rounded-md bg-slate-100 dark:bg-[#010314] hover:bg-[#6633EE]/15 hover:border-[#6633EE]/40 text-[#64748B] dark:text-[#C7CAE0]/80 hover:text-[#6633EE] dark:hover:text-[#A78BFA] border border-[#E2E8F0] dark:border-[#2B2F49] transition cursor-pointer shrink-0 group shadow-2xs whitespace-nowrap"
+                            >
+                              <span>{isSK ? 'Odporučil:' : 'Referred by:'}</span>
+                              <strong className="text-[#0B0D22] dark:text-white font-semibold group-hover:underline underline-offset-2">
+                                {getReferrerName(profile.referred_by) || '—'}
+                              </strong>
+                            </button>
+                          ) : (
+                            <span className="text-[11px] text-[#64748B] dark:text-[#C7CAE0]/60">
+                              {isSK ? 'Profil klienta' : 'Client profile'}
+                            </span>
+                          )}
+
+                          {regInfo ? (
+                            <div className="flex items-center gap-1 text-[10px] sm:text-[11px] text-[#64748B] dark:text-[#C7CAE0]/70 font-medium leading-none shrink-0 whitespace-nowrap ml-auto">
+                              <Calendar size={11} className="text-[#6633EE] dark:text-[#A78BFA] shrink-0" />
+                              <span>{regInfo.formattedDateTime}</span>
+                            </div>
+                          ) : (
+                            <div className="text-[10px] text-[#64748B] dark:text-[#C7CAE0]/50 shrink-0 leading-none ml-auto">
+                              {isSK ? 'Registrácia neevidovaná' : 'No registration date'}
+                            </div>
+                          )}
+                        </div>
 
                     {/* 2. PEČIATKY: INFORMAČNÝ AJ VIZUÁLNY UKAZOVATEĽ (10 KRUHOVÝCH SLOTŮ) + AKČNÉ TLAČIDLÁ */}
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
@@ -554,16 +578,17 @@ export default function ClientListSection({
                       </div>
                     </div>
                   </div>
-                );
-              })
-            ) : (
-              <div className="p-8 text-center text-[#64748B] dark:text-[#C7CAE0]/60 text-xs font-normal bg-white dark:bg-[#0B0D22] border border-[#E2E8F0] dark:border-[#2B2F49] rounded-2xl">
-                {isSK ? 'Nenašli sa žiadni klienti.' : 'No clients found.'}
+                )}
               </div>
-            )}
+            );
+          })
+        ) : (
+          <div className="p-8 text-center text-[#64748B] dark:text-[#C7CAE0]/60 text-xs font-normal bg-white dark:bg-[#0B0D22] border border-[#E2E8F0] dark:border-[#2B2F49] rounded-2xl">
+            {isSK ? 'Nenašli sa žiadni klienti.' : 'No clients found.'}
           </div>
-        </div>
-      )}
+        )}
+      </div>
+    </div>
 
       {/* MODAL: ODSTRÁNENIE KONKRÉTNEJ PEČIATKY */}
       {removeStampProfile && (

@@ -626,7 +626,7 @@ export default function AdminPage() {
   }
 
   return (
-    <main className="min-h-screen pt-[calc(env(safe-area-inset-top,16px)+4.5rem)] sm:pt-24 pb-12 sm:pb-16 bg-[#F4F6FB] dark:bg-[#010314] text-[#0B0D22] dark:text-[#FFFFFF] transition-colors duration-300 p-4 sm:p-6 font-sans">
+    <main className="min-h-screen pt-[calc(env(safe-area-inset-top,44px)+5rem)] sm:pt-28 pb-12 sm:pb-16 bg-[#F4F6FB] dark:bg-[#010314] text-[#0B0D22] dark:text-[#FFFFFF] transition-colors duration-300 p-4 sm:p-6 font-sans">
       {scanSuccessMsg && (
         <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[60] flex items-center gap-2 px-4 py-3 rounded-2xl bg-[#10B981] text-white text-xs font-semibold shadow-2xl animate-in fade-in slide-in-from-top-4 duration-300">
           <CheckCircle size={16} />
@@ -636,45 +636,126 @@ export default function AdminPage() {
 
       <div className="max-w-4xl mx-auto space-y-5">
         
-        {/* Hlavička Admina: Vľavo Administrácia a sekcia, Vpravo Naskenovať (QR) a Hamburger Menu */}
+        {/* Hlavička Admina: Ikona a názov sekcie podľa výberu v menu */}
         <div className="flex flex-row justify-between items-center bg-white dark:bg-[#0B0D22] border border-[#E2E8F0] dark:border-[#2B2F49] p-3.5 sm:p-4 rounded-2xl shadow-sm gap-3">
           
-          {/* VĽAVO: Administrácia & aktuálna vybratá sekcia */}
+          {/* VĽAVO: Ikona & Názov sekcie */}
           <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
-            <div className="w-10 h-10 rounded-xl bg-[#6633EE]/10 dark:bg-[#6633EE]/20 border border-[#6633EE]/25 flex items-center justify-center text-[#6633EE] dark:text-[#A78BFA] shrink-0 shadow-xs">
-              <ShieldCheck size={20} />
-            </div>
-            <div className="text-left min-w-0">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-[#64748B] dark:text-[#C7CAE0]/60 block leading-tight">
-                {language === 'sk' ? 'Administrácia' : 'Administration'}
-              </span>
-              <div className="text-xs sm:text-sm font-bold text-[#0B0D22] dark:text-[#FFFFFF] flex items-center gap-1.5 truncate mt-0.5">
-                {activeAdminTab === 'clients' && <><Users size={15} className="text-[#6633EE] shrink-0" /><span>{language === 'sk' ? `Klienti (${clientProfiles.length})` : `Clients (${clientProfiles.length})`}</span></>}
-                {activeAdminTab === 'bookings' && <><Calendar size={15} className="text-[#6633EE] shrink-0" /><span>{language === 'sk' ? `Rezervácie (${activeBookings.length})` : `Bookings (${activeBookings.length})`}</span></>}
-                {activeAdminTab === 'wheel' && <><Sparkles size={15} className="text-amber-500 shrink-0" /><span>{language === 'sk' ? 'Maintenance kolesa' : 'Wheel Maintenance'}</span></>}
-                {activeAdminTab === 'stats' && <><Coins size={15} className="text-emerald-500 shrink-0" /><span>{language === 'sk' ? 'Štatistiky' : 'Statistics'}</span></>}
-                {activeAdminTab === 'reviews' && <><MessageSquare size={15} className="text-blue-500 shrink-0" /><span>{language === 'sk' ? 'Recenzie' : 'Reviews'}</span></>}
-                {activeAdminTab === 'database' && <><Database size={15} className="text-rose-500 shrink-0" /><span>{language === 'sk' ? 'Databáza' : 'Database'}</span></>}
-              </div>
-            </div>
+            {activeAdminTab === 'clients' && (
+              <>
+                <div className="w-10 h-10 rounded-xl bg-[#6633EE]/10 dark:bg-[#6633EE]/20 border border-[#6633EE]/25 flex items-center justify-center text-[#6633EE] dark:text-[#A78BFA] shrink-0 shadow-xs">
+                  <Users size={20} />
+                </div>
+                <div className="text-left min-w-0">
+                  <h1 className="text-sm sm:text-base font-bold text-[#0B0D22] dark:text-[#FFFFFF] uppercase tracking-wider leading-tight truncate">
+                    {language === 'sk' ? `Klienti (${clientProfiles.length})` : `Clients (${clientProfiles.length})`}
+                  </h1>
+                  <span className="text-[10px] text-[#64748B] dark:text-[#C7CAE0]/60 block mt-0.5">
+                    {language === 'sk' ? 'Správa kariet, pečiatok a darčekov' : 'Loyalty cards, stamps and gifts'}
+                  </span>
+                </div>
+              </>
+            )}
+
+            {activeAdminTab === 'bookings' && (
+              <>
+                <div className="w-10 h-10 rounded-xl bg-[#6633EE]/10 dark:bg-[#6633EE]/20 border border-[#6633EE]/25 flex items-center justify-center text-[#6633EE] dark:text-[#A78BFA] shrink-0 shadow-xs">
+                  <Calendar size={20} />
+                </div>
+                <div className="text-left min-w-0">
+                  <h1 className="text-sm sm:text-base font-bold text-[#0B0D22] dark:text-[#FFFFFF] uppercase tracking-wider leading-tight truncate">
+                    {language === 'sk' ? `Rezervácie (${activeBookings.length})` : `Bookings (${activeBookings.length})`}
+                  </h1>
+                  <span className="text-[10px] text-[#64748B] dark:text-[#C7CAE0]/60 block mt-0.5">
+                    {language === 'sk' ? 'Termíny a storno žiadosti' : 'Slots and cancellation requests'}
+                  </span>
+                </div>
+              </>
+            )}
+
+            {activeAdminTab === 'wheel' && (
+              <>
+                <div className="w-10 h-10 rounded-xl bg-amber-500/10 dark:bg-amber-500/20 border border-amber-500/25 flex items-center justify-center text-amber-500 dark:text-amber-400 shrink-0 shadow-xs">
+                  <Sparkles size={20} />
+                </div>
+                <div className="text-left min-w-0">
+                  <h1 className="text-sm sm:text-base font-bold text-[#0B0D22] dark:text-[#FFFFFF] uppercase tracking-wider leading-tight truncate">
+                    Maintenance SpinWheelu
+                  </h1>
+                  <span className="text-[10px] text-[#64748B] dark:text-[#C7CAE0]/60 block mt-0.5">
+                    {language === 'sk' ? 'Režim údržby a oznam pre klientov' : 'Maintenance mode and client notice'}
+                  </span>
+                </div>
+              </>
+            )}
+
+            {activeAdminTab === 'stats' && (
+              <>
+                <div className="w-10 h-10 rounded-xl bg-emerald-500/10 dark:bg-emerald-500/20 border border-emerald-500/25 flex items-center justify-center text-emerald-500 dark:text-emerald-400 shrink-0 shadow-xs">
+                  <Coins size={20} />
+                </div>
+                <div className="text-left min-w-0">
+                  <h1 className="text-sm sm:text-base font-bold text-[#0B0D22] dark:text-[#FFFFFF] uppercase tracking-wider leading-tight truncate">
+                    {language === 'sk' ? 'Štatistiky' : 'Statistics'}
+                  </h1>
+                  <span className="text-[10px] text-[#64748B] dark:text-[#C7CAE0]/60 block mt-0.5">
+                    {language === 'sk' ? 'Tržby, pečiatky a prehľady' : 'Revenue, stamps and analytics'}
+                  </span>
+                </div>
+              </>
+            )}
+
+            {activeAdminTab === 'reviews' && (
+              <>
+                <div className="w-10 h-10 rounded-xl bg-blue-500/10 dark:bg-blue-500/20 border border-blue-500/25 flex items-center justify-center text-blue-500 dark:text-blue-400 shrink-0 shadow-xs">
+                  <MessageSquare size={20} />
+                </div>
+                <div className="text-left min-w-0">
+                  <h1 className="text-sm sm:text-base font-bold text-[#0B0D22] dark:text-[#FFFFFF] uppercase tracking-wider leading-tight truncate">
+                    {language === 'sk' ? 'Recenzie' : 'Reviews'}
+                  </h1>
+                  <span className="text-[10px] text-[#64748B] dark:text-[#C7CAE0]/60 block mt-0.5">
+                    {language === 'sk' ? 'Hodnotenia a komentáre klientov' : 'Client ratings and feedback'}
+                  </span>
+                </div>
+              </>
+            )}
+
+            {activeAdminTab === 'database' && (
+              <>
+                <div className="w-10 h-10 rounded-xl bg-rose-500/10 dark:bg-rose-500/20 border border-rose-500/25 flex items-center justify-center text-rose-500 dark:text-rose-400 shrink-0 shadow-xs">
+                  <Database size={20} />
+                </div>
+                <div className="text-left min-w-0">
+                  <h1 className="text-sm sm:text-base font-bold text-[#0B0D22] dark:text-[#FFFFFF] uppercase tracking-wider leading-tight truncate">
+                    {language === 'sk' ? 'Databáza' : 'Database'}
+                  </h1>
+                  <span className="text-[10px] text-[#64748B] dark:text-[#C7CAE0]/60 block mt-0.5">
+                    {language === 'sk' ? 'Používatelia, mazanie a história' : 'Users, deletion and records'}
+                  </span>
+                </div>
+              </>
+            )}
           </div>
 
-          {/* VPRAVO: Iba Naskenovať QR kód */}
-          <div className="flex items-center gap-2 shrink-0">
-            <button
-              type="button"
-              onClick={() => {
-                setScanStampPrice('');
-                setScanFlowError('');
-                setShowScanPriceModal(true);
-              }}
-              className="flex items-center gap-1.5 sm:gap-2 px-3.5 py-2.5 rounded-xl bg-[#6633EE] hover:bg-[#5324d6] text-white font-semibold text-xs shadow-sm transition active:scale-95 cursor-pointer"
-              title={language === 'sk' ? 'Naskenovať QR kód klienta' : 'Scan client QR code'}
-            >
-              <QrCode size={17} />
-              <span>{language === 'sk' ? 'Naskenovať' : 'Scan'}</span>
-            </button>
-          </div>
+          {/* VPRAVO: Naskenovať QR kód — IBA V KLIENTOCH */}
+          {activeAdminTab === 'clients' && (
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={() => {
+                  setScanStampPrice('');
+                  setScanFlowError('');
+                  setShowScanPriceModal(true);
+                }}
+                className="flex items-center gap-1.5 sm:gap-2 px-3.5 py-2.5 rounded-xl bg-[#6633EE] hover:bg-[#5324d6] text-white font-semibold text-xs shadow-sm transition active:scale-95 cursor-pointer"
+                title={language === 'sk' ? 'Naskenovať QR kód klienta' : 'Scan client QR code'}
+              >
+                <QrCode size={17} />
+                <span>{language === 'sk' ? 'Naskenovať' : 'Scan'}</span>
+              </button>
+            </div>
+          )}
         </div>
 
         {/* 🍔 HAMBURGER MENU DRAWER / MODAL PRE ADMINA */}
@@ -684,7 +765,7 @@ export default function AdminPage() {
             onClick={() => setIsAdminMenuOpen(false)}
           >
             <div 
-              className="w-full max-w-sm h-full sm:h-auto sm:max-h-[92vh] bg-white dark:bg-[#0B0D22] border-r sm:border border-[#E2E8F0] dark:border-[#2B2F49] sm:rounded-3xl shadow-2xl p-5 sm:p-6 overflow-y-auto space-y-4 text-left flex flex-col justify-between animate-in slide-in-from-left duration-300"
+              className="w-full max-w-sm h-full sm:h-auto sm:max-h-[92vh] bg-white dark:bg-[#0B0D22] border-r sm:border border-[#E2E8F0] dark:border-[#2B2F49] sm:rounded-3xl shadow-2xl p-5 sm:p-6 pt-[calc(env(safe-area-inset-top,48px)+1.25rem)] sm:pt-6 overflow-y-auto space-y-4 text-left flex flex-col justify-between animate-in slide-in-from-left duration-300"
               onClick={(e) => e.stopPropagation()}
             >
               <div>
@@ -827,7 +908,7 @@ export default function AdminPage() {
                         <Sparkles size={16} />
                       </div>
                       <div className="min-w-0">
-                        <p className="font-bold text-xs">Maintenance kolesa</p>
+                        <p className="font-bold text-xs">Maintenance SpinWheelu</p>
                         <p className="text-[10px] text-[#64748B] dark:text-[#C7CAE0]/60 truncate">Režim údržby a oznam pre klientov</p>
                       </div>
                     </div>
@@ -929,7 +1010,7 @@ export default function AdminPage() {
                 >
                   <div className="flex items-center gap-2">
                     <Calendar size={14} className="text-[#6633EE]" />
-                    <span>{language === 'sk' ? 'Booking Slots kalendár' : 'Booking Slots calendar'}</span>
+                    <span>Calendar Manager</span>
                   </div>
                   <ChevronRight size={13} className="opacity-50" />
                 </button>
@@ -944,7 +1025,7 @@ export default function AdminPage() {
                 >
                   <div className="flex items-center gap-2">
                     <User size={14} className="text-[#6633EE]" />
-                    <span>{language === 'sk' ? 'Môj Profil & Ranking' : 'My Profile & Ranking'}</span>
+                    <span>My profile</span>
                   </div>
                   <ChevronRight size={13} className="opacity-50" />
                 </button>
@@ -1065,25 +1146,9 @@ export default function AdminPage() {
                     <Sparkles size={22} className={luckyWheelEnabled ? '' : 'animate-pulse'} />
                   </div>
                   <div>
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <h2 className="font-bold text-base sm:text-lg text-[#0B0D22] dark:text-white">
-                        {language === 'sk' ? 'Koleso Šťastia pre klientov' : 'Client Wheel of Fortune'}
-                      </h2>
-                      <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold border ${
-                        luckyWheelEnabled
-                          ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800'
-                          : 'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-700'
-                      }`}>
-                        {luckyWheelEnabled
-                          ? (language === 'sk' ? 'Aktívne' : 'Active')
-                          : (language === 'sk' ? 'V rekonštrukcii' : 'Under Maintenance')}
-                      </span>
-                    </div>
-                    <p className="text-xs text-[#64748B] dark:text-[#C7CAE0]/70 mt-0.5">
-                      {language === 'sk' 
-                        ? 'Globálne zapnutie alebo dočasné vypnutie kolesa šťastia v klientskej zóne' 
-                        : 'Global toggle of the Lucky Wheel availability for clients'}
-                    </p>
+                    <h2 className="font-bold text-base sm:text-lg text-[#0B0D22] dark:text-white">
+                      {language === 'sk' ? 'Koleso Šťastia pre klientov' : 'Client Wheel of Fortune'}
+                    </h2>
                   </div>
                 </div>
 
@@ -1106,28 +1171,6 @@ export default function AdminPage() {
                       : (language === 'sk' ? 'Zapnúť koleso pre klientov' : 'Enable Wheel')}
                   </span>
                 </button>
-              </div>
-
-              {/* Popis stavu pre admina */}
-              <div className={`p-4 rounded-2xl border text-xs leading-relaxed ${
-                luckyWheelEnabled
-                  ? 'bg-emerald-50/60 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800/40 text-emerald-800 dark:text-emerald-200'
-                  : 'bg-amber-50/60 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800/40 text-amber-800 dark:text-amber-200'
-              }`}>
-                <p className="font-semibold mb-1">
-                  {luckyWheelEnabled 
-                    ? (language === 'sk' ? '✅ Koleso je momentálne plne funkčné' : '✅ Wheel is currently active')
-                    : (language === 'sk' ? '⚠️ Koleso je momentálne v stave údržby' : '⚠️ Wheel is currently under maintenance')}
-                </p>
-                <p>
-                  {luckyWheelEnabled
-                    ? (language === 'sk' 
-                        ? 'Prihlásení klienti môžu vo svojom profile točiť Kolesom šťastia a vyhrávať pečiatky, darčeky alebo zľavové kódy na ďalšiu masáž.' 
-                        : 'Clients can spin the wheel in their profile and win stamps, gifts or discounts.')
-                    : (language === 'sk'
-                        ? 'Prihláseným klientom sa pri pokuse o točenie zobrazuje oznam o prebiehajúcej rekonštrukcii s informáciou, že pripravujete nové odmeny.'
-                        : 'Clients see a maintenance notification stating that new features and rewards are coming soon.')}
-                </p>
               </div>
 
               {/* Správa pre klientov počas rekonštrukcie */}

@@ -713,30 +713,25 @@ export default function AdminDatabaseSection({
       {/* 🚀 STICKY BULK ACTION BAR */}
       {selectedUserIds.length > 0 && (
         <div 
-          className="fixed left-1/2 -translate-x-1/2 z-[60] w-[92%] max-w-lg bg-[#0B0D22]/95 dark:bg-[#151938]/95 backdrop-blur-md text-white border border-[#6633EE]/50 p-3.5 sm:p-4 rounded-2xl shadow-[0_10px_35px_rgba(0,0,0,0.5)] flex items-center justify-between gap-3 animate-in slide-in-from-bottom-5 duration-200 ring-1 ring-white/10"
-          style={{ bottom: 'calc(5.75rem + env(safe-area-inset-bottom, 0px))' }}
+          className="fixed left-1/2 -translate-x-1/2 z-[60] w-[92%] max-w-md bg-[#0B0D22]/95 dark:bg-[#151938]/95 backdrop-blur-md text-white border border-[#6633EE]/50 p-2.5 sm:p-3 rounded-2xl shadow-[0_10px_35px_rgba(0,0,0,0.5)] flex items-center justify-between gap-3 animate-in slide-in-from-bottom-5 duration-200 ring-1 ring-white/10"
+          style={{ bottom: 'max(1rem, calc(env(safe-area-inset-bottom, 16px) + 0.5rem))' }}
         >
           <div className="flex items-center gap-2.5 min-w-0">
             <div className="w-8 h-8 rounded-xl bg-[#6633EE] flex items-center justify-center shrink-0 shadow-sm">
               <CheckSquare size={16} className="text-white" />
             </div>
-            <div className="truncate">
-              <span className="font-bold text-xs sm:text-sm block leading-tight">
-                {language === 'sk'
-                  ? `Vybraných ${selectedUserIds.length} ${selectedUserIds.length === 1 ? 'profil' : selectedUserIds.length < 5 ? 'profily' : 'profilov'}`
-                  : `${selectedUserIds.length} ${selectedUserIds.length === 1 ? 'profile' : 'profiles'} selected`}
-              </span>
-              <span className="text-[11px] text-slate-300 block">
-                {language === 'sk' ? 'Hromadná akcia pre označené záznamy' : 'Bulk actions for selected records'}
-              </span>
-            </div>
+            <span className="font-bold text-xs sm:text-sm truncate">
+              {language === 'sk'
+                ? `Vybraných: ${selectedUserIds.length}`
+                : `Selected: ${selectedUserIds.length}`}
+            </span>
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
             <button
               type="button"
               onClick={handleDeselectAll}
-              className="px-2.5 sm:px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-semibold transition cursor-pointer"
+              className="px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-semibold transition cursor-pointer"
             >
               {language === 'sk' ? 'Zrušiť' : 'Deselect'}
             </button>
@@ -744,10 +739,11 @@ export default function AdminDatabaseSection({
             <button
               type="button"
               onClick={() => setShowBatchDeleteModal(true)}
-              className="flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-md transition active:scale-95 cursor-pointer"
+              className="p-2 sm:p-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold transition active:scale-95 cursor-pointer shadow-md"
+              title={language === 'sk' ? `Vymazať (${selectedUserIds.length})` : `Delete (${selectedUserIds.length})`}
+              aria-label={language === 'sk' ? `Vymazať (${selectedUserIds.length})` : `Delete (${selectedUserIds.length})`}
             >
-              <Trash2 size={14} />
-              <span>{language === 'sk' ? `Vymazať (${selectedUserIds.length})` : `Delete (${selectedUserIds.length})`}</span>
+              <Trash2 size={16} />
             </button>
           </div>
         </div>
